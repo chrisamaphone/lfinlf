@@ -1,0 +1,256 @@
+%%% syntax %%%
+
+ekind : type.  %name ekind EK.
+etp   : type.  %name etp EA.
+etm   : type.  %name etm EM.
+
+%% kinds %%
+ektype : ekind.
+ekpi   : etp -> (etm -> ekind) -> ekind.
+
+%% families %%
+eaconst : ctp -> etp.
+epi     : etp -> (etm -> etp) -> etp.
+eaapp   : etp -> etm -> etp.
+% added 05/13/09
+ealam   : etp -> (etm -> etp) -> etp.
+
+%% objects %%
+econst : ctm -> etm.
+elam   : etp -> (etm -> etm) -> etm.
+eapp   : etm -> etm -> etm.
+
+
+%%% judgments %%%
+
+%  M : A
+eof   : etm -> etp -> type.
+ecof  : ctm -> etp -> type.
+evof  : etm -> etp -> type.
+
+%  A : K
+ekof   : etp -> ekind -> type.
+eckof  : ctp -> ekind -> type.
+
+%  K : kind
+ewfkind : ekind -> type.
+
+% M = N at A
+eqtm : etm -> etm -> etp -> type.
+
+% A = B at K
+eqtp : etp -> etp -> ekind -> type.
+
+% K = L
+eqkind : ekind -> ekind -> type.
+
+%% constants %%
+
+%{
+etclosed : etp -> type.
+ekclosed : ekind -> type.
+%% XXX fill in
+}%
+
+%block ecsig : some {A:etp}
+               block {c:ctm} {d:ecof c A}.
+%block easig : some {K:ekind}
+               block {a:ctp} {d:eckof a K}.
+
+
+%%% typing %%%
+
+% objects
+
+eof/var   : eof X A
+             <- evof X A
+             <- ekof A ektype.
+
+eof/const : eof (econst C) A
+             <- ecof C A
+             <- ekof A ektype.
+
+eof/app   : eof (eapp M N) (B N)
+             <- eof M (epi A ([x] B x))
+             <- eof N A.
+
+eof/lam   : eof (elam A ([x] M x)) (epi A ([x] B x))
+             <- ({x} evof x A -> eof (M x) (B x))
+             <- ekof A ektype.
+
+eof/eqtp  : eof M B
+             <- eof M A
+             <- eqtp A B ektype.
+
+%% added 3/8/09:
+eof/ext   : eof M (epi A ([x] B x))
+             <- eof M (epi A B')
+             <- ({x} evof x A -> eof (eapp M x) (B x)).
+
+% families
+
+ekof/const  : ekof (eaconst A) K
+               <- eckof A K
+               <- ewfkind K.
+
+ekof/app    : ekof (eaapp A M) (K M)
+             <- ekof A (ekpi B ([x] K x))
+             <- eof M B.
+
+% XXX switch order of premises
+ekof/pi     : ekof (epi A1 ([x] A2 x)) ektype
+              <- ekof A1 ektype
+              <- ({x} evof x A1 -> ekof (A2 x) ektype).
+
+% added 05/13/09
+ekof/lam    : ekof (ealam A1 ([x] A2 x)) (ekpi A1 ([x] K2 x))
+               <- ({x} evof x A1 -> ekof (A2 x) (K2 x))
+               <- ekof A1 ektype.
+
+% added 05/13/09
+ekof/ext : ekof C (ekpi A [x] K x)
+            <- ekof C (ekpi A [x] K' x)
+            <- ({x} evof x A -> ekof (eaapp C x) (K x)).
+
+ekof/eqkind : ekof A L
+              <- ekof A K
+              <- eqkind K L.
+
+% kinds
+
+ewfkind/tp : ewfkind ektype.
+
+ewfkind/pi : ewfkind (ekpi A ([x] K x))
+             <- ekof A ektype
+             <- ({x} evof x A -> ewfkind (K x)).
+
+
+%%% equivalence and congruence %%%
+
+%% eqtm
+
+eqtm/app : eqtm (eapp M1 M2) (eapp N1 N2) (A1 M2)
+            <- eqtm M1 N1 (epi A2 ([x] A1 x))
+            <- eqtm M2 N2 A2.
+
+eqtm/lam : eqtm (elam A ([x] M x)) (elam A' ([x] M' x)) (epi A ([x] B x))
+            <- eqtp A A' ektype
+            <- ({x} evof x A -> eqtm (M x) (M' x) (B x)).
+
+eqtm/ext : eqtm M N (epi A ([x] B x))
+            <- eof M (epi A ([x] B' x))
+            <- eof N (epi A ([x] B'' x))
+            <- ({x} evof x A -> eqtm (eapp M x) (eapp N x) (B x)).
+
+%% weak extensionality -- added 01/14/10 for efunctionality
+eqtm/extw : eqtm M N (epi A ([x] B x))
+             <- eqtm M N (epi A ([x] B' x))
+             <- ({x} evof x A -> eqtm (eapp M x) (eapp N x) (B x)).
+
+% eqtm/parcon : eqtm (eapp (elam A1 [x] M2 x) M1) (N2 N1) (A2 M1)
+%               <- ({x} evof x A1 -> eqtm (M2 x) (N2 x) (A2 x))
+%               <- eqtm M1 N1 A1.
+
+eqtm/beta : eqtm (eapp (elam A [x] M x) N) (M N) (B N)
+             <- ({x} evof x A -> eof (M x) (B x))
+             <- eof N A.    %% added this premise 3/8/09.
+
+eqtm/sym   : eqtm N M A 
+              <- eqtm M N A.
+
+eqtm/trans : eqtm M O A 
+              <- eqtm M N A 
+              <- eqtm N O A.
+
+eqtm/refl  : eqtm M M A
+              <- eof M A.
+
+eqtm/typecon : eqtm M N B 
+                <- eqtm M N A 
+                <- eqtp A B ektype.
+
+%% eqtp
+
+eqtp/app : eqtp (eaapp A M) (eaapp B N) (K M)
+            <- eqtp A B (ekpi C [x] K x)
+            <- eqtm M N C.
+
+eqtp/pi  : eqtp (epi A [y] B y) (epi A' [y] B' y) ektype
+            <- eqtp A A' ektype
+            <- ({x} evof x A -> eqtp (B x) (B' x) ektype).
+
+% added 05/13/09
+eqtp/lam : eqtp (ealam A ([x] B x)) (ealam A' ([x] B' x)) (ekpi A ([x] K x))
+            <- eqtp A A' ektype
+            <- ({x} evof x A -> eqtp (B x) (B' x) (K x)).
+
+% added 05/13/09
+eqtp/ext : eqtp B C (ekpi A ([x] K x))
+            <- ekof B (ekpi A ([x] K' x))
+            <- ekof C (ekpi A ([x] K'' x))
+            <- ({x} evof x A -> eqtp (eaapp B x) (eaapp C x) (K x)).
+
+%% weak extensionality -- added 01/14/10 for efunctionality
+eqtp/extw : eqtp M N (ekpi A ([x] B x))
+             <- eqtp M N (ekpi A ([x] B' x))
+             <- ({x} evof x A -> eqtp (eaapp M x) (eaapp N x) (B x)).
+
+
+% added 05/13/09
+eqtp/beta : eqtp (eaapp (ealam A [x] B x) N) (B N) (K N)
+             <- ({x} evof x A -> ekof (B x) (K x))
+             <- eof N A.
+
+eqtp/sym   : eqtp B A K
+              <- eqtp A B K.
+
+eqtp/trans : eqtp A C K 
+              <- eqtp A B K 
+              <- eqtp B C K.
+
+eqtp/refl  : eqtp A A K
+              <- ekof A K.
+
+eqtp/kcon : eqtp A B L 
+             <- eqtp A B K 
+             <- eqkind K L.
+
+%% eqkind
+
+eqkind/tp : eqkind ektype ektype.
+
+eqkind/pi : eqkind (ekpi A [y] K y) (ekpi B [z] L z)
+             <- eqtp A B ektype
+             <- ({x} evof x A -> eqkind (K x) (L x)).
+
+eqkind/sym   : eqkind L K 
+                <- eqkind K L.
+
+eqkind/trans : eqkind K L' 
+                <- eqkind K L 
+                <- eqkind L L'.
+
+eqkind/refl  : eqkind K K
+                <- ewfkind K. % added 3/8/09.
+
+%% worlds %%
+
+%block evar  : block {ex:etm}.
+%block ebind : some {ea:etp}
+                block {ex:etm} {ed:evof ex ea}.
+%block eofblock : some {ex:etm} {ea:etp}
+                block {ed:evof ex ea}.
+
+%% a closed etm %%
+
+ace : etm = econst unit.
+
+%% Sample signature. A test and a thing to make stuff split.
+anat : ctp.
+dkof_nat : ckof anat ktype.
+dekof_nat : eckof anat ektype.
+
+czero : ctm.
+dof_zero : cof czero (base (aconst anat)).
+deof_zero : ecof czero (eaconst anat).
+

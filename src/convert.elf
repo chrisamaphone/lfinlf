@@ -1,0 +1,145 @@
+
+convert     : tm -> tp -> etm -> type.
+aconvert    : atm -> tp -> etm -> type.
+tpconvert   : tp -> kind -> etp -> type.
+atpconvert  : atp -> kind -> etp -> type.
+kconvert    : kind -> ekind -> type.
+
+convert/at      : convert (at R) (base P) EM
+                   <- aconvert R (base P) EM.
+
+convert/lam     : convert (lam ([x] M x)) (pi A ([x] B x)) 
+                      (elam EA ([ex] EM ex))
+                   <- tpconvert A ktype EA
+                   <- ({x} vof x A
+                       -> {ex} vtrans ex x
+                       -> convert (M x) (B x) (EM ex)).
+
+%{ 
+The tpconvert subgoals in these next two rules (and in atpconvert/const) are 
+needed for the proof of convert-reg for termination, because the induction is
+over the conversion derivation, so the tpconvert has to be a subderivation 
+for the metric to get smaller.
+}%
+
+aconvert/const  : aconvert (const C) A (econst C)
+                   <- cof C A
+                   <- kof A ktype
+%                   <- tclosed A
+                   <- tpconvert A ktype _.
+
+aconvert/var    : aconvert X A EX
+                   <- vof X A
+                   <- kof A ktype
+                   <- tpconvert A ktype _
+                   <- vtrans EX X.
+
+aconvert/app    : aconvert (app R N) Bx (eapp EM EN)
+                   <- aconvert R (pi A ([x] B x)) EM
+                   <- convert N A EN
+                   <- tpsub ([x] B x) N Bx.
+
+tpconvert/base  : tpconvert (base P) ktype EA
+                   <- atpconvert P ktype EA.
+
+tpconvert/pi    : tpconvert (pi A ([x] B x)) ktype 
+                      (epi EA ([ex] EB ex))
+                   <- tpconvert A ktype EA
+                   <- ({x} vof x A
+                       -> {ex} vtrans ex x
+                       -> tpconvert (B x) ktype (EB ex)).
+
+tpconvert/lam   : tpconvert (alam ([x] B x)) (kpi A ([x] K x))
+                      (ealam EA ([ex] EB ex))
+                   <- tpconvert A ktype EA
+                   <- ({x} vof x A
+                       -> {ex} vtrans ex x
+                       -> tpconvert (B x) (K x) (EB ex)).
+
+atpconvert/const: atpconvert (aconst A) K (eaconst A)
+                   <- ckof A K
+                   <- wfkind K
+%                   <- kclosed K
+                   <- kconvert K _.
+
+atpconvert/app  : atpconvert (aapp P M) Kx (eaapp EA EM)
+                   <- atpconvert P (kpi A ([x] K x)) EA
+                   <- convert M A EM
+                   <- ksub ([x] K x) M Kx.
+
+kconvert/type   : kconvert ktype ektype.
+
+kconvert/pi     : kconvert (kpi A ([x] K x)) (ekpi EA ([ex] EK ex))
+                   <- tpconvert A ktype EA
+                   <- ({x} vof x A
+                       -> {ex} vtrans ex x
+                       -> kconvert (K x) (EK ex)).
+
+%% Explicit Contexts %%
+
+converte    : ctx -> tm -> tp -> etm -> type.
+aconverte   : ctx -> atm -> tp -> etm -> type.
+tpconverte  : ctx -> tp -> kind -> etp -> type.
+atpconverte : ctx -> atp -> kind -> etp -> type.
+kconverte   : ctx -> kind -> ekind -> type.
+
+
+converte/at       : converte G (at R) (base P) EM
+                     <- aconverte G R (base P) EM.
+
+converte/lam      : converte G (lam M) (pi A B) (elam EA EM)
+                     <- tpconverte G A ktype EA
+                     <- ({x} {ex} vtrans ex x
+                         -> converte (cons G x A) (M x) (B x) (EM ex)).
+
+aconverte/const   : aconverte G (const C) A (econst C)
+                     <- cof C A
+                     <- kof A ktype
+                     <- tpconverte G A ktype _.
+
+aconverte/var     : aconverte G X A EX
+                     <- lookup G X A
+                     <- tpconverte G A ktype _
+                     <- vtrans EX X.
+
+aconverte/vari    : aconverte G X A EX
+                     <- vof X A
+                     <- kof A ktype
+                     <- tpconverte G A ktype _
+                     <- vtrans EX X.
+
+aconverte/app     : aconverte G (app R N) Bx (eapp EM EN)
+                     <- aconverte G R (pi A B) EM
+                     <- converte G N A EN
+                     <- tpsub B N Bx.
+
+tpconverte/base   : tpconverte G (base P) ktype EA
+                     <- atpconverte G P ktype EA.
+
+tpconverte/pi     : tpconverte G (pi A B) ktype (epi EA EB)
+                     <- tpconverte G A ktype EA
+                     <- ({x} {ex} vtrans ex x
+                         -> tpconverte (cons G x A) (B x) ktype (EB ex)).
+
+tpconverte/lam    : tpconverte G (alam B) (kpi A K) (ealam EA EB)
+                     <- tpconverte G A ktype EA
+                     <- ({x} {ex} vtrans ex x
+                         -> tpconverte (cons G x A) (B x) (K x) (EB ex)).
+
+atpconverte/const : atpconverte G (aconst A) K (eaconst A)
+                     <- ckof A K
+                     <- wfkind K
+                     <- kconverte G K _.
+
+atpconverte/app   : atpconverte G (aapp P M) Kx (eaapp EA EM)
+                     <- atpconverte G P (kpi A K) EA
+                     <- converte G M A EM
+                     <- ksub K M Kx.
+
+kconverte/type    : kconverte G ktype ektype.
+
+kconverte/pi      : kconverte G (kpi A K) (ekpi EA EK)
+                     <- tpconverte G A ktype EA
+                     <- ({x} {ex} vtrans ex x
+                         -> kconverte (cons G x A) (K x) (EK ex)).
+

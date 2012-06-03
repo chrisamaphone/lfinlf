@@ -1,0 +1,455 @@
+%block csig-ei :  some {A:tp} {EA:etp}
+                  block {c:ctm} {d:cof c A} {e:ecof c EA}.
+%block asig-ei :  some {K:kind} {EK:ekind}
+                  block {a:ctp} {d:ckof a K} {e:eckof a EK}.
+
+convert-fun   : convert M A EM -> convert M A EN
+                 -> etm-eq EM EN -> type.
+%mode convert-fun +X1 +X2 -X3.
+
+aconvert-fun  : aconvert R A EM -> aconvert R B EN
+                 -> tp-eq A B
+                 -> etm-eq EM EN -> type.
+%mode aconvert-fun +X1 +X2 -X3 -X4.
+
+tpconvert-fun : tpconvert A K EA -> tpconvert A K EA'
+                 -> etp-eq EA EA' -> type.
+%mode tpconvert-fun +X1 +X2 -X3.
+
+atpconvert-fun  : atpconvert P K EA -> atpconvert P K' EA'
+                   -> kind-eq K K'
+                   -> etp-eq EA EA' -> type.
+%mode atpconvert-fun +X1 +X2 -X3 -X4.
+
+-at         : convert-fun 
+                  (convert/at (Daconvert : aconvert R (base P) EM))
+                  (convert/at (Daconvert' : aconvert R (base P) EM'))
+                  Deq
+               <- aconvert-fun Daconvert Daconvert' _ Deq.
+
+-lam        : convert-fun
+                  (convert/lam
+                      ([x] [d:vof x A] [ex] [xt]
+                          DconvertM x d ex xt : convert (M x) (B x) (EM ex))
+                      (DconvertA : tpconvert A ktype EA))
+                  (convert/lam
+                      ([x] [d:vof x A] [ex] [xt]
+                          DconvertM' x d ex xt : convert (M x) (B x) (EM' ex))
+                      (DconvertA' : tpconvert A ktype EA'))
+                  DeqLam
+               <- ({x} {d} {ex} {xt}
+                      convert-fun (DconvertM x d ex xt) (DconvertM' x d ex xt)
+                      (DeqEM ex : etm-eq (EM ex) (EM' ex)))
+               <- tpconvert-fun DconvertA DconvertA'
+                  (DeqEA : etp-eq EA EA')
+               <- elam-compat DeqEA DeqEM
+                  (DeqLam 
+                    : etm-eq (elam EA ([ex] EM ex)) (elam EA' ([ex] EM' ex))).
+
+-const      : aconvert-fun 
+                  (aconvert/const 
+                      _
+                      (Dkof : kof A ktype) 
+                      (Dcof : cof C A))
+                  (aconvert/const
+                      _
+                      (Dkof' : kof A' ktype) 
+                      (Dcof' : cof C A'))
+                  DeqA
+                  etm-eq/i
+               <- cof-fun Dcof Dcof' DeqA.
+
+-var        : aconvert-fun
+                  (aconvert/var
+                      (Dvtrans : vtrans EX X)
+                      _
+                      (Dkof : kof A ktype)
+                      (Dvof : vof X A))
+                  (aconvert/var
+                      (Dvtrans : vtrans EX X)
+                      _
+                      (Dkof' : kof A ktype)
+                      (Dvof : vof X A))
+                  tp-eq/i
+                  etm-eq/i.
+
+-app        : aconvert-fun
+                  (aconvert/app
+                      (Dsub : tpsub ([x] B x) N Bx)
+                      (DconvertN : convert N A EN)
+                      (DconvertR : aconvert R (pi A ([x] B x)) EM))
+                  (aconvert/app
+                      (Dsub' : tpsub ([x] B' x) N Bx')
+                      (DconvertN' : convert N A' EN')
+                      (DconvertR' : aconvert R (pi A' ([x] B' x)) EM'))
+%%                  
+                  DeqBx
+                  DeqApp
+%%                  
+               <- aconvert-fun DconvertR DconvertR'
+                  (Deqpi : tp-eq (pi A B) (pi A' B'))
+                  (DeqEM : etm-eq EM EM')
+                  %%
+               <- pi-inj Deqpi
+                  (DeqA : tp-eq A A')
+                  ([x] DeqB x : tp-eq (B x) (B' x))
+               <- tp-eq-sym DeqA DeqA'
+               <- convert-resp DconvertN' tm-eq/i DeqA' etm-eq/i
+                  (DconvertN'' : convert N A EN')
+               <- convert-fun DconvertN DconvertN''
+                  (DeqEN : etm-eq EN EN')
+                  %%
+               <- eapp-compat DeqEM DeqEN
+                  (DeqApp : etm-eq (eapp EM EN) (eapp EM' EN'))
+                  %% getting Bx = Bx'
+               <- tpsub-compat DeqB tm-eq/i tp-eq/i Dsub
+                  (Dsub'' : tpsub ([x] B' x) N Bx)
+               <- tpsub-fun Dsub'' Dsub'
+                  (DeqBx : tp-eq Bx Bx').
+
+%%
+
+-base       : tpconvert-fun
+                  (tpconvert/base (Datpconvert : atpconvert P ktype EA))
+                  (tpconvert/base (Datpconvert' : atpconvert P ktype EA'))
+                  Deq
+               <- atpconvert-fun Datpconvert Datpconvert' _ Deq.
+
+-lam        : tpconvert-fun
+                  (tpconvert/lam
+                      ([x] [d:vof x A] [ex] [xt]
+                          DconvertM x d ex xt : tpconvert (M x) (B x) (EM ex))
+                      (DconvertA : tpconvert A ktype EA))
+                  (tpconvert/lam
+                      ([x] [d:vof x A] [ex] [xt]
+                          DconvertM' x d ex xt : tpconvert (M x) (B x) (EM' ex))
+                      (DconvertA' : tpconvert A ktype EA'))
+                  DeqLam
+               <- ({x} {d} {ex} {xt}
+                      tpconvert-fun (DconvertM x d ex xt) (DconvertM' x d ex xt)
+                      (DeqEM ex : etp-eq (EM ex) (EM' ex)))
+               <- tpconvert-fun DconvertA DconvertA'
+                  (DeqEA : etp-eq EA EA')
+               <- ealam-compat DeqEA DeqEM
+                  (DeqLam 
+                    : etp-eq (ealam EA ([ex] EM ex)) (ealam EA' ([ex] EM' ex))).
+
+-pi         : tpconvert-fun
+                  (tpconvert/pi
+                      ([x] [d:vof x A] [ex] [xt]
+                          DconvertM x d ex xt : tpconvert (M x) ktype (EM ex))
+                      (DconvertA : tpconvert A ktype EA))
+                  (tpconvert/pi
+                      ([x] [d:vof x A] [ex] [xt]
+                          DconvertM' x d ex xt : tpconvert (M x) ktype (EM' ex))
+                      (DconvertA' : tpconvert A ktype EA'))
+                  DeqLam
+               <- ({x} {d} {ex} {xt}
+                      tpconvert-fun (DconvertM x d ex xt) (DconvertM' x d ex xt)
+                      (DeqEM ex : etp-eq (EM ex) (EM' ex)))
+               <- tpconvert-fun DconvertA DconvertA'
+                  (DeqEA : etp-eq EA EA')
+               <- epi-compat DeqEA DeqEM
+                  (DeqLam 
+                    : etp-eq (epi EA ([ex] EM ex)) (epi EA' ([ex] EM' ex))).
+
+-const      : atpconvert-fun 
+                  (atpconvert/const _ (Dkof : wfkind A) (Dcof : ckof C A))
+                  (atpconvert/const _ (Dkof' : wfkind A') (Dcof' : ckof C A'))
+                  DeqA
+                  etp-eq/i
+               <- ckof-fun Dcof Dcof' DeqA.
+
+-app        : atpconvert-fun
+                  (atpconvert/app
+                      (Dsub : ksub ([x] B x) N Bx)
+                      (DconvertN : convert N A EN)
+                      (DconvertR : atpconvert R (kpi A ([x] B x)) EM))
+                  (atpconvert/app
+                      (Dsub' : ksub ([x] B' x) N Bx')
+                      (DconvertN' : convert N A' EN')
+                      (DconvertR' : atpconvert R (kpi A' ([x] B' x)) EM'))
+%%                  
+                  DeqBx
+                  DeqApp
+%%                  
+               <- atpconvert-fun DconvertR DconvertR'
+                  (Deqpi : kind-eq (kpi A B) (kpi A' B'))
+                  (DeqEM : etp-eq EM EM')
+                  %%
+               <- kpi-inj Deqpi
+                  (DeqA : tp-eq A A')
+                  ([x] DeqB x : kind-eq (B x) (B' x))
+               <- tp-eq-sym DeqA DeqA'
+               <- convert-resp DconvertN' tm-eq/i DeqA' etm-eq/i
+                  (DconvertN'' : convert N A EN')
+               <- convert-fun DconvertN DconvertN''
+                  (DeqEN : etm-eq EN EN')
+                  %%
+               <- eaapp-compat DeqEM DeqEN
+                  (DeqApp : etp-eq (eaapp EM EN) (eaapp EM' EN'))
+                  %% getting Bx = Bx'
+               <- ksub-compat DeqB tm-eq/i kind-eq/i Dsub
+                  (Dsub'' : ksub ([x] B' x) N Bx)
+               <- ksub-fun Dsub'' Dsub'
+                  (DeqBx : kind-eq Bx Bx').
+
+%worlds (csig-ei | asig-ei | tbind)
+  (convert-fun _ _ _)
+  (aconvert-fun _ _ _ _)
+  (tpconvert-fun _ _ _)
+  (atpconvert-fun _ _ _ _).
+%total (D1 D2 D3 D4) 
+  (convert-fun D1 _ _)
+  (aconvert-fun D2 _ _ _)
+  (tpconvert-fun D3 _ _)
+  (atpconvert-fun D4 _ _ _).
+
+kconvert-fun : kconvert K EK -> kconvert K EK' -> ekind-eq EK EK' -> type.
+%mode kconvert-fun +X1 +X2 -X3.
+
+-type   : kconvert-fun kconvert/type kconvert/type ekind-eq/i.
+
+-pi     : kconvert-fun (kconvert/pi DconvK DconvA) (kconvert/pi DconvK' DconvA')
+              DeqPi
+           <- ({x} {d} {ex} {xt}
+                  kconvert-fun (DconvK x d ex xt) (DconvK' x d ex xt)
+                  (DeqEK ex))
+           <- tpconvert-fun DconvA DconvA' DeqEA
+           <- ekpi-compat DeqEA DeqEK DeqPi.
+
+%worlds (csig-ei | asig-ei | tbind) (kconvert-fun _ _ _).
+%total D (kconvert-fun D _ _).
+
+
+converte-fun    : ordered G -> converte G M A EM -> converte G M A EM'
+                   -> etm-eq EM EM' -> type.
+%mode converte-fun +X0 +X1 +X2 -X3.
+
+aconverte-fun   : ordered G -> aconverte G R A EM -> aconverte G R A' EM'
+                   -> tp-eq A A'
+                   -> etm-eq EM EM' -> type.
+%mode aconverte-fun +X0 +X1 +X2 -X3 -X4.
+
+tpconverte-fun  : ordered G -> tpconverte G A K EA -> tpconverte G A K EA'
+                   -> etp-eq EA EA' -> type.
+%mode tpconverte-fun +X0 +X1 +X2 -X3.
+
+atpconverte-fun : ordered G 
+                   -> atpconverte G P K EA -> atpconverte G P K' EA'
+                   -> kind-eq K K'
+                   -> etp-eq EA EA' -> type.
+%mode atpconverte-fun +X1 +X2 +X3 -X4 -X5.
+
+kconverte-fun   : ordered G -> kconverte G K EK -> kconverte G K EK'
+                   -> ekind-eq EK EK' -> type.
+%mode kconverte-fun +X1 +X2 +X3 -X4.
+
+-at       : converte-fun Dord
+                (converte/at Daconvert)
+                (converte/at Daconvert')
+                Deq
+             <- aconverte-fun Dord Daconvert Daconvert' _ Deq.
+
+-lam      : converte-fun Dord
+                (converte/lam
+                    ([x] [ex] [xt:vtrans ex x]
+                        DconvertM x ex xt
+                      : converte (cons G x A) (M x) (B x) (EM ex))
+                    (DconvertA : tpconverte G A ktype EA))
+                (converte/lam
+                    ([x] [ex] [xt]
+                        DconvertM' x ex xt
+                      : converte (cons G x A) (M x) (B x) (EM' ex))
+                    (DconvertA' : tpconverte G A ktype EA'))
+                Deq
+             <- extend-ordered _ Dord _ Dord'
+             <- ({x} {d} {ex} {xt}
+                    converte-fun (Dord' x d) 
+                    (DconvertM x ex xt) (DconvertM' x ex xt)
+                    (DeqEM ex : etm-eq (EM ex) (EM' ex)))
+             <- tpconverte-fun Dord DconvertA DconvertA'
+                (DeqEA : etp-eq EA EA')
+             <- elam-compat DeqEA DeqEM Deq.
+
+-const    : aconverte-fun _
+                (aconverte/const Dtconvert Dkof Dcof)
+                (aconverte/const Dtconvert' Dkof' Dcof')
+                DeqA
+                etm-eq/i
+             <- cof-fun Dcof Dcof'
+                (DeqA : tp-eq A A').
+
+-var      : aconverte-fun Dord
+                (aconverte/var Dvtrans Dtconvert Dlook)
+                (aconverte/var Dvtrans Dtconvert' Dlook')
+                DeqA
+                etm-eq/i
+             <- lookup-fun Dord Dlook Dlook'
+                (DeqA : tp-eq A A').
+
+-varivar  : aconverte-fun Dord
+                (aconverte/vari Dvtrans Dtconvert Dkof Dvof)
+                (aconverte/var Dvtrans Dtconvert' Dlook)
+                DeqA
+                Deq
+             <- lookup-isvar Dlook Dord Disvar
+             <- vof-isvar-contra Dvof Disvar Dfalse
+             <- false-implies-tp-eq Dfalse DeqA
+             <- false-implies-etm-eq Dfalse Deq.
+
+-vari     : aconverte-fun Dord
+                (aconverte/vari Dvtrans Dtconvert Dkof Dvof)
+                (aconverte/vari Dvtrans' Dtconvert' Dkof' Dvof')
+                tp-eq/i
+                etm-eq/i.
+
+-varvari  : aconverte-fun Dord
+                (aconverte/var Dvtrans Dtconvert Dlook)
+                (aconverte/vari Dvtrans Dtconvert' Dkof Dvof)
+                DeqA
+                Deq
+             <- lookup-isvar Dlook Dord Disvar
+             <- vof-isvar-contra Dvof Disvar Dfalse
+             <- false-implies-tp-eq Dfalse DeqA
+             <- false-implies-etm-eq Dfalse Deq.
+
+-app      : aconverte-fun Dord
+                (aconverte/app
+                    (Dtpsub : tpsub ([x] B x) N Bx)
+                    (DconvertN : converte G N A EN)
+                    (DconvertR : aconverte G R (pi A B) ER))
+                (aconverte/app
+                    (Dtpsub' : tpsub ([x] B' x) N Bx')
+                    (DconvertN' : converte G N A' EN')
+                    (DconvertR' : aconverte G R (pi A' B') ER'))
+                DeqBx
+                DeqApp
+             <- aconverte-fun Dord DconvertR DconvertR'
+                (Deqpi : tp-eq (pi A ([x] B x)) (pi A' ([x] B' x)))
+                (DeqER : etm-eq ER ER')
+             <- pi-inj Deqpi
+                (DeqA : tp-eq A A')
+                ([x] DeqB x : tp-eq (B x) (B' x))
+             <- converte-resp DconvertN ctx-eq/i tm-eq/i DeqA etm-eq/i
+                (DconvertN'' : converte G N A' EN)
+             <- converte-fun Dord DconvertN'' DconvertN'
+                (DeqEN : etm-eq EN EN')
+             <- eapp-compat DeqER DeqEN DeqApp
+                %%
+             <- tpsub-compat DeqB tm-eq/i tp-eq/i Dtpsub
+                (Dtpsub'' : tpsub ([x] B' x) N Bx)
+             <- tpsub-fun Dtpsub'' Dtpsub'
+                (DeqBx : tp-eq Bx Bx').
+
+-base     : tpconverte-fun Dord
+                (tpconverte/base Daconv)
+                (tpconverte/base Daconv')
+                Deq
+             <- atpconverte-fun Dord Daconv Daconv' _ Deq.
+
+-lam      : tpconverte-fun Dord
+                (tpconverte/lam
+                    ([x] [ex] [xt:vtrans ex x]
+                        DconvertM x ex xt
+                      : tpconverte (cons G x A) (M x) (B x) (EM ex))
+                    (DconvertA : tpconverte G A ktype EA))
+                (tpconverte/lam
+                    ([x] [ex] [xt]
+                        DconvertM' x ex xt
+                      : tpconverte (cons G x A) (M x) (B x) (EM' ex))
+                    (DconvertA' : tpconverte G A ktype EA'))
+                Deq
+             <- extend-ordered _ Dord _ Dord'
+             <- ({x} {d} {ex} {xt}
+                    tpconverte-fun (Dord' x d) 
+                    (DconvertM x ex xt) (DconvertM' x ex xt)
+                    (DeqEM ex : etp-eq (EM ex) (EM' ex)))
+             <- tpconverte-fun Dord DconvertA DconvertA'
+                (DeqEA : etp-eq EA EA')
+             <- ealam-compat DeqEA DeqEM Deq.
+
+-pi       : tpconverte-fun Dord
+                (tpconverte/pi
+                    ([x] [ex] [xt:vtrans ex x]
+                        DconvertM x ex xt
+                      : tpconverte (cons G x A) (M x) ktype (EM ex))
+                    (DconvertA : tpconverte G A ktype EA))
+                (tpconverte/pi
+                    ([x] [ex] [xt]
+                        DconvertM' x ex xt
+                      : tpconverte (cons G x A) (M x) ktype (EM' ex))
+                    (DconvertA' : tpconverte G A ktype EA'))
+                Deq
+             <- extend-ordered _ Dord _ Dord'
+             <- ({x} {d} {ex} {xt}
+                    tpconverte-fun (Dord' x d) 
+                    (DconvertM x ex xt) (DconvertM' x ex xt)
+                    (DeqEM ex : etp-eq (EM ex) (EM' ex)))
+             <- tpconverte-fun Dord DconvertA DconvertA'
+                (DeqEA : etp-eq EA EA')
+             <- epi-compat DeqEA DeqEM Deq.
+
+-const    : atpconverte-fun _
+                (atpconverte/const Dkconv Dwf Dckof)
+                (atpconverte/const Dkconv' Dwf' Dckof')
+                Deq
+                etp-eq/i
+             <- ckof-fun Dckof Dckof' Deq.
+
+-app      : atpconverte-fun Dord
+                (atpconverte/app
+                    Dtpsub
+                    DconvertN
+                    DconvertR)
+                (atpconverte/app
+                    Dtpsub'
+                    DconvertN'
+                    DconvertR')
+                DeqBx
+                DeqApp
+             <- atpconverte-fun Dord DconvertR DconvertR'
+                Deqpi
+                DeqER
+             <- kpi-inj Deqpi
+                (DeqA : tp-eq A A')
+                ([x] DeqB x : kind-eq (B x) (B' x))
+             <- converte-resp DconvertN ctx-eq/i tm-eq/i DeqA etm-eq/i
+                (DconvertN'' : converte G N A' EN)
+             <- converte-fun Dord DconvertN'' DconvertN'
+                (DeqEN : etm-eq EN EN')
+             <- eaapp-compat DeqER DeqEN DeqApp
+                %%
+             <- ksub-compat DeqB tm-eq/i kind-eq/i Dtpsub
+                Dtpsub''
+             <- ksub-fun Dtpsub'' Dtpsub'
+                DeqBx.
+
+-type     : kconverte-fun _ kconverte/type kconverte/type ekind-eq/i.
+
+-pi       : kconverte-fun Dord
+                (kconverte/pi DconvertM DconvertA)
+                (kconverte/pi DconvertM' DconvertA')
+                Deq
+             <- extend-ordered _ Dord _ Dord'
+             <- ({x} {d} {ex} {xt}
+                    kconverte-fun (Dord' x d) 
+                    (DconvertM x ex xt) (DconvertM' x ex xt)
+                    (DeqEM ex))
+             <- tpconverte-fun Dord DconvertA DconvertA'
+                (DeqEA : etp-eq EA EA')
+             <- ekpi-compat DeqEA DeqEM Deq.
+
+%worlds (csig-ei | asig-ei | tvar | tbind | tobind)
+  (converte-fun _ _ _ _)
+  (aconverte-fun _ _ _ _ _)
+  (tpconverte-fun _ _ _ _)
+  (atpconverte-fun _ _ _ _ _)
+  (kconverte-fun _ _ _ _).
+%total (D1 D2 D3 D4 D5)
+  (converte-fun _ D1 _ _)
+  (aconverte-fun _ D2 _ _ _)
+  (tpconverte-fun _ D3 _ _)
+  (atpconverte-fun _ D4 _ _ _)
+  (kconverte-fun _ D5 _ _).
+

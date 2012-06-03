@@ -1,0 +1,18 @@
+%%%%  expansion  %%%%
+
+expand : atm -> stp -> tm -> type.
+
+expand/o : expand R o (at R).
+
+expand/arr : expand R (arrow S T) (lam [x] N x)
+              <- ({x} expand x S (M x))
+              <- ({x} expand (app R (M x)) T (N x)).
+
+
+tpexpand : atp -> skind -> tp -> type.
+
+tpexpand/type : tpexpand P sktype (base P).
+
+tpexpand/arr : tpexpand P (karrow T H) (alam [x] A x)
+                <- ({x} expand x T (M x))
+                <- ({x} tpexpand (aapp P (M x)) H (A x)).

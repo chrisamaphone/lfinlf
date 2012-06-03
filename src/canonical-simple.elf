@@ -1,0 +1,173 @@
+
+%%% simple types %%%
+
+stp : type.  %name stp T.
+
+o       : stp.
+arrow   : stp -> stp -> stp.
+
+
+simp   : tp -> stp -> type.
+
+simp/pi : simp (pi A [x] B x) (arrow S T)
+           <- simp A S
+           <- ({x} simp (B x) T).
+
+simp/base : simp (base _) o.
+
+simp/lam  : simp (alam ([x] A x)) T
+             <- ({x} simp (A x) T).
+
+
+%%% simple kinds %%%
+
+skind : type.  %name skind H.
+
+sktype  : skind.
+karrow  : stp -> skind -> skind.
+
+
+ksimp : kind -> skind -> type.
+
+ksimp/pi : ksimp (kpi A [x] K x) (karrow S H)
+            <- simp A S
+            <- ({x} ksimp (K x) H).
+
+ksimp/type : ksimp ktype sktype.
+
+
+%%% leq relation on simple types %%%
+
+stp-leq : stp -> stp -> type.
+
+stp-leq/eq : stp-leq T T.
+stp-leq/arr1 : stp-leq S (arrow T1 T2)
+                <- stp-leq S T1.
+stp-leq/arr2 : stp-leq S (arrow T1 T2)
+                <- stp-leq S T2.
+
+
+%%% simple contexts %%%
+
+sctx : type.  %name sctx G.
+
+snil : sctx.
+scons : sctx -> atm -> stp -> sctx.
+
+
+sbounded : sctx -> atm -> type.
+
+sbounded/nil  : sbounded snil X
+                 <- isvar X _.
+sbounded/cons : sbounded (scons G Y _) X
+                 <- precedes Y X
+                 <- sbounded G Y.
+
+
+sordered : sctx -> type.
+
+sordered/nil  : sordered snil.
+sordered/cons : sordered (scons G X _)
+                 <- sbounded G X.
+
+
+slookup : sctx -> atm -> stp -> type.
+
+slookup/hit  : slookup (scons G X T) X T.
+slookup/miss : slookup (scons G Y _) X T
+                <- slookup G X T.
+
+
+drop : (atm -> sctx) -> sctx -> type.
+
+drop/closed : drop ([_] G) G.
+drop/base   : drop ([x] scons (G x) x A) G'
+               <- drop ([x] G x) G'.
+drop/cons   : drop ([x] scons (G x) Y T) (scons G' Y T)
+               <- drop ([x] G x) G'.
+
+sappend : sctx -> sctx -> sctx -> type.
+
+sappend/nil  : sappend G snil G.
+sappend/cons : sappend G1 (scons G2 X A) (scons G X A)
+                <- sappend G1 G2 G.
+
+
+%%% simplifying contexts %%%
+
+simpctx : ctx -> sctx -> type.
+
+simpctx/nil  : simpctx nil snil.
+simpctx/cons : simpctx (cons G X A) (scons G' X T)
+                <- simpctx G G'
+                <- simp A T.
+
+
+%%% simple typing with explicit contexts %%%
+
+wfkindes : sctx -> kind -> type.
+at-kofes : sctx -> atp -> skind -> type.
+kofes    : sctx -> tp -> skind -> type.
+at-ofes  : sctx -> atm -> stp -> type.
+ofes     : sctx -> tm -> stp -> type.
+
+at-ofes/closed : at-ofes G R T
+                <- at-of R A
+                <- simp A T.
+
+at-ofes/const  : at-ofes G (const C) T
+                  <- cof C A
+                  <- kofes G A sktype
+%                  <- tclosed A
+                  <- simp A T.
+
+at-ofes/var    : at-ofes G X T
+                <- slookup G X T.
+
+at-ofes/app    : at-ofes G (app R M) T
+                <- at-ofes G R (arrow S T)
+                <- ofes G M S.
+
+
+ofes/at  : ofes G (at R) o
+            <- at-ofes G R o.
+
+ofes/lam : ofes G (lam [x] M x) (arrow S T)
+            <- ({x} ofes (scons G x S) (M x) T).
+
+
+%% kofes/at-kofes.
+
+at-kofes/closed : at-kofes G P H
+                   <- at-kof P K
+                   <- ksimp K H.
+
+at-kofes/const  : at-kofes G (aconst A) H
+                   <- ckof A K
+                   <- wfkindes G K
+%                   <- kclosed K
+                   <- ksimp K H.
+
+at-kofes/app    : at-kofes G (aapp P M) H
+                   <- at-kofes G P (karrow S H)
+                   <- ofes G M S.
+
+kofes/base  : kofes G (base P) sktype
+               <- at-kofes G P sktype.
+
+kofes/pi    : kofes G (pi A1 [x] A2 x) sktype
+               <- kofes G A1 sktype
+               <- simp A1 T1
+               <- ({x:atm} kofes (scons G x T1) (A2 x) sktype).
+
+kofes/lam   : kofes G (alam ([x] B x)) (karrow T H)
+               <- ({x:atm} kofes (scons G x T) (B x) H).
+
+%% wfkindes
+
+wfkindes/type : wfkindes G ktype.
+
+wfkindes/pi   : wfkindes G (kpi A ([x] K x))
+                 <- kofes G A sktype
+                 <- simp A T
+                 <- ({x} wfkindes (scons G x T) (K x)).

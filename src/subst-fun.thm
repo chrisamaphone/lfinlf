@@ -1,0 +1,224 @@
+
+%%%% functionality of substitution %%%%
+
+%%% lemmas %%%
+
+rrsub-rmsub-contra : rrsub R M _ -> rmsub R M _ -> false -> type.
+%mode rrsub-rmsub-contra +X1 +X2 -X3.
+
+-app : rrsub-rmsub-contra (rrsub/app _ Drrsub) (rmsub/app _ _ Drmsub) Df
+           <- rrsub-rmsub-contra Drrsub Drmsub Df.
+
+-closedapp : rrsub-rmsub-contra rrsub/closed (rmsub/app _ _ Drmsub) Df
+              <- rrsub-rmsub-contra rrsub/closed Drmsub Df.
+
+%worlds (csig | asig | var) (rrsub-rmsub-contra _ _ _).
+%total D (rrsub-rmsub-contra _ D _).
+
+
+rmsub-absent : rmsub ([_] R) M N -> false -> type.
+%mode rmsub-absent +X1 -X2.
+
+- : rmsub-absent Daosub Df
+     <- rrsub-rmsub-contra (rrsub/closed) Daosub Df.
+
+%worlds (csig | asig | var) (rmsub-absent _ _).
+%total {} (rmsub-absent _ _).
+
+
+rrsub-absent-fun : rrsub ([_] R) M R' -> atm-eq R R' -> type.
+%mode rrsub-absent-fun +X1 -X2.
+
+sub-absent-fun : sub ([_] N) M N' -> tm-eq N N' -> type.
+%mode sub-absent-fun +X1 -X2.
+
+atpsub-absent-fun : atpsub ([_] P) M P' -> atp-eq P P' -> type.
+%mode atpsub-absent-fun +X1 -X2.
+
+tpsub-absent-fun : tpsub ([_] A) M A' -> tp-eq A A' -> type.
+%mode tpsub-absent-fun +X1 -X2.
+
+ksub-absent-fun : ksub ([_] K) M K' -> kind-eq K K' -> type.
+%mode ksub-absent-fun +X1 -X2.
+
+%% rrsub-absent-fun
+
+- : rrsub-absent-fun rrsub/closed atm-eq/i.
+
+- : rrsub-absent-fun (rrsub/app D2 D1) Deq
+     <- rrsub-absent-fun D1 Deq1
+     <- sub-absent-fun D2 Deq2
+     <- app-compat Deq1 Deq2 Deq.
+
+%% sub-absent-fun
+
+- : sub-absent-fun (sub/rr D) Deq'
+     <- rrsub-absent-fun D Deq
+     <- at-compat Deq Deq'.
+
+- : sub-absent-fun (sub/rm D) Deq
+     <- rmsub-absent D Dfalse
+     <- false-implies-tm-eq Dfalse Deq.
+
+- : sub-absent-fun (sub/lam D) Deq'
+     <- ({y} sub-absent-fun (D y) (Deq y))
+     <- lam-compat Deq Deq'.
+
+%% atpsub-absent-fun
+
+- : atpsub-absent-fun atpsub/closed atp-eq/i.
+
+- : atpsub-absent-fun (atpsub/app D2 D1) Deq
+     <- atpsub-absent-fun D1 Deq1
+     <- sub-absent-fun D2 Deq2
+     <- aapp-compat Deq1 Deq2 Deq.
+
+%% tpsub-absent-fun
+
+- : tpsub-absent-fun (tpsub/base D) Deq'
+     <- atpsub-absent-fun D Deq
+     <- base-compat Deq Deq'.
+
+- : tpsub-absent-fun (tpsub/pi Dbody Dargtp) Deq
+     <- ({y} tpsub-absent-fun (Dbody y) (Dbodyeq y))
+     <- tpsub-absent-fun Dargtp Dargeq
+     <- pi-compat Dargeq Dbodyeq Deq.
+
+- : tpsub-absent-fun (tpsub/lam D) Deq'
+     <- ({y} tpsub-absent-fun (D y) (Deq y))
+     <- alam-compat Deq Deq'.
+
+%% ksub-absent-fun
+
+- : ksub-absent-fun ksub/type %{ksub/closed}% kind-eq/i.
+
+- : ksub-absent-fun (ksub/pi Dbody Dargtp) Deq
+     <- ({y} ksub-absent-fun (Dbody y) (Dbodyeq y))
+     <- tpsub-absent-fun Dargtp Dargeq
+     <- kpi-compat Dargeq Dbodyeq Deq.
+
+%worlds (csig | asig | var) (rrsub-absent-fun _ _) (sub-absent-fun _ _) (atpsub-absent-fun _ _)
+  (tpsub-absent-fun _ _) (ksub-absent-fun _ _).
+%total (D1 D2 D3 D4 D5) (rrsub-absent-fun D1 _) (sub-absent-fun D2 _)
+  (atpsub-absent-fun D3 _) (tpsub-absent-fun D4 _) (ksub-absent-fun D5 _).
+
+
+%%% functionality %%%
+
+rrsub-fun  : rrsub R M R1 -> rrsub R M R2 -> atm-eq R1 R2 -> type.
+%mode rrsub-fun +X1 +X2 -X3.
+
+rmsub-fun  : rmsub R M N1 -> rmsub R M N2 -> tm-eq N1 N2 -> type.
+%mode rmsub-fun +X1 +X2 -X3.
+
+sub-fun    : sub M N M1 -> sub M N M2 -> tm-eq M1 M2 -> type.
+%mode sub-fun +X1 +X2 -X3.
+
+tpsub-fun  : tpsub A M A1 -> tpsub A M A2 -> tp-eq A1 A2 -> type.
+%mode tpsub-fun +X1 +X2 -X3.
+
+atpsub-fun : atpsub P M P1 -> atpsub P M P2 -> atp-eq P1 P2 -> type.
+%mode atpsub-fun +X1 +X2 -X3.
+
+ksub-fun   : ksub K M K1 -> ksub K M K2 -> kind-eq K1 K2 -> type.
+%mode ksub-fun +X1 +X2 -X3.
+
+
+%% rrsub-fun %%
+
+-app    : rrsub-fun (rrsub/app Dsub1 Drrsub1) (rrsub/app Dsub2 Drrsub2) Deq
+           <- rrsub-fun Drrsub1 Drrsub2 Deqrrsub
+           <- sub-fun Dsub1 Dsub2 Deqsub
+           <- app-compat Deqrrsub Deqsub Deq.
+
+-closed : rrsub-fun rrsub/closed D Deq
+           <- rrsub-absent-fun D Deq.
+
+-closed : rrsub-fun D rrsub/closed Deq'
+           <- rrsub-absent-fun D Deq
+           <- atm-eq-sym Deq Deq'.
+
+
+%% rmsub-fun %%
+
+-var : rmsub-fun rmsub/var rmsub/var tm-eq/i.
+
+-app : rmsub-fun (rmsub/app Dsub1  Dsub2  Drmsub) 
+                 (rmsub/app Dsub1' Dsub2' Drmsub') Deq
+        <- rmsub-fun Drmsub Drmsub' Dlameq
+        <- lam-inj Dlameq Dbodyeq
+        <- sub-fun Dsub2 Dsub2' Deq2
+        <- sub-compat Dbodyeq Deq2 tm-eq/i Dsub1 Dsub1''
+        <- sub-fun Dsub1'' Dsub1' Deq.
+
+
+%% sub-fun %%
+
+-rr   : sub-fun (sub/rr Drrsub) (sub/rr Drrsub') Deq
+         <- rrsub-fun Drrsub Drrsub' Dateq
+         <- at-compat Dateq Deq.
+
+-rm   : sub-fun (sub/rm Drmsub) (sub/rm Drmsub') Deq
+         <- rmsub-fun Drmsub Drmsub' Deq.
+
+-rrrm : sub-fun (sub/rr Drr) (sub/rm Drm) Deq
+         <- rrsub-rmsub-contra Drr Drm Df
+         <- false-implies-tm-eq Df Deq.
+
+-rmrr : sub-fun (sub/rm Drm) (sub/rr Drr) Deq
+         <- rrsub-rmsub-contra Drr Drm Df
+         <- false-implies-tm-eq Df Deq.
+
+-lam  : sub-fun (sub/lam Dbody) (sub/lam Dbody') Deq
+         <- ({y} sub-fun (Dbody y) (Dbody' y) (Deqbody y))
+         <- lam-compat Deqbody Deq.
+
+
+%% atpsub-fun %%
+
+-closed : atpsub-fun atpsub/closed D Deq
+           <- atpsub-absent-fun D Deq.
+
+-closed : atpsub-fun D atpsub/closed Deq'
+           <- atpsub-absent-fun D Deq
+           <- atp-eq-sym Deq Deq'.
+
+-aapp   : atpsub-fun (atpsub/app Dargsub Dfunsub) 
+                     (atpsub/app Dargsub' Dfunsub') Deq
+           <- atpsub-fun Dfunsub Dfunsub' Dfuneq
+           <- sub-fun Dargsub Dargsub' Dargeq
+           <- aapp-compat Dfuneq Dargeq Deq.
+
+
+%% tpsub-fun %%
+
+-base : tpsub-fun (tpsub/base Datpsub) (tpsub/base Datpsub') Deq
+         <- atpsub-fun Datpsub Datpsub' Datpeq
+         <- base-compat Datpeq Deq.
+
+-pi   : tpsub-fun (tpsub/pi Dbody Dargtp) (tpsub/pi Dbody' Dargtp') Deq
+         <- ({y} tpsub-fun (Dbody y) (Dbody' y) (Deqbody y))
+         <- tpsub-fun Dargtp Dargtp' Deqarg
+         <- pi-compat Deqarg Deqbody Deq.
+
+-lam  : tpsub-fun (tpsub/lam Dbody) (tpsub/lam Dbody') Deq
+         <- ({y} tpsub-fun (Dbody y) (Dbody' y) (Deqbody y))
+         <- alam-compat Deqbody Deq.
+
+
+%% ksub-fun %%
+
+-closed : ksub-fun ksub/type ksub/type kind-eq/i.
+
+-kpi    : ksub-fun (ksub/pi Dbody Dargtp) (ksub/pi Dbody' Dargtp') Deq
+           <- ({y} ksub-fun (Dbody y) (Dbody' y) (Deqbody y))
+           <- tpsub-fun Dargtp Dargtp' Deqarg
+           <- kpi-compat Deqarg Deqbody Deq.
+
+
+%worlds (csig | asig | var) (rrsub-fun _ _ _) (rmsub-fun _ _ _) (sub-fun _ _ _) (atpsub-fun _ _ _)
+  (tpsub-fun _ _ _) (ksub-fun _ _ _).
+%total (D1 D2 D3 D4 D5 D6) (rrsub-fun D1 _ _) (rmsub-fun D2 _ _) 
+  (sub-fun D3 _ _) (atpsub-fun D4 _ _) (tpsub-fun D5 _ _) (ksub-fun D6 _ _).
+
+

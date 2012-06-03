@@ -1,0 +1,1747 @@
+
+%%%% Weakening %%%%
+
+weakeng-transe : append G1 G2 G
+                  -> append (cons G1 X B) G2 G'
+                  -> transe G EM M A
+%%
+                  -> transe G' EM M A -> type.
+%mode weakeng-transe +X1 +X2 +X3 -X4.
+
+weakeng-tptranse : append G1 G2 G
+                  -> append (cons G1 X B) G2 G'
+                  -> tptranse G EM M A
+%%
+                  -> tptranse G' EM M A -> type.
+%mode weakeng-tptranse +X1 +X2 +X3 -X4.
+
+-const    : weakeng-transe _ _
+                (transe/const Dexp Dsimp Dkof Dcof)
+                (transe/const Dexp Dsimp Dkof Dcof).
+
+-var      : weakeng-transe Dapp Dapp'
+                (transe/var Dexp Dsimp Dkof Dlook Dvtrans)
+                (transe/var Dexp Dsimp Dkof' Dlook' Dvtrans)
+             <- weakeng-kofe Dapp Dapp' Dkof Dkof'
+             <- weakeng-lookup Dapp Dapp' Dlook Dlook'.
+
+-vari     : weakeng-transe Dapp Dapp'
+                (transe/vari Dexpand Dsimp Dkof Dvof Dvtrans)
+                (transe/vari Dexpand Dsimp Dkof Dvof Dvtrans).
+
+-app      : weakeng-transe Dapp Dapp'
+                (transe/app Dtpsub Dsub Dtrans2 Dtrans1)
+                (transe/app Dtpsub Dsub Dtrans2' Dtrans1')
+             <- weakeng-transe Dapp Dapp' Dtrans1 Dtrans1'
+             <- weakeng-transe Dapp Dapp' Dtrans2 Dtrans2'.
+
+-lam      : weakeng-transe Dapp Dapp'
+                (transe/lam ([x] [ex] [xt] DtransM x ex xt) DtransA)
+                (transe/lam ([x] [ex] [xt] DtransM' x ex xt) DtransA')
+             <- ({x} {ex} {xt}
+                    weakeng-transe (append/cons Dapp) (append/cons Dapp')
+                    (DtransM x ex xt) (DtransM' x ex xt))
+             <- weakeng-tptranse Dapp Dapp' DtransA DtransA'.
+
+%%
+
+-const    : weakeng-tptranse Dapp Dapp'
+                (tptranse/const Dexpand Dsimp Dwf Dcof)
+                (tptranse/const Dexpand Dsimp Dwf Dcof).
+
+-app      : weakeng-tptranse Dapp Dapp' 
+                (tptranse/app Dksub Dsub Dtranse Dtptranse)
+                (tptranse/app Dksub Dsub Dtranse' Dtptranse')
+             <- weakeng-transe Dapp Dapp' Dtranse Dtranse'
+             <- weakeng-tptranse Dapp Dapp' Dtptranse Dtptranse'.
+                
+-pi       : weakeng-tptranse Dapp Dapp'
+                (tptranse/pi ([x] [ex] [xt] DtransB x ex xt) DtransA)
+                (tptranse/pi ([x] [ex] [xt] DtransB' x ex xt) DtransA')
+             <- weakeng-tptranse Dapp Dapp' DtransA DtransA'
+             <- ({x} {ex} {xt} 
+                    weakeng-tptranse (append/cons Dapp) (append/cons Dapp')
+                    (DtransB x ex xt) (DtransB' x ex xt)).
+             
+-lam      : weakeng-tptranse Dapp Dapp'
+                (tptranse/lam ([x] [ex] [xt] DtransB x ex xt) DtransA)
+                (tptranse/lam ([x] [ex] [xt] DtransB' x ex xt) DtransA')
+             <- weakeng-tptranse Dapp Dapp' DtransA DtransA'
+             <- ({x} {ex} {xt} 
+                    weakeng-tptranse (append/cons Dapp) (append/cons Dapp')
+                    (DtransB x ex xt) (DtransB' x ex xt)).
+
+%worlds (csig | asig | var | bind | tvar | tbind | tobind)
+  (weakeng-transe   _ _ _ _)
+  (weakeng-tptranse _ _ _ _).
+%total (D1 D2)
+  (weakeng-transe   _ _ D1 _)
+  (weakeng-tptranse _ _ D2 _).
+
+weaken-transe : transe G EM M B
+                 -> {X} {A} transe (cons G X A) EM M B -> type.
+%mode weaken-transe +X1 +X +A -X2.
+
+- : weaken-transe Dtrans X S Dtrans'
+     <- weakeng-transe append/nil append/nil Dtrans Dtrans'.
+
+%worlds (csig | asig | var | bind | tbind | tobind) (weaken-transe _ _ _ _).
+%total {} (weaken-transe _ _ _ _).
+
+weaken-transe' : append G1 G2 G -> transe G1 EM M B
+                  -> transe G EM M B -> type.
+%mode weaken-transe' +X2 +X3 -X4.
+
+-nil  : weaken-transe' append/nil D D.
+
+-cons : weaken-transe' (append/cons Dapp) Dtrans Dtrans''
+         <- weaken-transe' Dapp Dtrans Dtrans'
+         <- weaken-transe Dtrans' _ _ Dtrans''.
+
+%worlds (csig | asig | bind | tbind | tobind) (weaken-transe' _ _ _).
+%total D (weaken-transe' D _ _).
+
+%%%% Cut %%%%
+
+%% uses metric defined in explicit-lemmas.thm
+mtrans    : trans EM M A -> metric -> type.
+mtptrans  : tptrans EA A K -> metric -> type.
+mktrans   : ktrans EK K -> metric -> type.
+
+mtrans/const  : mtrans (trans/const _ _ Dkof _) (msing Dkof')
+                 <- mkof Dkof Dkof'.
+
+mtrans/var    : mtrans (trans/var _ _ Dkof _ _) (msing Dkof')
+                 <- mkof Dkof Dkof'.
+
+mtrans/app    : mtrans (trans/app _ _ DtransN DtransM) (mpair Nm Mm)
+                 <- mtrans DtransM Mm
+                 <- mtrans DtransN Nm.
+
+mtrans/lam    : mtrans (trans/lam DtransM DtransA) (mpair Mm Am)
+                 <- mtptrans DtransA Am
+                 <- ({x} {d} {ex} {xt}
+                        mtrans (DtransM x d ex xt) Mm).
+
+mtptrans/const  : mtptrans (tptrans/const _ _ Dwfkind _) (msing Dmwfkind)
+                   <- mwfkind Dwfkind Dmwfkind.
+
+mtptrans/app    : mtptrans (tptrans/app _ _ DtransN DtransM) (mpair Nm Mm)
+                   <- mtptrans DtransM Mm
+                   <- mtrans DtransN Nm.
+
+mtptrans/pi     : mtptrans (tptrans/pi DtransB DtransA) (mpair Bm Am)
+                   <- mtptrans DtransA Am
+                   <- ({x} {d} {ex} {xt}
+                          mtptrans (DtransB x d ex xt) Bm).
+
+mtptrans/lam    : mtptrans (tptrans/lam DtransB DtransA) (mpair Bm Am)
+                   <- mtptrans DtransA Am
+                   <- ({x} {d} {ex} {xt}
+                          mtptrans (DtransB x d ex xt) Bm).
+
+mktrans/type    : mktrans ktrans/type munit.
+
+mktrans/pi      : mktrans (ktrans/pi Dktrans Dtptrans) (mpair Km Am)
+                   <- mtptrans Dtptrans Am
+                   <- ({x} {d} {ex} {xt}
+                          mktrans (Dktrans x d ex xt) Km).
+
+%%
+
+mtranse   : transe G EM M A -> metric -> type.
+mtptranse : tptranse G EM M A -> metric -> type.
+mktranse  : ktranse G EK K -> metric -> type. 
+
+mtranse/const : mtranse (transe/const _ _ Dkof _) (msing Dkof')
+                 <- mkof Dkof Dkof'.
+
+mtranse/var   : mtranse (transe/var _ _ Dkof _ _) (msing Dkof')
+                 <- mkofe Dkof Dkof'.
+
+mtranse/vari  : mtranse (transe/vari _ _ Dkof _ _) (msing Dkof')
+                 <- mkof Dkof Dkof'.
+
+mtranse/app   : mtranse (transe/app _ _ DtransN DtransM) (mpair Nm Mm)
+                 <- mtranse DtransM Mm
+                 <- mtranse DtransN Nm.
+
+mtranse/lam   : mtranse (transe/lam DtransB DtransA) (mpair Bm Am)
+                   <- mtptranse DtransA Am
+                   <- ({x} {ex} {xt}
+                          mtranse (DtransB x ex xt) Bm).
+
+mtptranse/const : mtptranse (tptranse/const _ _ Dwfkind _) (msing Dmwfkind)
+                   <- mwfkind Dwfkind Dmwfkind.
+
+mtptranse/app   : mtptranse (tptranse/app _ _ DtransN DtransM) 
+                      (mpair Nm Mm)
+                   <- mtptranse DtransM Mm
+                   <- mtranse DtransN Nm.
+
+mtptranse/lam   : mtptranse (tptranse/lam DtransB DtransA) (mpair Bm Am)
+                   <- mtptranse DtransA Am
+                   <- ({x} {ex} {xt}
+                          mtptranse (DtransB x ex xt) Bm).
+
+mtptranse/pi    : mtptranse (tptranse/pi DtransB DtransA) (mpair Bm Am)
+                   <- mtptranse DtransA Am
+                   <- ({x} {ex} {xt}
+                          mtptranse (DtransB x ex xt) Bm).
+
+mktranse/type   : mktranse ktranse/type munit.
+
+mktranse/pi     : mktranse (ktranse/pi Dktrans Dtptrans) (mpair Km Am)
+                   <- mtptranse Dtptrans Am
+                   <- ({x} {ex} {xt}
+                          mktranse (Dktrans x ex xt) Km).
+
+
+can-mtptrans : {D : tptrans EA A K} mtptrans D Dm -> type.
+%mode can-mtptrans +X1 -X2.
+
+can-mtrans : {D : trans EM M A} mtrans D Dm -> type.
+%mode can-mtrans +X1 -X2.
+
+-const  : can-mtrans (trans/const _ _ Dkof _) (mtrans/const Dkof')
+           <- can-mkof Dkof Dkof'.
+
+-var    : can-mtrans (trans/var _ _ Dkof _ _) (mtrans/var Dmkof)
+           <- can-mkof Dkof Dmkof.
+
+-app    : can-mtrans (trans/app _ _ DtransN DtransM) 
+              (mtrans/app DmtransN DmtransM)
+           <- can-mtrans DtransN DmtransN
+           <- can-mtrans DtransM DmtransM.
+
+-lam    : can-mtrans 
+              (trans/lam 
+                  ([x] [d] [ex] [xt] DtransM x d ex xt)
+                  DtransA)
+              (mtrans/lam
+                  ([x] [d] [ex] [xt] DmtransM x d ex xt)
+                  DmtransA)
+           <- ({x} {d} {ex} {xt}
+                  can-mtrans (DtransM x d ex xt)
+                  (DmtransM x d ex xt))
+           <- can-mtptrans DtransA DmtransA.
+
+%%
+
+-const  : can-mtptrans (tptrans/const _ _ Dwfkind _) (mtptrans/const Dmwfkind)
+           <- can-mwfkind Dwfkind Dmwfkind.
+
+-lam    : can-mtptrans 
+              (tptrans/lam
+                  ([x] [d] [ex] [xt] DtransM x d ex xt)
+                  DtransA)
+              (mtptrans/lam
+                  ([x] [d] [ex] [xt] DmtransM x d ex xt)
+                  DmtransA)
+           <- ({x} {d} {ex} {xt}
+                  can-mtptrans (DtransM x d ex xt)
+                  (DmtransM x d ex xt))
+           <- can-mtptrans DtransA DmtransA.
+
+-app    : can-mtptrans (tptrans/app _ _ DtransN DtransM) 
+              (mtptrans/app DmtransN DmtransM)
+           <- can-mtrans DtransN DmtransN
+           <- can-mtptrans DtransM DmtransM.
+
+-pi     : can-mtptrans 
+              (tptrans/pi
+                  ([x] [d] [ex] [xt] DtransM x d ex xt)
+                  DtransA)
+              (mtptrans/pi
+                  ([x] [d] [ex] [xt] DmtransM x d ex xt)
+                  DmtransA)
+           <- ({x} {d} {ex} {xt}
+                  can-mtptrans (DtransM x d ex xt)
+                  (DmtransM x d ex xt))
+           <- can-mtptrans DtransA DmtransA.
+
+
+%worlds (csig | asig | bind | tbind | tobind) (can-mtrans _ _) (can-mtptrans _ _).
+%total (D1 D2) (can-mtrans D1 _) (can-mtptrans D2 _).
+
+can-mktrans : {D : ktrans EK K} mktrans D Dm -> type.
+%mode can-mktrans +X1 -X2.
+
+-type   : can-mktrans ktrans/type mktrans/type.
+
+-pi     : can-mktrans 
+              (ktrans/pi ([x] [d] [ex] [xt] Dktrans x d ex xt) Dtptrans)
+              (mktrans/pi Dmktrans Dmtptrans)
+           <- ({x} {d} {ex} {xt}
+                  can-mktrans (Dktrans x d ex xt) (Dmktrans x d ex xt))
+           <- can-mtptrans Dtptrans Dmtptrans.
+
+%worlds (csig | asig | bind | tbind | tobind) (can-mktrans _ _).
+%total D (can-mktrans D _).
+
+
+%%                                                 
+
+cut-trans-m : {Mm}
+                  {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                        trans (EM ex) (M x) (B x)}
+                  ({x} {d} {ex} {xt} mtrans (D x d ex xt) Mm)
+               -> ({x} lookup (G x) x A)
+%%
+               -> {D' : {x} {ex} {xt:vtrans ex x} 
+                        transe (G x) (EM ex) (M x) (B x)}
+                  ({x} {ex} {xt} mtranse (D' x ex xt) Mm) -> type.
+%mode cut-trans-m +Mm +D +Dm +Dlook -D' -D'm.
+
+cut-tptrans-m : {Mm}
+                  {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                        tptrans (EM ex) (M x) (B x)}
+                  ({x} {d} {ex} {xt} mtptrans (D x d ex xt) Mm)
+               -> ({x} lookup (G x) x A)
+%%
+               -> {D' : {x} {ex} {xt:vtrans ex x} 
+                        tptranse (G x) (EM ex) (M x) (B x)}
+                  ({x} {ex} {xt} mtptranse (D' x ex xt) Mm) -> type.
+%mode cut-tptrans-m +Mm +D +Dm +Dlook -D' -D'm.
+
+cut-transe-m : {Mm}
+                   {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                        transe (G x) (EM ex) (M x) (B x)}
+                   ({x} {d} {ex} {xt} mtranse (D x d ex xt) Mm)
+                -> ({x} lookup (G x) x A)
+%%
+                -> {D' : {x} {ex} {xt:vtrans ex x}
+                        transe (G x) (EM ex) (M x) (B x)}
+                   ({x} {ex} {xt} mtranse (D' x ex xt) Mm) -> type.
+%mode cut-transe-m +Mm +D +Dm +Dlook -D' -D'm.
+
+cut-tptranse-m : {Mm}
+                   {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                        tptranse (G x) (EM ex) (M x) (B x)}
+                   ({x} {d} {ex} {xt} mtptranse (D x d ex xt) Mm)
+                -> ({x} lookup (G x) x A)
+%%
+                -> {D' : {x} {ex} {xt:vtrans ex x}
+                        tptranse (G x) (EM ex) (M x) (B x)}
+                   ({x} {ex} {xt} mtptranse (D' x ex xt) Mm) -> type.
+%mode cut-tptranse-m +Mm +D +Dm +Dlook -D' -D'm.
+
+-const    : cut-trans-m _
+                ([x] [d] [ex] [xt]
+                    trans/const
+                    (Dexpand x : expand (const C) T (N x))
+                    (Dsimp x : simp B T)
+                    (Dkof x d : kof B ktype)
+                    (Dcof : cof C B))
+                ([x] [d] [ex] [xt] mtrans/const (Dmkof x d))
+                ([x] Dlook x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    transe/const
+                    (Dexpand x)
+                    (Dsimp x)
+                    Dkof'
+                    Dcof)
+                ([x] [ex] [xt] mtranse/const Dmkof')
+%%
+             <- strengthen-for-cut-kof _ Dkof Dmkof
+                (Dkof' : kof B ktype)
+                Dmkof'.
+
+-varoth   : cut-trans-m _
+                ([x] [d] [ex] [xt]
+                    trans/var
+                    (Dexpand x : expand Y T (N x))
+                    (Dsimp x : simp B T)
+                    (Dkof x d : kof B ktype)
+                    (Dvof : vof Y B)
+                    (Dvtrans : vtrans EY Y))
+                ([x] [d] [ex] [xt]
+                    mtrans/var
+                    (Dmkof x d : mkof (Dkof x d) Mkof))
+                ([x] Dlook x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    transe/vari
+                    (Dexpand x)
+                    (Dsimp x)
+                    Dkof'
+                    Dvof
+                    Dvtrans)
+                ([x] [ex] [xt] mtranse/vari Dmkof')
+%%
+             <- strengthen-for-cut-kof _ Dkof Dmkof
+                (Dkof' : kof B ktype)
+                (Dmkof' : mkof Dkof' Mkof).
+
+-varsam   : cut-trans-m _
+                ([x] [d] [ex] [xt]
+                    trans/var
+                    (Dexpand x : expand x T (N x))
+                    (Dsimp x : simp A T)
+                    (Dkof x d : kof A ktype)
+                    d
+                    xt)
+                ([x] [d] [ex] [xt]
+                    mtrans/var
+                    (Dmkof x d : mkof (Dkof x d) Mkof))
+                ([x] Dlook x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    transe/var
+                    (Dexpand x)
+                    (Dsimp x)
+                    (Dkofe x)
+                    (Dlook x)
+                    xt)
+                ([x] [ex] [xt] mtranse/var (Dmkofe x))
+%%
+             <- cut-kof _ Dkof Dmkof Dlook
+                ([x] Dkofe x : kofe (G x) A ktype)
+                ([x] Dmkofe x).
+
+-lam      : cut-trans-m _
+                ([x] [d] [ex] [xt]
+                    trans/lam
+                    ([y] [e] [ey] [yt]
+                        DtransM x d ex xt y e ey yt
+                      : trans (EM ex ey) (M x y) (B x y))
+                    (DtransA x d ex xt
+                      : tptrans (EA ex) (A x) ktype))
+                ([x] [d] [ex] [xt]
+                    mtrans/lam 
+                    ([y] [e] [ey] [yt] DmtransM x d ex xt y e ey yt)
+                    (DmtransA x d ex xt))
+                ([x] Dlook x : lookup (G x) x C)
+%%
+                ([x] [ex] [xt]
+                    transe/lam
+                    ([y] [ey] [yt] DtranseM' x ex xt y ey yt)
+                    (DtranseA x ex xt))
+                ([x] [ex] [xt]
+                    mtranse/lam
+                    ([y] [ey] [yt] DmtranseM' x ex xt y ey yt)
+                    (DmtranseA x ex xt))
+%%
+             <- ({x} {d} {ex} {xt}
+                    cut-trans-m _ 
+                    ([y] [e] [ey] [yt] DtransM x d ex xt y e ey yt)
+                    ([y] [e] [ey] [yt] DmtransM x d ex xt y e ey yt)
+                    ([y] lookup/hit)
+                    ([y] [ey] [yt] DtranseM x d ex xt y ey yt
+                      : transe (cons (G x) y (A x)) 
+                        (EM ex ey) (M x y) (B x y))
+                    ([y] [ey] [yt] DmtranseM x d ex xt y ey yt))
+             <- ({y} {ey} {yt}
+                    cut-transe-m _
+                    ([x] [d] [ex] [xt] DtranseM x d ex xt y ey yt)
+                    ([x] [d] [ex] [xt] DmtranseM x d ex xt y ey yt)
+                    ([x] lookup/miss (Dlook x))
+                    ([x] [ex] [xt] DtranseM' x ex xt y ey yt
+                      : transe (cons (G x) y (A x)) 
+                        (EM ex ey) (M x y) (B x y))
+                    ([x] [ex] [xt] DmtranseM' x ex xt y ey yt))
+             <- cut-tptrans-m _ DtransA DmtransA Dlook
+                ([x] [ex] [xt] DtranseA x ex xt 
+                  : tptranse (G x) (EA ex) (A x) ktype)
+                ([x] [ex] [xt] DmtranseA x ex xt).
+
+-app      : cut-trans-m _
+                ([x] [d] [ex] [xt]
+                    trans/app
+                    (Dtpsub x : tpsub ([y] C x y) (N x) (Cy x))
+                    (Dsub x : sub ([y] M x y) (N x) (My x))
+                    (DtransN x d ex xt : trans (EN ex) (N x) (B x))
+                    (DtransM x d ex xt 
+                      : trans (EM ex) (lam ([y] M x y))
+                        (pi (B x) ([y] C x y))))
+                ([x] [d] [ex] [xt]
+                    mtrans/app
+                    (DmtransN x d ex xt)
+                    (DmtransM x d ex xt))
+                ([x] Dlook x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    transe/app
+                    (Dtpsub x)
+                    (Dsub x)
+                    (DtranseN x ex xt)
+                    (DtranseM x ex xt))
+                ([x] [ex] [xt] 
+                    mtranse/app 
+                    (DmtranseN x ex xt)
+                    (DmtranseM x ex xt))
+%%
+             <- cut-trans-m _ DtransN DmtransN Dlook
+                ([x] [ex] [xt] DtranseN x ex xt
+                  : transe (G x) (EN ex) (N x) (B x))
+                ([x] [ex] [xt] DmtranseN x ex xt)
+             <- cut-trans-m _ DtransM DmtransM Dlook
+                ([x] [ex] [xt] DtranseM x ex xt
+                  : transe (G x) (EM ex) (lam [y] M x y) 
+                    (pi (B x) [y] C x y))
+                ([x] [ex] [xt] DmtranseM x ex xt).
+
+%%
+
+-const    : cut-tptrans-m _
+                ([x] [d] [ex] [xt]
+                    tptrans/const
+                    (Dexpand x : tpexpand (aconst C) T (N x))
+                    (Dsimp x : ksimp B T)
+                    (Dkof x d : wfkind B)
+                    (Dcof : ckof C B))
+                ([x] [d] [ex] [xt] mtptrans/const (Dmkof x d))
+                ([x] Dlook x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    tptranse/const
+                    (Dexpand x)
+                    (Dsimp x)
+                    Dkof''
+                    Dcof)
+                ([x] [ex] [xt] mtptranse/const Dmkof'')
+%%
+             <- strengthen-for-cut-wfkind _ Dkof Dmkof
+                (Dkof'' : wfkind B)
+                Dmkof''.
+
+-app      : cut-tptrans-m _
+                ([x] [d] [ex] [xt]
+                    tptrans/app
+                    (Dtpsub x : ksub ([y] C x y) (N x) (Cy x))
+                    (Dsub x : tpsub ([y] M x y) (N x) (My x))
+                    (DtransN x d ex xt : trans (EN ex) (N x) (B x))
+                    (DtransM x d ex xt 
+                      : tptrans (EM ex) (alam ([y] M x y))
+                        (kpi (B x) ([y] C x y))))
+                ([x] [d] [ex] [xt]
+                    mtptrans/app
+                    (DmtransN x d ex xt)
+                    (DmtransM x d ex xt))
+                ([x] Dlook x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    tptranse/app
+                    (Dtpsub x)
+                    (Dsub x)
+                    (DtranseN x ex xt)
+                    (DtranseM x ex xt))
+                ([x] [ex] [xt] 
+                    mtptranse/app 
+                    (DmtranseN x ex xt)
+                    (DmtranseM x ex xt))
+%%
+             <- cut-trans-m _ DtransN DmtransN Dlook
+                ([x] [ex] [xt] DtranseN x ex xt
+                  : transe (G x) (EN ex) (N x) (B x))
+                ([x] [ex] [xt] DmtranseN x ex xt)
+             <- cut-tptrans-m _ DtransM DmtransM Dlook
+                ([x] [ex] [xt] DtranseM x ex xt
+                  : tptranse (G x) (EM ex) (alam [y] M x y) 
+                    (kpi (B x) [y] C x y))
+                ([x] [ex] [xt] DmtranseM x ex xt).
+
+-lam      : cut-tptrans-m _
+                ([x] [d] [ex] [xt]
+                    tptrans/lam
+                    ([y] [e] [ey] [yt]
+                        DtransM x d ex xt y e ey yt
+                      : tptrans (EM ex ey) (M x y) (B x y))
+                    (DtransA x d ex xt
+                      : tptrans (EA ex) (A x) ktype))
+                ([x] [d] [ex] [xt]
+                    mtptrans/lam 
+                    ([y] [e] [ey] [yt] DmtransM x d ex xt y e ey yt)
+                    (DmtransA x d ex xt))
+                ([x] Dlook x : lookup (G x) x C)
+%%
+                ([x] [ex] [xt]
+                    tptranse/lam
+                    ([y] [ey] [yt] DtranseM' x ex xt y ey yt)
+                    (DtranseA x ex xt))
+                ([x] [ex] [xt]
+                    mtptranse/lam
+                    ([y] [ey] [yt] DmtranseM' x ex xt y ey yt)
+                    (DmtranseA x ex xt))
+%%
+             <- ({x} {d} {ex} {xt}
+                    cut-tptrans-m _ 
+                    ([y] [e] [ey] [yt] DtransM x d ex xt y e ey yt)
+                    ([y] [e] [ey] [yt] DmtransM x d ex xt y e ey yt)
+                    ([y] lookup/hit)
+                    ([y] [ey] [yt] DtranseM x d ex xt y ey yt
+                      : tptranse (cons (G x) y (A x)) 
+                        (EM ex ey) (M x y) (B x y))
+                    ([y] [ey] [yt] DmtranseM x d ex xt y ey yt))
+             <- ({y} {ey} {yt}
+                    cut-tptranse-m _
+                    ([x] [d] [ex] [xt] DtranseM x d ex xt y ey yt)
+                    ([x] [d] [ex] [xt] DmtranseM x d ex xt y ey yt)
+                    ([x] lookup/miss (Dlook x))
+                    ([x] [ex] [xt] DtranseM' x ex xt y ey yt
+                      : tptranse (cons (G x) y (A x)) 
+                        (EM ex ey) (M x y) (B x y))
+                    ([x] [ex] [xt] DmtranseM' x ex xt y ey yt))
+             <- cut-tptrans-m _ DtransA DmtransA Dlook
+                ([x] [ex] [xt] DtranseA x ex xt 
+                  : tptranse (G x) (EA ex) (A x) ktype)
+                ([x] [ex] [xt] DmtranseA x ex xt).
+
+-pi       : cut-tptrans-m _
+                ([x] [d] [ex] [xt]
+                    tptrans/pi
+                    ([y] [e] [ey] [yt]
+                        DtransM x d ex xt y e ey yt
+                      : tptrans (EM ex ey) (M x y) ktype)
+                    (DtransA x d ex xt
+                      : tptrans (EA ex) (A x) ktype))
+                ([x] [d] [ex] [xt]
+                    mtptrans/pi 
+                    ([y] [e] [ey] [yt] DmtransM x d ex xt y e ey yt)
+                    (DmtransA x d ex xt))
+                ([x] Dlook x : lookup (G x) x C)
+%%
+                ([x] [ex] [xt]
+                    tptranse/pi
+                    ([y] [ey] [yt] DtranseM' x ex xt y ey yt)
+                    (DtranseA x ex xt))
+                ([x] [ex] [xt]
+                    mtptranse/pi
+                    ([y] [ey] [yt] DmtranseM' x ex xt y ey yt)
+                    (DmtranseA x ex xt))
+%%
+             <- ({x} {d} {ex} {xt}
+                    cut-tptrans-m _ 
+                    ([y] [e] [ey] [yt] DtransM x d ex xt y e ey yt)
+                    ([y] [e] [ey] [yt] DmtransM x d ex xt y e ey yt)
+                    ([y] lookup/hit)
+                    ([y] [ey] [yt] DtranseM x d ex xt y ey yt
+                      : tptranse (cons (G x) y (A x)) 
+                        (EM ex ey) (M x y) ktype)
+                    ([y] [ey] [yt] DmtranseM x d ex xt y ey yt))
+             <- ({y} {ey} {yt}
+                    cut-tptranse-m _
+                    ([x] [d] [ex] [xt] DtranseM x d ex xt y ey yt)
+                    ([x] [d] [ex] [xt] DmtranseM x d ex xt y ey yt)
+                    ([x] lookup/miss (Dlook x))
+                    ([x] [ex] [xt] DtranseM' x ex xt y ey yt
+                      : tptranse (cons (G x) y (A x)) 
+                        (EM ex ey) (M x y) ktype)
+                    ([x] [ex] [xt] DmtranseM' x ex xt y ey yt))
+             <- cut-tptrans-m _ DtransA DmtransA Dlook
+                ([x] [ex] [xt] DtranseA x ex xt 
+                  : tptranse (G x) (EA ex) (A x) ktype)
+                ([x] [ex] [xt] DmtranseA x ex xt).
+
+%%
+
+-const    : cut-transe-m _
+                ([x] [d] [ex] [xt]
+                    transe/const
+                    (Dexpand x : expand (const C) T (N x))
+                    (Dsimp x : simp B T)
+                    (Dkof x d : kof B ktype)
+                    (Dcof : cof C B))
+                ([x] [d] [ex] [xt] mtranse/const (Dmkof x d))
+                ([x] Dlook x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    transe/const
+                    (Dexpand x)
+                    (Dsimp x)
+                    Dkof''
+                    Dcof)
+                ([x] [ex] [xt] mtranse/const Dmkof'')
+%%
+             <- strengthen-for-cut-kof _ Dkof Dmkof
+                (Dkof'' : kof B ktype)
+                Dmkof''.
+
+-var      : cut-transe-m _
+                ([x] [d] [ex] [xt]
+                    transe/var
+                    (Dexpand x : expand (Y x) T (M x))
+                    (Dsimp x : simp (B x) T)
+                    (Dkof x d : kofe (G x) (B x) ktype)
+                    (Dlook x : lookup (G x) (Y x) (B x))
+                    (Dtrans x ex xt : vtrans (EY ex) (Y x)))
+                ([x] [d] [ex] [xt] mtranse/var (Dmkof x d))
+                ([x] Dlook' x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    transe/var
+                    (Dexpand x)
+                    (Dsimp x)
+                    (Dkof' x)
+                    (Dlook x)
+                    (Dtrans x ex xt))
+                ([x] [ex] [xt] mtranse/var (Dmkof' x))
+%%
+             <- cut-kofe _ Dkof Dmkof Dlook'
+                ([x] Dkof' x : kofe (G x) (B x) ktype)
+                ([x] Dmkof' x).
+
+-varisam  : cut-transe-m _
+                ([x] [d] [ex] [xt]
+                    transe/vari
+                    (Dexpand x : expand x T (M x))
+                    (Dsimp x : simp A T)
+                    (Dkof x d : kof A ktype)
+                    d
+                    xt)
+                ([x] [d] [ex] [xt] mtranse/vari (Dmkof x d))
+                ([x] Dlook x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    transe/var
+                    (Dexpand x)
+                    (Dsimp x)
+                    (Dkofe x)
+                    (Dlook x)
+                    xt)
+                ([x] [ex] [xt] mtranse/var (Dmkofe x))
+%%
+             <- cut-kof _ Dkof Dmkof Dlook
+                ([x] Dkofe x : kofe (G x) A ktype)
+                ([x] Dmkofe x).
+
+-varioth  : cut-transe-m _
+                ([x] [d] [ex] [xt]
+                    transe/vari
+                    (Dexpand x : expand Y T (M x))
+                    (Dsimp x : simp B T)
+                    (Dkof x d : kof B ktype)
+                    (Dvof : vof Y B)
+                    (Dvtrans : vtrans EY Y))
+                ([x] [d] [ex] [xt] mtranse/vari (Dmkof x d))
+                ([x] Dlook x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    transe/vari
+                    (Dexpand x)
+                    (Dsimp x)
+                    Dkof'
+                    Dvof
+                    Dvtrans)
+                ([x] [ex] [xt] mtranse/vari Dmkof')
+%%
+             <- strengthen-for-cut-kof _ Dkof Dmkof
+                (Dkof' : kof B ktype)
+                Dmkof'.
+
+-lam      : cut-transe-m _
+                ([x] [d] [ex] [xt]
+                    transe/lam
+                    ([y] [ey] [yt]
+                        DtransM x d ex xt y ey yt
+                      : transe (cons (G x) y (A x)) 
+                        (EM ex ey) (M x y) (B x y))
+                    (DtransA x d ex xt
+                      : tptranse (G x) (EA ex) (A x) ktype))
+                ([x] [d] [ex] [xt]
+                    mtranse/lam 
+                    ([y] [ey] [yt] DmtransM x d ex xt y ey yt)
+                    (DmtransA x d ex xt))
+                ([x] Dlook x : lookup (G x) x C)
+%%
+                ([x] [ex] [xt]
+                    transe/lam
+                    ([y] [ey] [yt] DtranseM' x ex xt y ey yt)
+                    (DtranseA x ex xt))
+                ([x] [ex] [xt]
+                    mtranse/lam
+                    ([y] [ey] [yt] DmtranseM' x ex xt y ey yt)
+                    (DmtranseA x ex xt))
+%%
+             <- ({y} {ey} {yt}
+                    cut-transe-m _
+                    ([x] [d] [ex] [xt] DtransM x d ex xt y ey yt)
+                    ([x] [d] [ex] [xt] DmtransM x d ex xt y ey yt)
+                    ([x] lookup/miss (Dlook x))
+                    ([x] [ex] [xt] DtranseM' x ex xt y ey yt
+                      : transe (cons (G x) y (A x)) 
+                        (EM ex ey) (M x y) (B x y))
+                    ([x] [ex] [xt] DmtranseM' x ex xt y ey yt))
+             <- cut-tptranse-m _ DtransA DmtransA Dlook
+                ([x] [ex] [xt] DtranseA x ex xt 
+                  : tptranse (G x) (EA ex) (A x) ktype)
+                ([x] [ex] [xt] DmtranseA x ex xt).
+
+-app      : cut-transe-m _
+                ([x] [d] [ex] [xt]
+                    transe/app
+                    (Dtpsub x : tpsub ([y] C x y) (N x) (Cy x))
+                    (Dsub x : sub ([y] M x y) (N x) (My x))
+                    (DtransN x d ex xt 
+                      : transe (G x) (EN ex) (N x) (B x))
+                    (DtransM x d ex xt 
+                      : transe (G x) (EM ex) (lam ([y] M x y))
+                        (pi (B x) ([y] C x y))))
+                ([x] [d] [ex] [xt]
+                    mtranse/app
+                    (DmtransN x d ex xt)
+                    (DmtransM x d ex xt))
+                ([x] Dlook x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    transe/app
+                    (Dtpsub x)
+                    (Dsub x)
+                    (DtranseN x ex xt)
+                    (DtranseM x ex xt))
+                ([x] [ex] [xt] 
+                    mtranse/app 
+                    (DmtranseN x ex xt)
+                    (DmtranseM x ex xt))
+%%
+             <- cut-transe-m _ DtransN DmtransN Dlook
+                ([x] [ex] [xt] DtranseN x ex xt
+                  : transe (G x) (EN ex) (N x) (B x))
+                ([x] [ex] [xt] DmtranseN x ex xt)
+             <- cut-transe-m _ DtransM DmtransM Dlook
+                ([x] [ex] [xt] DtranseM x ex xt
+                  : transe (G x) (EM ex) (lam [y] M x y) 
+                    (pi (B x) [y] C x y))
+                ([x] [ex] [xt] DmtranseM x ex xt).
+
+%%
+
+-const    : cut-tptranse-m _
+                ([x] [d] [ex] [xt]
+                    tptranse/const
+                    (Dexpand x : tpexpand (aconst C) T (N x))
+                    (Dsimp x : ksimp B T)
+                    (Dkof x d : wfkind B)
+                    (Dcof : ckof C B))
+                ([x] [d] [ex] [xt] mtptranse/const (Dmkof x d))
+                ([x] Dlook x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    tptranse/const
+                    (Dexpand x)
+                    (Dsimp x)
+                    Dkof''
+                    Dcof)
+                ([x] [ex] [xt]
+                    mtptranse/const
+                    Dmkof'')
+%%
+             <- strengthen-for-cut-wfkind _ Dkof Dmkof
+                (Dkof'' : wfkind B)
+                Dmkof''.
+
+-app      : cut-tptranse-m _
+                ([x] [d] [ex] [xt]
+                    tptranse/app
+                    (Dtpsub x : ksub ([y] C x y) (N x) (Cy x))
+                    (Dsub x : tpsub ([y] M x y) (N x) (My x))
+                    (DtransN x d ex xt 
+                      : transe (G x) (EN ex) (N x) (B x))
+                    (DtransM x d ex xt 
+                      : tptranse (G x) (EM ex) (alam ([y] M x y))
+                        (kpi (B x) ([y] C x y))))
+                ([x] [d] [ex] [xt]
+                    mtptranse/app
+                    (DmtransN x d ex xt)
+                    (DmtransM x d ex xt))
+                ([x] Dlook x : lookup (G x) x A)
+%%
+                ([x] [ex] [xt]
+                    tptranse/app
+                    (Dtpsub x)
+                    (Dsub x)
+                    (DtranseN x ex xt)
+                    (DtranseM x ex xt))
+                ([x] [ex] [xt] 
+                    mtptranse/app 
+                    (DmtranseN x ex xt)
+                    (DmtranseM x ex xt))
+%%
+             <- cut-transe-m _ DtransN DmtransN Dlook
+                ([x] [ex] [xt] DtranseN x ex xt
+                  : transe (G x) (EN ex) (N x) (B x))
+                ([x] [ex] [xt] DmtranseN x ex xt)
+             <- cut-tptranse-m _ DtransM DmtransM Dlook
+                ([x] [ex] [xt] DtranseM x ex xt
+                  : tptranse (G x) (EM ex) (alam [y] M x y) 
+                    (kpi (B x) [y] C x y))
+                ([x] [ex] [xt] DmtranseM x ex xt).
+
+-pi       : cut-tptranse-m _
+                ([x] [d] [ex] [xt]
+                    tptranse/pi
+                    ([y] [ey] [yt]
+                        DtransM x d ex xt y ey yt
+                      : tptranse (cons (G x) y (A x)) 
+                        (EM ex ey) (M x y) ktype)
+                    (DtransA x d ex xt
+                      : tptranse (G x) (EA ex) (A x) ktype))
+                ([x] [d] [ex] [xt]
+                    mtptranse/pi 
+                    ([y] [ey] [yt] DmtransM x d ex xt y ey yt)
+                    (DmtransA x d ex xt))
+                ([x] Dlook x : lookup (G x) x C)
+%%
+                ([x] [ex] [xt]
+                    tptranse/pi
+                    ([y] [ey] [yt] DtranseM' x ex xt y ey yt)
+                    (DtranseA x ex xt))
+                ([x] [ex] [xt]
+                    mtptranse/pi
+                    ([y] [ey] [yt] DmtranseM' x ex xt y ey yt)
+                    (DmtranseA x ex xt))
+%%
+             <- ({y} {ey} {yt}
+                    cut-tptranse-m _
+                    ([x] [d] [ex] [xt] DtransM x d ex xt y ey yt)
+                    ([x] [d] [ex] [xt] DmtransM x d ex xt y ey yt)
+                    ([x] lookup/miss (Dlook x))
+                    ([x] [ex] [xt] DtranseM' x ex xt y ey yt
+                      : tptranse (cons (G x) y (A x)) 
+                        (EM ex ey) (M x y) ktype)
+                    ([x] [ex] [xt] DmtranseM' x ex xt y ey yt))
+             <- cut-tptranse-m _ DtransA DmtransA Dlook
+                ([x] [ex] [xt] DtranseA x ex xt 
+                  : tptranse (G x) (EA ex) (A x) ktype)
+                ([x] [ex] [xt] DmtranseA x ex xt).
+
+
+-lam      : cut-tptranse-m _
+                ([x] [d] [ex] [xt]
+                    tptranse/lam
+                    ([y] [ey] [yt]
+                        DtransM x d ex xt y ey yt
+                      : tptranse (cons (G x) y (A x)) 
+                        (EM ex ey) (M x y) (B x y))
+                    (DtransA x d ex xt
+                      : tptranse (G x) (EA ex) (A x) ktype))
+                ([x] [d] [ex] [xt]
+                    mtptranse/lam 
+                    ([y] [ey] [yt] DmtransM x d ex xt y ey yt)
+                    (DmtransA x d ex xt))
+                ([x] Dlook x : lookup (G x) x C)
+%%
+                ([x] [ex] [xt]
+                    tptranse/lam
+                    ([y] [ey] [yt] DtranseM' x ex xt y ey yt)
+                    (DtranseA x ex xt))
+                ([x] [ex] [xt]
+                    mtptranse/lam
+                    ([y] [ey] [yt] DmtranseM' x ex xt y ey yt)
+                    (DmtranseA x ex xt))
+%%
+             <- ({y} {ey} {yt}
+                    cut-tptranse-m _
+                    ([x] [d] [ex] [xt] DtransM x d ex xt y ey yt)
+                    ([x] [d] [ex] [xt] DmtransM x d ex xt y ey yt)
+                    ([x] lookup/miss (Dlook x))
+                    ([x] [ex] [xt] DtranseM' x ex xt y ey yt
+                      : tptranse (cons (G x) y (A x)) 
+                        (EM ex ey) (M x y) (B x y))
+                    ([x] [ex] [xt] DmtranseM' x ex xt y ey yt))
+             <- cut-tptranse-m _ DtransA DmtransA Dlook
+                ([x] [ex] [xt] DtranseA x ex xt 
+                  : tptranse (G x) (EA ex) (A x) ktype)
+                ([x] [ex] [xt] DmtranseA x ex xt).
+
+%worlds (csig | asig | bind | tvar | tbind | tobind)
+  (cut-trans-m _ _ _ _ _ _)
+  (cut-tptrans-m _ _ _ _ _ _)
+  (cut-transe-m _ _ _ _ _ _)
+  (cut-tptranse-m _ _ _ _ _ _).
+%total (M1 M2 M3 M4) 
+  (cut-trans-m M1 _ _ _ _ _)
+  (cut-tptrans-m M2 _ _ _ _ _)
+  (cut-transe-m M3 _ _ _ _ _)
+  (cut-tptranse-m M4 _ _ _ _ _).
+
+cut-ktrans-m : {Km}
+                   {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                          ktrans (EK ex) (K x)}
+                   ({x} {d} {ex} {xt} mktrans (D x d ex xt) Km)
+                -> ({x} lookup (G x) x A)
+%%
+                -> {D' : {x} {ex} {xt:vtrans ex x}
+                          ktranse (G x) (EK ex) (K x)}
+                   ({x} {ex} {xt} mktranse (D' x ex xt) Km) -> type.
+%mode cut-ktrans-m +Mm +D +Dm +Dlook -D' -Dm'.
+
+cut-ktranse-m : {Km}
+                   {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                          ktranse (G x) (EK ex) (K x)}
+                   ({x} {d} {ex} {xt} mktranse (D x d ex xt) Km)
+                -> ({x} lookup (G x) x A)
+%%
+                -> {D' : {x} {ex} {xt:vtrans ex x}
+                          ktranse (G x) (EK ex) (K x)}
+                   ({x} {ex} {xt} mktranse (D' x ex xt) Km) -> type.
+%mode cut-ktranse-m +Mm +D +Dm +Dlook -D' -Dm'.
+
+-type     : cut-ktrans-m _ 
+                ([x] [d] [ex] [xt] ktrans/type) 
+                ([x] [d] [ex] [xt] mktrans/type)
+                _
+                ([x] [ex] [xt] ktranse/type)
+                ([x] [ex] [xt] mktranse/type).
+
+-pi       : cut-ktrans-m _
+                ([x] [d] [ex] [xt]
+                    ktrans/pi
+                    ([y] [e] [ey] [yt]
+                        DtransM x d ex xt y e ey yt
+                      : ktrans (EM ex ey) (M x y))
+                    (DtransA x d ex xt
+                      : tptrans (EA ex) (A x) ktype))
+                ([x] [d] [ex] [xt]
+                    mktrans/pi 
+                    ([y] [e] [ey] [yt] DmtransM x d ex xt y e ey yt)
+                    (DmtransA x d ex xt))
+                ([x] Dlook x : lookup (G x) x C)
+%%
+                ([x] [ex] [xt]
+                    ktranse/pi
+                    ([y] [ey] [yt] DtranseM' x ex xt y ey yt)
+                    (DtranseA x ex xt))
+                ([x] [ex] [xt]
+                    mktranse/pi
+                    ([y] [ey] [yt] DmtranseM' x ex xt y ey yt)
+                    (DmtranseA x ex xt))
+%%
+             <- ({x} {d} {ex} {xt}
+                    cut-ktrans-m _ 
+                    ([y] [e] [ey] [yt] DtransM x d ex xt y e ey yt)
+                    ([y] [e] [ey] [yt] DmtransM x d ex xt y e ey yt)
+                    ([y] lookup/hit)
+                    ([y] [ey] [yt] DtranseM x d ex xt y ey yt
+                      : ktranse (cons (G x) y (A x)) (EM ex ey) (M x y))
+                    ([y] [ey] [yt] DmtranseM x d ex xt y ey yt))
+             <- ({y} {ey} {yt}
+                    cut-ktranse-m _
+                    ([x] [d] [ex] [xt] DtranseM x d ex xt y ey yt)
+                    ([x] [d] [ex] [xt] DmtranseM x d ex xt y ey yt)
+                    ([x] lookup/miss (Dlook x))
+                    ([x] [ex] [xt] DtranseM' x ex xt y ey yt
+                      : ktranse (cons (G x) y (A x)) (EM ex ey) (M x y))
+                    ([x] [ex] [xt] DmtranseM' x ex xt y ey yt))
+             <- cut-tptrans-m _ DtransA DmtransA Dlook
+                ([x] [ex] [xt] DtranseA x ex xt 
+                  : tptranse (G x) (EA ex) (A x) ktype)
+                ([x] [ex] [xt] DmtranseA x ex xt).
+
+%%
+
+-type     : cut-ktranse-m _ 
+                ([x] [d] [ex] [xt] ktranse/type) 
+                ([x] [d] [ex] [xt] mktranse/type)
+                _
+                ([x] [ex] [xt] ktranse/type)
+                ([x] [ex] [xt] mktranse/type).
+
+-pi       : cut-ktranse-m _
+                ([x] [d] [ex] [xt]
+                    ktranse/pi
+                    ([y] [ey] [yt]
+                        DtransM x d ex xt y ey yt
+                      : ktranse (cons (G x) y (A x)) (EM ex ey) (M x y))
+                    (DtransA x d ex xt
+                      : tptranse (G x) (EA ex) (A x) ktype))
+                ([x] [d] [ex] [xt]
+                    mktranse/pi 
+                    ([y] [ey] [yt] DmtransM x d ex xt y ey yt)
+                    (DmtransA x d ex xt))
+                ([x] Dlook x : lookup (G x) x C)
+%%
+                ([x] [ex] [xt]
+                    ktranse/pi
+                    ([y] [ey] [yt] DtranseM' x ex xt y ey yt)
+                    (DtranseA x ex xt))
+                ([x] [ex] [xt]
+                    mktranse/pi
+                    ([y] [ey] [yt] DmtranseM' x ex xt y ey yt)
+                    (DmtranseA x ex xt))
+%%
+             <- ({y} {ey} {yt}
+                    cut-ktranse-m _
+                    ([x] [d] [ex] [xt] DtransM x d ex xt y ey yt)
+                    ([x] [d] [ex] [xt] DmtransM x d ex xt y ey yt)
+                    ([x] lookup/miss (Dlook x))
+                    ([x] [ex] [xt] DtranseM' x ex xt y ey yt
+                      : ktranse (cons (G x) y (A x)) (EM ex ey) (M x y))
+                    ([x] [ex] [xt] DmtranseM' x ex xt y ey yt))
+             <- cut-tptranse-m _ DtransA DmtransA Dlook
+                ([x] [ex] [xt] DtranseA x ex xt 
+                  : tptranse (G x) (EA ex) (A x) ktype)
+                ([x] [ex] [xt] DmtranseA x ex xt).
+
+%worlds (csig | asig | bind | tvar | tbind | tobind)
+  (cut-ktrans-m _ _ _ _ _ _)
+  (cut-ktranse-m _ _ _ _ _ _).
+%total (M1 M2)
+  (cut-ktrans-m M1 _ _ _ _ _)
+  (cut-ktranse-m M2 _ _ _ _ _).
+
+%%
+
+cut-trans : ({x} vof x A -> {ex} vtrans ex x 
+                  -> trans (EM ex) (M x) (B x))
+             -> ({x} lookup (G x) x A)
+%%
+             -> ({x} {ex} vtrans ex x 
+                  -> transe (G x) (EM ex) (M x) (B x)) -> type.
+%mode cut-trans +X1 +X2 -X3.
+
+- : cut-trans Dtrans Dlook Dtranse
+     <- ({x} {d} {ex} {xt} 
+            can-mtrans (Dtrans x d ex xt) 
+            (Dmtrans x d ex xt))
+     <- cut-trans-m _ Dtrans Dmtrans Dlook Dtranse _.
+
+%worlds (csig | asig | bind | tbind | tobind) (cut-trans _ _ _).
+%total {} (cut-trans _ _ _).
+
+cut-tptrans : ({x} vof x A -> {ex} vtrans ex x 
+                  -> tptrans (EM ex) (M x) (B x))
+             -> ({x} lookup (G x) x A)
+%%
+             -> ({x} {ex} vtrans ex x 
+                  -> tptranse (G x) (EM ex) (M x) (B x)) -> type.
+%mode cut-tptrans +X1 +X2 -X3.
+
+- : cut-tptrans Dtrans Dlook Dtranse
+     <- ({x} {d} {ex} {xt} 
+            can-mtptrans (Dtrans x d ex xt) 
+            (Dmtrans x d ex xt))
+     <- cut-tptrans-m _ Dtrans Dmtrans Dlook Dtranse _.
+
+%worlds (csig | asig | bind | tbind | tobind) (cut-tptrans _ _ _).
+%total {} (cut-tptrans _ _ _).
+
+cut-ktrans  : ({x} vof x A -> {ex} vtrans ex x
+                  -> ktrans (EK ex) (K x))
+               -> ({x} lookup (G x) x A)
+%%
+               -> ({x} {ex} vtrans ex x
+                   -> ktranse (G x) (EK ex) (K x)) -> type.
+%mode cut-ktrans +X1 +X2 -X3.
+
+- : cut-ktrans Dtrans Dlook Dtranse
+     <- ({x} {d} {ex} {xt}
+            can-mktrans (Dtrans x d ex xt)
+            (Dmtrans x d ex xt))
+     <- cut-ktrans-m _ Dtrans Dmtrans Dlook Dtranse _.
+
+%worlds (csig | asig | bind | tbind | tobind) (cut-ktrans _ _ _).
+%total {} (cut-ktrans _ _ _).
+
+%%%%
+
+trans1-to-transe : ({x} vof x A -> {ex} vtrans ex x 
+                        -> trans (EM ex) (M x) (B x))
+                    -> ({x} {ex} vtrans ex x
+                        -> transe (cons nil x A) (EM ex) (M x) (B x)) -> type.
+%mode trans1-to-transe +X1 -X2.
+
+- : trans1-to-transe
+        ([x] [d:vof x A] [ex] [xt:vtrans ex x]
+            Dtrans x d ex xt : trans (EM ex) (M x) (B x))
+        ([x] [ex] [xt] Dtranse x ex xt)
+     <- cut-trans Dtrans ([_] lookup/hit) Dtranse.
+
+%worlds (csig | asig | bind | tbind | tobind) (trans1-to-transe _ _).
+%total {} (trans1-to-transe _ _).
+
+
+tptrans1-to-tptranse : ({x} vof x A -> {ex} vtrans ex x 
+                        -> tptrans (EM ex) (M x) (B x))
+                    -> ({x} {ex} vtrans ex x
+                        -> tptranse 
+                           (cons nil x A) (EM ex) (M x) (B x)) -> type.
+%mode tptrans1-to-tptranse +X1 -X2.
+
+- : tptrans1-to-tptranse
+        ([x] [d:vof x A] [ex] [xt:vtrans ex x]
+            Dtrans x d ex xt : tptrans (EM ex) (M x) (B x))
+        ([x] [ex] [xt] Dtranse x ex xt)
+     <- cut-tptrans Dtrans ([_] lookup/hit) Dtranse.
+
+%worlds (csig | asig | bind | tbind | tobind) (tptrans1-to-tptranse _ _).
+%total {} (tptrans1-to-tptranse _ _).
+
+
+ktrans1-to-ktranse : ({x} vof x A -> {ex} vtrans ex x 
+                        -> ktrans (EM ex) (M x))
+                    -> ({x} {ex} vtrans ex x
+                        -> ktranse 
+                           (cons nil x A) (EM ex) (M x)) -> type.
+%mode ktrans1-to-ktranse +X1 -X2.
+
+- : ktrans1-to-ktranse
+        ([x] [d:vof x A] [ex] [xt:vtrans ex x]
+            Dtrans x d ex xt : ktrans (EM ex) (M x))
+        ([x] [ex] [xt] Dtranse x ex xt)
+     <- cut-ktrans Dtrans ([_] lookup/hit) Dtranse.
+
+%worlds (csig | asig | bind | tbind | tobind) (ktrans1-to-ktranse _ _).
+%total {} (ktrans1-to-ktranse _ _).
+
+
+trans-to-transe-nil : trans EM M A -> transe nil EM M A -> type.
+%mode trans-to-transe-nil +X1 -X2.
+
+tptrans-to-tptranse-nil : tptrans EM M A -> tptranse nil EM M A -> type.
+%mode tptrans-to-tptranse-nil +X1 -X2.
+
+-const    : trans-to-transe-nil
+                (trans/const
+                    (Dexpand : expand (const C) T M)
+                    (Dsimp : simp A T)
+                    (Dkof : kof A ktype)
+                    (Dcof : cof C A))
+                (transe/const Dexpand Dsimp Dkof Dcof).
+
+-var      : trans-to-transe-nil
+                (trans/var
+                    (Dexpand : expand X T M)
+                    (Dsimp : simp A T)
+                    (Dkof : kof A ktype)
+                    (Dvof : vof X A)
+                    (Dvtrans : vtrans EX X))
+                (transe/vari Dexpand Dsimp Dkof Dvof Dvtrans).
+
+-app      : trans-to-transe-nil
+                (trans/app
+                    (Dtpsub : tpsub ([x] A x) N Ax)
+                    (Dsub : sub ([x] M x) N Mx)
+                    (DtransN : trans EN N B)
+                    (DtransM : trans EM (lam [x] M x) (pi B [x] A x)))
+                (transe/app Dtpsub Dsub DtranseN DtranseM)
+             <- trans-to-transe-nil DtransN DtranseN
+             <- trans-to-transe-nil DtransM DtranseM.
+
+-lam      : trans-to-transe-nil
+                (trans/lam
+                    ([x] [d:vof x A]
+                        [ex] [xt:vtrans ex x]
+                        DtransM x d ex xt : trans (EM ex) (M x) (B x))
+                    (DtransA : tptrans EA A ktype))
+                (transe/lam DtranseM DtranseA)
+             <- trans1-to-transe DtransM
+                ([x] [ex] [xt] DtranseM x ex xt
+                  : transe (cons nil x A) (EM ex) (M x) (B x))
+             <- tptrans-to-tptranse-nil DtransA DtranseA.
+
+%%
+
+
+-const    : tptrans-to-tptranse-nil
+                (tptrans/const Dexpand Dsimp Dkof Dcof)
+                (tptranse/const Dexpand Dsimp Dkof Dcof).
+
+-app      : tptrans-to-tptranse-nil
+                (tptrans/app Dtpsub Dsub DtransN DtransM)
+                (tptranse/app Dtpsub Dsub DtranseN DtranseM)
+             <- trans-to-transe-nil DtransN DtranseN
+             <- tptrans-to-tptranse-nil DtransM DtranseM.
+
+-lam      : tptrans-to-tptranse-nil
+                (tptrans/lam
+                    ([x] [d:vof x A]
+                        [ex] [xt:vtrans ex x]
+                        DtransM x d ex xt : tptrans (EM ex) (M x) (B x))
+                    (DtransA : tptrans EA A ktype))
+                (tptranse/lam DtranseM DtranseA)
+             <- tptrans1-to-tptranse DtransM
+                ([x] [ex] [xt] DtranseM x ex xt
+                  : tptranse (cons nil x A) (EM ex) (M x) (B x))
+             <- tptrans-to-tptranse-nil DtransA DtranseA.
+
+-pi       : tptrans-to-tptranse-nil
+                (tptrans/pi
+                    ([x] [d:vof x A]
+                        [ex] [xt:vtrans ex x]
+                        DtransM x d ex xt : tptrans (EM ex) (M x) ktype)
+                    (DtransA : tptrans EA A ktype))
+                (tptranse/pi DtranseM DtranseA)
+             <- tptrans1-to-tptranse DtransM
+                ([x] [ex] [xt] DtranseM x ex xt
+                  : tptranse (cons nil x A) (EM ex) (M x) ktype)
+             <- tptrans-to-tptranse-nil DtransA DtranseA.
+
+%worlds (csig | asig | bind | tbind | tobind) 
+  (trans-to-transe-nil _ _)
+  (tptrans-to-tptranse-nil _ _).
+%total (D1 D2) 
+  (trans-to-transe-nil D1 _)
+  (tptrans-to-tptranse-nil D2 _).
+
+ktrans-to-ktranse-nil : ktrans EK K -> ktranse nil EK K -> type.
+%mode ktrans-to-ktranse-nil +X1 -X2.
+
+-type : ktrans-to-ktranse-nil ktrans/type ktranse/type.
+
+-pi   : ktrans-to-ktranse-nil
+            (ktrans/pi
+                ([x] [d:vof x A]
+                    [ex] [xt:vtrans ex x]
+                    DtransK x d ex xt : ktrans (EK ex) (K x))
+                (DtransA : tptrans EA A ktype))
+            (ktranse/pi DtranseK DtranseA)
+         <- ktrans1-to-ktranse DtransK
+            ([x] [ex] [xt] DtranseK x ex xt
+              : ktranse (cons nil x A) (EK ex) (K x))
+         <- tptrans-to-tptranse-nil DtransA DtranseA.
+
+%worlds (csig | asig | bind | tbind | tobind) (ktrans-to-ktranse-nil _ _).
+%total D (ktrans-to-ktranse-nil D _).
+
+
+trans-to-transe : {G} trans EM M A -> transe G EM M A -> type.
+%mode trans-to-transe +G +X1 -X2.
+
+- : trans-to-transe G (Dtrans : trans EM M A)
+        Dtranse
+     <- trans-to-transe-nil Dtrans (Dtransenil : transe nil EM M A)
+     <- append-nil _ (Dappend : append nil G G)
+     <- weaken-transe' Dappend Dtransenil
+        (Dtranse : transe G EM M A).
+
+%worlds (csig | asig | bind | tbind | tobind) (trans-to-transe _ _ _). 
+%total {} (trans-to-transe _ _ _).
+
+
+%% other direction (transe to trans) %%
+
+kof-to-kofi : {G} kof A K -> kofi G A K -> type.
+%mode kof-to-kofi +G +X1 -X2.
+
+- : kof-to-kofi nil Dkof (kofi/nil Dkof).
+
+- : kof-to-kofi (cons G X A) Dkof (kofi/cons ([_] Dkof'))
+     <- kof-to-kofi G Dkof Dkof'.
+
+%worlds (csig | asig | bind | var | ofblock) (kof-to-kofi _ _ _).
+%total G (kof-to-kofi G _ _).
+
+transi : ctx -> etm -> tm -> tp -> type.
+tptransi : ctx -> etp -> tp -> kind -> type.
+ktransi : ctx -> ekind -> kind -> type.
+
+transi/nil  : transi nil EM M A
+               <- trans EM M A.
+transi/cons : transi (cons G X B) EM M A
+               <- (vof X B -> transi G EM M A).
+
+tptransi/nil  : tptransi nil EM M A
+               <- tptrans EM M A.
+tptransi/cons : tptransi (cons G X B) EM M A
+               <- (vof X B -> tptransi G EM M A).
+
+ktransi/nil   : ktransi nil EK K
+                 <- ktrans EK K.
+ktransi/cons  : ktransi (cons G X A) EK K
+                 <- (vof X A -> ktransi G EK K).
+
+
+transi-const : {G} expand (const C) T M
+                  -> simp A T
+                  -> kof A ktype
+                  -> cof C A
+%%
+                  -> transi G (econst C) M A -> type.
+%mode transi-const +G +X1 +X2 +X3 +X4 -X5.
+
+-nil  : transi-const nil
+            Dexpand Dsimp Dkof Dcof
+            (transi/nil (trans/const Dexpand Dsimp Dkof Dcof)).
+
+-cons : transi-const (cons G X B)
+            Dexpand Dsimp Dkof Dcof
+            (transi/cons ([d] Dtransi))
+         <- transi-const G Dexpand Dsimp Dkof Dcof Dtransi.
+
+%worlds (csig | asig | bind | tvar | tbind | tobind) (transi-const _ _ _ _ _ _).
+%total G (transi-const G _ _ _ _ _).
+
+transi-vari : {G} expand X T M 
+               -> simp A T 
+               -> kofi G A ktype 
+               -> vof X A 
+               -> vtrans EX X
+%%                  
+               -> transi G EX M A -> type.
+%mode transi-vari +G +X1 +X2 +X3 +X4 +X5 -X6.
+
+-nil  : transi-vari nil Dexpand Dsimp (kofi/nil Dkof) Dvof Dvtrans
+            (transi/nil (trans/var Dexpand Dsimp Dkof Dvof Dvtrans)).
+
+-cons : transi-vari (cons G X B)
+            Dexpand Dsimp 
+            (kofi/cons ([d:vof X B] Dkofi d : kofi G A ktype)) 
+            Dvof Dvtrans
+            (transi/cons ([d] Dtransi d))
+         <- ({d}
+                transi-vari G Dexpand Dsimp (Dkofi d) Dvof Dvtrans 
+                (Dtransi d)).
+
+%worlds (csig | asig | bind | ofblock | tvar | tbind | tobind) (transi-vari _ _ _ _ _ _ _).
+%total G (transi-vari G _ _ _ _ _ _).
+
+
+transi-var : expand X T M 
+              -> simp A T 
+              -> kofi G A ktype
+              -> lookup G X A
+              -> vtrans EX X
+%%                 
+              -> transi G EX M A -> type.
+%mode transi-var +X1 +X2 +X3 +X4 +X5 -X6.
+
+-hit  : transi-var Dexpand Dsimp
+            (kofi/cons
+                (Dkofi : vof X A -> kofi G A ktype)
+              : kofi (cons G X A) A ktype)
+            (lookup/hit : lookup (cons G X A) X A)
+            Dvtrans
+            (transi/cons Dtransi)
+         <- ({d:vof X A}
+                transi-vari _ Dexpand Dsimp (Dkofi d) d Dvtrans
+                (Dtransi d)).
+
+-miss : transi-var Dexpand Dsimp
+            (kofi/cons
+                ([d:vof Y B] Dkofi d : kofi G A ktype)
+              : kofi (cons G Y B) A ktype)
+            (lookup/miss
+                (Dlook : lookup G X A)
+              : lookup (cons G Y B) X A)
+            Dvtrans
+            (transi/cons Dtransi)
+         <- ({d:vof Y B}
+                transi-var Dexpand Dsimp (Dkofi d) Dlook Dvtrans
+                (Dtransi d : transi G EX M A)).
+
+%worlds (csig | asig | bind | ofblock | tvar | tbind | tobind) (transi-var _ _ _ _ _ _).
+%total D (transi-var _ _ _ D _ _).
+
+transi-app : tpsub ([x] B x) N Bx
+              -> sub ([x] M x) N Mx
+              -> transi G EN N A
+              -> transi G EM (lam [x] M x) (pi A [x] B x)
+%%
+              -> transi G (eapp EM EN) Mx Bx -> type.
+%mode transi-app +X1 +X2 +X3 +X4 -X5.
+
+-nil  : transi-app
+            Dtpsub Dsub (transi/nil DtransN) (transi/nil DtransM)
+            (transi/nil (trans/app Dtpsub Dsub DtransN DtransM)).
+
+-cons : transi-app Dtpsub Dsub
+            (transi/cons
+                ([d:vof X B] DtransiN d : transi G EN N A))
+            (transi/cons
+                ([d:vof X B] DtransiM d 
+                  : transi G EM (lam [x] M x) (pi A ([x] C x))))
+            (transi/cons D)
+         <- ({d} transi-app Dtpsub Dsub (DtransiN d) (DtransiM d) (D d)).
+
+%worlds (csig | asig | bind | ofblock | tvar | tbind | tobind) (transi-app _ _ _ _ _).
+%total D (transi-app _ _ D _ _).
+
+transi-lam : ({x} {ex} vtrans ex x -> transi (cons G x A) (EM ex) (M x) (B x))
+              -> tptransi G EA A ktype
+%%
+              -> transi G (elam EA [ex] EM ex) (lam [x] M x) (pi A [x] B x)
+              -> type.
+%mode transi-lam +X1 +X2 -X3.
+
+-nil  : transi-lam 
+            ([x] [ex] [xt] transi/cons ([d] transi/nil (DtransM x d ex xt)))
+            (tptransi/nil DtransA)
+            (transi/nil (trans/lam DtransM DtransA)).
+
+-cons : transi-lam
+            ([x] [ex] [xt]
+                transi/cons ([d] transi/cons ([e] DtransM x d ex xt e)))
+            (tptransi/cons DtransA)
+            (transi/cons Dtransi)
+         <- ({e} 
+                transi-lam 
+                ([x] [ex] [xt] transi/cons ([d] DtransM x d ex xt e))
+                (DtransA e)
+                (Dtransi e)).
+
+%worlds (csig | asig | bind | ofblock | tvar | tbind | tobind) (transi-lam _ _ _).
+%total D (transi-lam _ D _).
+
+%%
+
+
+tptransi-const : {G} tpexpand (aconst C) T M
+                  -> ksimp A T
+                  -> wfkind A
+                  -> ckof C A
+%%
+                  -> tptransi G (eaconst C) M A -> type.
+%mode tptransi-const +G +X1 +X2 +X3 +X4 -X5.
+
+-nil  : tptransi-const nil
+            Dexpand Dsimp Dkof Dcof
+            (tptransi/nil (tptrans/const Dexpand Dsimp Dkof Dcof)).
+
+-cons : tptransi-const (cons G X B)
+            Dexpand Dsimp Dkof Dcof
+            (tptransi/cons ([d] Dtransi))
+         <- tptransi-const G Dexpand Dsimp Dkof Dcof Dtransi.
+
+%worlds (csig | asig | bind | tvar | tbind | tobind) (tptransi-const _ _ _ _ _ _).
+%total G (tptransi-const G _ _ _ _ _).
+
+tptransi-app : ksub ([x] B x) N Bx
+              -> tpsub ([x] M x) N Mx
+              -> transi G EN N A
+              -> tptransi G EM (alam [x] M x) (kpi A [x] B x)
+%%
+              -> tptransi G (eaapp EM EN) Mx Bx -> type.
+%mode tptransi-app +X1 +X2 +X3 +X4 -X5.
+
+-nil  : tptransi-app
+            Dtpsub Dsub (transi/nil DtransN) (tptransi/nil DtransM)
+            (tptransi/nil (tptrans/app Dtpsub Dsub DtransN DtransM)).
+
+-cons : tptransi-app Dtpsub Dsub
+            (transi/cons
+                ([d:vof X B] DtransiN d : transi G EN N A))
+            (tptransi/cons
+                ([d:vof X B] DtransiM d 
+                  : tptransi G EM (alam [x] M x) (kpi A ([x] C x))))
+            (tptransi/cons D)
+         <- ({d} tptransi-app Dtpsub Dsub (DtransiN d) (DtransiM d) (D d)).
+
+%worlds (csig | asig | bind | ofblock | tvar | tbind | tobind) (tptransi-app _ _ _ _ _).
+%total D (tptransi-app _ _ D _ _).
+
+tptransi-lam : ({x} {ex} vtrans ex x -> tptransi (cons G x A) (EM ex) (M x) (B x))
+              -> tptransi G EA A ktype
+%%
+              -> tptransi G (ealam EA [ex] EM ex) (alam [x] M x) (kpi A [x] B x)
+              -> type.
+%mode tptransi-lam +X1 +X2 -X3.
+
+-nil  : tptransi-lam 
+            ([x] [ex] [xt] tptransi/cons ([d] tptransi/nil (DtransM x d ex xt)))
+            (tptransi/nil DtransA)
+            (tptransi/nil (tptrans/lam DtransM DtransA)).
+
+-cons : tptransi-lam
+            ([x] [ex] [xt]
+                tptransi/cons ([d] tptransi/cons ([e] DtransM x d ex xt e)))
+            (tptransi/cons DtransA)
+            (tptransi/cons Dtransi)
+         <- ({e} 
+                tptransi-lam 
+                ([x] [ex] [xt] tptransi/cons ([d] DtransM x d ex xt e))
+                (DtransA e)
+                (Dtransi e)).
+
+%worlds (csig | asig | bind | ofblock | tvar | tbind | tobind) (tptransi-lam _ _ _).
+%total D (tptransi-lam _ D _).
+
+tptransi-pi : ({x} {ex} vtrans ex x -> tptransi (cons G x A) (EM ex) (M x) ktype)
+              -> tptransi G EA A ktype
+%%
+              -> tptransi G (epi EA [ex] EM ex) (pi A [x] M x) ktype
+              -> type.
+%mode tptransi-pi +X1 +X2 -X3.
+
+-nil  : tptransi-pi 
+            ([x] [ex] [xt] tptransi/cons ([d] tptransi/nil (DtransM x d ex xt)))
+            (tptransi/nil DtransA)
+            (tptransi/nil (tptrans/pi DtransM DtransA)).
+
+-cons : tptransi-pi
+            ([x] [ex] [xt]
+                tptransi/cons ([d] tptransi/cons ([e] DtransM x d ex xt e)))
+            (tptransi/cons DtransA)
+            (tptransi/cons Dtransi)
+         <- ({e} 
+                tptransi-pi 
+                ([x] [ex] [xt] tptransi/cons ([d] DtransM x d ex xt e))
+                (DtransA e)
+                (Dtransi e)).
+
+%worlds (csig | asig | bind | ofblock | tvar | tbind | tobind) (tptransi-pi _ _ _).
+%total D (tptransi-pi _ D _).
+
+ktransi-pi : ({x} {ex} vtrans ex x -> ktransi (cons G x A) (EK ex) (K x))
+              -> tptransi G EA A ktype
+%%
+              -> ktransi G (ekpi EA ([ex] EK ex)) (kpi A ([x] K x)) -> type.
+%mode ktransi-pi +X1 +X2 -X3.
+
+-nil  : ktransi-pi 
+            ([x] [ex] [xt] ktransi/cons ([d] ktransi/nil (DtransM x d ex xt)))
+            (tptransi/nil DtransA)
+            (ktransi/nil (ktrans/pi DtransM DtransA)).
+
+-cons : ktransi-pi
+            ([x] [ex] [xt]
+                ktransi/cons ([d] ktransi/cons ([e] DtransM x d ex xt e)))
+            (tptransi/cons DtransA)
+            (ktransi/cons Dtransi)
+         <- ({e} 
+                ktransi-pi 
+                ([x] [ex] [xt] ktransi/cons ([d] DtransM x d ex xt e))
+                (DtransA e)
+                (Dtransi e)).
+
+%worlds (csig | asig | bind | ofblock | tvar | tbind | tobind) (ktransi-pi _ _ _).
+%total D (ktransi-pi _ D _).
+
+ktransi-type : {G} ktransi G ektype ktype -> type.
+%mode ktransi-type +G -D.
+
+-nil  : ktransi-type nil (ktransi/nil ktrans/type).
+
+-cons : ktransi-type (cons G X A) (ktransi/cons ([_] D))
+         <- ktransi-type G D.
+
+%worlds (csig | asig | bind | ofblock | tvar | tbind | tobind) (ktransi-type _ _).
+%total G (ktransi-type G _).
+
+
+%%
+
+transe-to-transi : transe G EM M A -> transi G EM M A -> type.
+%mode transe-to-transi +X1 -X2.
+
+tptranse-to-tptransi : tptranse G EM M A -> tptransi G EM M A -> type.
+%mode tptranse-to-tptransi +X1 -X2.
+
+-const  : transe-to-transi
+              (transe/const
+                  (Dexpand : expand (const C) T M)
+                  (Dsimp : simp A T)
+                  (Dkof : kof A ktype)
+                  (Dcof : cof C A))
+              Dtransi
+           <- transi-const G Dexpand Dsimp Dkof Dcof Dtransi.
+
+-vari   : transe-to-transi
+              (transe/vari Dexpand Dsimp Dkof Dvof Dvtrans)
+              Dtransi
+           <- kof-to-kofi G Dkof Dkofi
+           <- transi-vari G Dexpand Dsimp Dkofi Dvof Dvtrans Dtransi.
+
+-var    : transe-to-transi
+              (transe/var Dexpand Dsimp Dkofe Dlook Dvtrans)
+              Dtransi
+           <- kofe-to-kofi Dkofe Dkofi
+           <- transi-var Dexpand Dsimp Dkofi Dlook Dvtrans
+              Dtransi.
+
+-app    : transe-to-transi
+              (transe/app Dtpsub Dsub DtranseN DtranseM)
+              Dtransi
+           <- transe-to-transi DtranseN DtransiN
+           <- transe-to-transi DtranseM DtransiM
+           <- transi-app Dtpsub Dsub DtransiN DtransiM Dtransi.
+
+-lam    : transe-to-transi
+              (transe/lam ([x] [ex] [xt] DtransM x ex xt) DtransA)
+              Dtransi
+           <- tptranse-to-tptransi DtransA DtransiA
+           <- ({x} {ex} {xt}
+                  transe-to-transi (DtransM x ex xt)
+                  (DtransiM x ex xt))
+           <- transi-lam DtransiM DtransiA
+              Dtransi.
+
+%%
+
+-const  : tptranse-to-tptransi
+              (tptranse/const Dexpand Dsimp Dwf Dcof)
+              Dtransi
+           <- tptransi-const _ Dexpand Dsimp Dwf Dcof Dtransi.
+
+-app    : tptranse-to-tptransi
+              (tptranse/app Dtpsub Dsub DtranseN DtranseM)
+              Dtransi
+           <- transe-to-transi DtranseN DtransiN
+           <- tptranse-to-tptransi DtranseM DtransiM
+           <- tptransi-app Dtpsub Dsub DtransiN DtransiM Dtransi.
+
+-pi     : tptranse-to-tptransi
+              (tptranse/pi ([x] [ex] [xt] DtransM x ex xt) DtransA)
+              Dtransi
+           <- tptranse-to-tptransi DtransA DtransiA
+           <- ({x} {ex} {xt}
+                  tptranse-to-tptransi (DtransM x ex xt)
+                  (DtransiM x ex xt))
+           <- tptransi-pi DtransiM DtransiA
+              Dtransi.
+
+-lam    : tptranse-to-tptransi
+              (tptranse/lam ([x] [ex] [xt] DtransM x ex xt) DtransA)
+              Dtransi
+           <- tptranse-to-tptransi DtransA DtransiA
+           <- ({x} {ex} {xt}
+                  tptranse-to-tptransi (DtransM x ex xt)
+                  (DtransiM x ex xt))
+           <- tptransi-lam DtransiM DtransiA
+              Dtransi.
+
+%worlds (csig | asig | bind | tvar | tbind | tobind)
+  (transe-to-transi _ _)
+  (tptranse-to-tptransi _ _).
+%total (D1 D2)
+  (transe-to-transi D1 _)
+  (tptranse-to-tptransi D2 _).
+
+ktranse-to-ktransi : ktranse G EK K -> ktransi G EK K -> type.
+%mode ktranse-to-ktransi +X1 -X2.
+
+-type   : ktranse-to-ktransi ktranse/type D
+           <- ktransi-type _ D.
+
+-pi     : ktranse-to-ktransi
+              (ktranse/pi ([x] [ex] [xt] DtransM x ex xt) DtransA)
+              Dtransi
+           <- tptranse-to-tptransi DtransA DtransiA
+           <- ({x} {ex} {xt}
+                  ktranse-to-ktransi (DtransM x ex xt)
+                  (DtransiM x ex xt))
+           <- ktransi-pi DtransiM DtransiA
+              Dtransi.
+
+%worlds (csig | asig | bind | tvar | tbind | tobind) (ktranse-to-ktransi _ _).
+%total D (ktranse-to-ktransi D _).
+
+
+transe-to-trans : transe nil EM M A -> trans EM M A -> type.
+%mode transe-to-trans +X1 -X2.
+
+- : transe-to-trans Dtranse Dtrans
+     <- transe-to-transi Dtranse (transi/nil Dtrans).
+
+%worlds (csig | asig | bind | tbind | tobind) (transe-to-trans _ _).
+%total {} (transe-to-trans _ _).
+
+tptranse-to-tptrans : tptranse nil EM M A -> tptrans EM M A -> type.
+%mode tptranse-to-tptrans +X1 -X2.
+
+- : tptranse-to-tptrans Dtranse Dtrans
+     <- tptranse-to-tptransi Dtranse (tptransi/nil Dtrans).
+
+%worlds (csig | asig | bind | tbind | tobind) (tptranse-to-tptrans _ _).
+%total {} (tptranse-to-tptrans _ _).
+
+ktranse-to-ktrans : ktranse nil EM M -> ktrans EM M -> type.
+%mode ktranse-to-ktrans +X1 -X2.
+
+- : ktranse-to-ktrans Dtranse Dtrans
+     <- ktranse-to-ktransi Dtranse (ktransi/nil Dtrans).
+
+%worlds (csig | asig | bind | tbind | tobind) (ktranse-to-ktrans _ _).
+%total {} (ktranse-to-ktrans _ _).
+

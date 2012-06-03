@@ -1,0 +1,674 @@
+%%% functionality %%%
+
+simp-fun : simp A T -> simp A T' -> stp-eq T T' -> type.
+%mode simp-fun +X1 +X2 -X3.
+
+-base : simp-fun simp/base simp/base stp-eq/i.
+
+-pi   : simp-fun (simp/pi Dsimp2 Dsimp1) (simp/pi Dsimp2' Dsimp1') Deq
+         <- simp-fun Dsimp1 Dsimp1' Deq1
+         <- ({x} simp-fun (Dsimp2 x) (Dsimp2' x) Deq2)
+         <- stp-compat-stp ([t] arrow t T2) Deq1 Deq1'
+         <- stp-compat-stp ([t] arrow T1' t) Deq2 Deq2'
+         <- stp-eq-trans Deq1' Deq2' Deq.
+
+-lam  : simp-fun (simp/lam ([x] Dsimp x)) (simp/lam ([x] Dsimp' x)) Deq
+         <- ({x} simp-fun (Dsimp x) (Dsimp' x) Deq).
+
+%worlds (csig | asig | var | evar) (simp-fun _ _ _).
+%total D (simp-fun D _ _).
+
+
+ksimp-fun : ksimp K H -> ksimp K H' -> skind-eq H H' -> type.
+%mode ksimp-fun +X1 +X2 -X3.
+
+-ktype : ksimp-fun ksimp/type ksimp/type skind-eq/i.
+
+-kpi   : ksimp-fun (ksimp/pi Dksimp Dsimp) (ksimp/pi Dksimp' Dsimp') Deq
+          <- simp-fun Dsimp Dsimp' Dtpeq
+          <- ({x} ksimp-fun (Dksimp x) (Dksimp' x) Dkindeq)
+          <- skind-compat-skind ([t] karrow t T2) Dtpeq Deq1
+          <- skind-compat-skind' ([t] karrow T1' t) Dkindeq Deq2
+          <- skind-eq-trans Deq1 Deq2 Deq.
+
+%worlds (csig | asig | var | evar) (ksimp-fun _ _ _).
+%total D (ksimp-fun D _ _).
+
+simpctx-fun : simpctx G G' -> simpctx G G'' -> sctx-eq G' G'' -> type.
+%mode simpctx-fun +X1 +X2 -X3.
+
+-nil  : simpctx-fun simpctx/nil simpctx/nil sctx-eq/i.
+
+-cons : simpctx-fun (simpctx/cons DsimpA Dsimpctx) (simpctx/cons DsimpA' Dsimpctx')
+            Deq
+         <- simp-fun DsimpA DsimpA' DeqA
+         <- simpctx-fun Dsimpctx Dsimpctx' DeqG
+         <- sctx-compat-cons _ DeqG DeqA Deq.
+
+%worlds (csig | asig | var | evar) (simpctx-fun _ _ _).
+%total D (simpctx-fun D _ _).
+
+
+%%% random stuff %%%
+
+%% this lemma allows us to tell twelf that one type reduces to another
+%% when they are stp-leq.
+
+employ-stp-leq : {S} {T} stp-leq S T -> type.
+%mode employ-stp-leq +S +T +X1.
+
+- : employ-stp-leq _ _ stp-leq/eq.
+
+- : employ-stp-leq S (arrow T1 T2) (stp-leq/arr1 (Dleq : stp-leq S T1))
+     <- employ-stp-leq S T1 Dleq.
+
+- : employ-stp-leq S (arrow T1 T2) (stp-leq/arr2 (Dleq : stp-leq S T2))
+     <- employ-stp-leq S T2 Dleq.
+
+%worlds (csig | asig | evar) (employ-stp-leq _ _ _).
+%total D (employ-stp-leq _ _ D).
+%reduces S <= T (employ-stp-leq S T _).
+
+
+stp-leq-trans : stp-leq T1 T2 -> stp-leq T2 T3 -> stp-leq T1 T3 -> type.
+%mode stp-leq-trans +X1 +X2 -X3.
+
+- : stp-leq-trans D stp-leq/eq D.
+
+- : stp-leq-trans D (stp-leq/arr1 D') (stp-leq/arr1 D'')
+     <- stp-leq-trans D D' D''.
+
+- : stp-leq-trans D (stp-leq/arr2 D' ) (stp-leq/arr2 D'')
+     <- stp-leq-trans D D' D''.
+
+%worlds (csig | asig | evar) (stp-leq-trans _ _ _).
+%total D (stp-leq-trans _ D _).
+
+
+tpsub-preserves-simp : tpsub A _ B -> ({x} simp (A x) T) -> simp B T -> type.
+%mode tpsub-preserves-simp +X1 +X2 -X3.
+
+-     : tpsub-preserves-simp (tpsub/base _) ([_] simp/base) simp/base.
+
+-     : tpsub-preserves-simp (tpsub/pi Dsub2 Dsub1) 
+            ([x] simp/pi ([y] Dsimp2 x y) (Dsimp1 x))
+%%            
+            (simp/pi Dsimp2' Dsimp1')
+%%            
+         <- tpsub-preserves-simp Dsub1 Dsimp1 Dsimp1'
+         <- ({y} tpsub-preserves-simp (Dsub2 y) ([x] Dsimp2 x y) (Dsimp2' y)).
+
+-     : tpsub-preserves-simp (tpsub/lam ([x] Dsub x))
+            ([x] simp/lam ([y] Dsimp x y))
+%%
+            (simp/lam ([y] Dsimp' y))
+%%            
+         <- ({y} tpsub-preserves-simp (Dsub y) ([x] Dsimp x y) (Dsimp' y)).
+
+%worlds (csig | asig | var | evar) (tpsub-preserves-simp _ _ _).
+%total D (tpsub-preserves-simp _ D _).
+
+
+
+ksub-preserves-ksimp : ksub K _ K' -> ({x} ksimp (K x) H) -> ksimp K' H -> type.
+%mode ksub-preserves-ksimp +X1 +X2 -X3.
+
+-     : ksub-preserves-ksimp ksub/type ([_] ksimp/type) ksimp/type.
+
+-     : ksub-preserves-ksimp (ksub/pi ([y] Dksub y) Dtpsub) 
+            ([x] ksimp/pi ([y] Dksimp x y) (Dsimp x))
+%%            
+            (ksimp/pi Dksimp' Dsimp')
+%%            
+         <- tpsub-preserves-simp Dtpsub Dsimp Dsimp'
+         <- ({y} ksub-preserves-ksimp (Dksub y) ([x] Dksimp x y) (Dksimp' y)).
+
+%worlds (csig | asig | var | evar) (ksub-preserves-ksimp _ _ _).
+%total D (ksub-preserves-ksimp _ D _).
+
+
+
+%%% effectiveness %%%
+
+can-simp : {A} simp A T -> type.
+%mode can-simp +X1 -X2.
+
+-pi : can-simp (pi A [x] B x) (simp/pi ([x] DsimpB x) DsimpA)
+       <- can-simp A DsimpA
+       <- ({x} can-simp (B x) (DsimpB x)).
+
+-base : can-simp (base _) simp/base.
+
+-lam  : can-simp (alam ([x] A x)) (simp/lam ([x] DsimpA x))
+         <- ({x} can-simp (A x) (DsimpA x)).
+
+%worlds (csig | asig | var | evar) (can-simp _ _). 
+%total A (can-simp A _).
+
+
+can-ksimp : {A} ksimp A T -> type.
+%mode can-ksimp +X1 -X2.
+
+-pi : can-ksimp (kpi A [x] K x) (ksimp/pi ([x] DksimpK x) DsimpA)
+       <- can-simp A DsimpA
+       <- ({x} can-ksimp (K x) (DksimpK x)).
+
+-base : can-ksimp ktype ksimp/type.
+
+%worlds (csig | asig | var | evar) (can-ksimp _ _). 
+%total A (can-ksimp A _).
+
+
+can-simpctx : {G} simpctx G G' -> type.
+%mode can-simpctx +X1 -X2.
+
+- : can-simpctx nil simpctx/nil.
+
+- : can-simpctx (cons G X A) (simpctx/cons DsimpA DsimpG)
+     <- can-simpctx G DsimpG
+     <- can-simp A DsimpA.
+
+%worlds (csig | asig | var | evar) (can-simpctx _ _).
+%total G (can-simpctx G _).
+
+
+%%% simplification of context preserves context properties %%%
+
+
+bounded-simpctx : simpctx G G' -> bounded G X -> sbounded G' X -> type.
+%mode bounded-simpctx +X1 +X2 -X3.
+
+- : bounded-simpctx simpctx/nil (bounded/nil D) (sbounded/nil D).
+
+- : bounded-simpctx (simpctx/cons _ Dsimp) (bounded/cons Dbound Dprec) (sbounded/cons Dbound' Dprec)
+     <- bounded-simpctx Dsimp Dbound Dbound'.
+
+%worlds (csig | asig | var | ovar | evar) (bounded-simpctx _ _ _).
+%total D (bounded-simpctx D _ _).
+
+
+ordered-simpctx : simpctx G G' -> ordered G -> sordered G' -> type.
+%mode ordered-simpctx +X1 +X2 -X3.
+
+- : ordered-simpctx simpctx/nil ordered/nil sordered/nil.
+
+- : ordered-simpctx (simpctx/cons _ Dsimp) (ordered/cons Dbound) (sordered/cons Dbound')
+     <- bounded-simpctx Dsimp Dbound Dbound'.
+
+%worlds (csig | asig | var | ovar | evar) (ordered-simpctx _ _ _). 
+%total {} (ordered-simpctx _ _ _).
+
+sappend-resp : sctx-eq G1 G1' -> sctx-eq G2 G2' -> sctx-eq G G' -> sappend G1 G2 G
+                -> sappend G1' G2' G' -> type.
+%mode sappend-resp +X1 +X2 +X3 +X4 -X5.
+
+- : sappend-resp sctx-eq/i sctx-eq/i sctx-eq/i D D.
+
+%worlds (csig | asig | var | evar) (sappend-resp _ _ _ _ _).
+%total {} (sappend-resp _ _ _ _ _).
+
+append-simpctx : append G1 G2 G
+                  -> simpctx G1 G1' -> simpctx G2 G2' -> simpctx G G' 
+                  -> sappend G1' G2' G' -> type.
+%mode append-simpctx +X1 +X2 -X3 -X4 -X5.
+
+% G1 = G; G2 = nil
+- : append-simpctx (append/nil : append G nil G)
+        DsimpG
+        (simpctx/nil : simpctx nil snil) 
+        DsimpG
+        (sappend/nil : sappend G' snil G')
+        .
+%{
+     <- can-simpctx G
+        (DsimpG : simpctx G G').
+}%
+
+% G1 = G1; G2 = (cons G2 X A)
+- : append-simpctx (append/cons (Dappend : append G1 G2 G) 
+                    : append G1 (cons G2 X A) (cons G X A))
+        DsimpG1
+        (simpctx/cons DsimpA DsimpG2)
+        (simpctx/cons DsimpA DsimpG)
+        (sappend/cons Dsappend)
+     <- append-simpctx Dappend
+        (DsimpG1 : simpctx G1 G1')
+        (DsimpG2 : simpctx G2 G2')
+        (DsimpG  : simpctx G G')
+        (Dsappend : sappend G1' G2' G')
+     <- can-simp A
+        (DsimpA : simp A T).
+
+%worlds (csig | asig | var | ovar) (append-simpctx _ _ _ _ _).
+%total D (append-simpctx D _ _ _ _).
+
+
+append-simpctx' : append G1 G2 G -> simpctx G1 G1' -> simpctx G2 G2' -> simpctx G G' 
+                   -> sappend G1' G2' G' -> type.
+%mode append-simpctx' +X1 +X2 +X3 +X4 -X5.
+
+% G1 = G; G2 = nil
+- : append-simpctx' 
+        (append/nil : append G nil G) 
+        (DsimpG : simpctx G G')
+        (simpctx/nil : simpctx nil snil) 
+        (DsimpG' : simpctx G G'')
+%%        
+        Dappend
+%%        
+     <- simpctx-fun DsimpG DsimpG'
+        (DeqG'G'' : sctx-eq G' G'')
+     <- sappend-resp sctx-eq/i sctx-eq/i DeqG'G'' sappend/nil
+        (Dappend : sappend G' snil G'').
+
+% G1 = G1; G2 = (cons G2 X A); G = (cons G X A)
+% append G1 (cons G2 X A) (cons G X A)
+- : append-simpctx' 
+        (append/cons (Dappend : append G1 G2 G) 
+          : append G1 (cons G2 X A) (cons G X A))
+        (DsimpG1 : simpctx G1 G1')
+        (simpctx/cons DsimpA DsimpG2 : simpctx (cons G2 X A) (scons G2' X T))
+        (simpctx/cons DsimpA' DsimpG : simpctx (cons G X A) (scons G' X T'))
+%%        
+        Dsappend'
+%%        
+     <- append-simpctx' Dappend DsimpG1 DsimpG2 DsimpG
+        (Dsappend : sappend G1' G2' G')
+     <- simp-fun DsimpA DsimpA'
+        (DeqTT' : stp-eq T T')
+     <- sctx-compat-cons _ sctx-eq/i DeqTT'
+        (DeqCons : sctx-eq (scons G' X T) (scons G' X T'))
+     <- sappend-resp sctx-eq/i sctx-eq/i DeqCons (sappend/cons Dsappend)
+        (Dsappend' : sappend G1' (scons G2' X T) (scons G' X T')).
+
+%worlds (csig | asig | var | ovar) (append-simpctx' _ _ _ _ _).
+%total D (append-simpctx' D _ _ _ _).
+
+
+lookup-simp : simpctx G G' -> simp A T -> lookup G X A 
+               -> slookup G' X T -> type. 
+%mode lookup-simp +X1 +X2 +X3 -X4.
+
+-   : lookup-simp (simpctx/cons Dsimp Dsimpctx) Dsimp' lookup/hit D
+       <- simp-fun Dsimp Dsimp' Deq
+       <- slookup-compat sctx-eq/i atm-eq/i Deq slookup/hit D.
+
+-   : lookup-simp (simpctx/cons _ Dsimpctx) Dsimp (lookup/miss Dlookup)
+          (slookup/miss Dlookup')
+       <- lookup-simp Dsimpctx Dsimp Dlookup Dlookup'.
+
+%worlds (csig | asig | var | evar) (lookup-simp _ _ _ _).
+%total D (lookup-simp _ _ D _).
+
+
+context-append-simp-lookup : ({x} append (cons G1 x A) (G2 x) (G x))
+            -> simp A T
+%%
+            -> ({x} simpctx (G x) (G' x))
+            -> ({x} slookup (G' x) x T) -> type.
+%mode context-append-simp-lookup +X1 +X2 -X3 -X4. 
+
+- : context-append-simp-lookup 
+        ([x] append/nil) 
+        Dsimp 
+%%        
+        ([x] simpctx/cons Dsimp Dsimpctx)
+        ([x] slookup/hit)
+%%        
+     <- can-simpctx G Dsimpctx.
+
+- : context-append-simp-lookup 
+        ([x] append/cons (Dappend x)) 
+        Dsimp 
+%%        
+        ([x] simpctx/cons (Dsimp' x) (Dsimpctx x))
+        ([x] slookup/miss (Dlookup x))
+%%        
+     <- ({x} can-simp _ (Dsimp' x : simp _ T))
+     <- context-append-simp-lookup Dappend Dsimp Dsimpctx Dlookup.
+
+%worlds (csig | asig | var | ovar | evar) (context-append-simp-lookup _ _ _ _).
+%total D (context-append-simp-lookup D _ _ _).
+
+
+context-append-simp-lookup' : ({x} append (cons G1 x A) (G2 x) (G x))
+             -> ({x} isvar x I -> ordered (G x))
+             -> simp A T
+%%
+             -> ({x} simpctx (G x) (G' x))
+             -> ({x} slookup (G' x) x T) -> type.
+%mode context-append-simp-lookup' +X1 +X2 +X3 -X4 -X5.
+
+- : context-append-simp-lookup' 
+        ([x] append/nil) 
+        ([x] [d] ordered/cons (Dbounded x d)) 
+        Dsimp
+%%        
+     ([x] simpctx/cons Dsimp Dsimpctx)
+     ([x] slookup/hit)
+%%%        
+     <- can-simpctx G Dsimpctx.
+
+- : context-append-simp-lookup' 
+        ([x] append/cons (Dappend x)) 
+        ([x] [d] ordered/cons (Dbounded x d)) 
+        Dsimp
+%%        
+        ([x] simpctx/cons (Dsimp' x) (Dsimpctx x))
+        ([x] slookup/miss (Dlookup x))
+%%%        
+     <- ({x} can-simp _ (Dsimp' x : simp _ T))
+     <- context-append-simp-lookup Dappend Dsimp Dsimpctx Dlookup.
+
+%worlds (csig | asig | var | ovar | evar) (context-append-simp-lookup' _ _ _ _ _).
+%total {} (context-append-simp-lookup' _ _ _ _ _).
+
+
+%%% weakening (XXX this should probably go in explicit-lemmas)  %%%
+
+
+append-lookup : append (cons G1 X T) G2 G
+                         -> lookup G X T -> type.
+%mode append-lookup +X1 -X2.
+
+-nil      : append-lookup append/nil lookup/hit.
+
+-cons     : append-lookup (append/cons Dappend)
+                (lookup/miss Dlook)
+             <- append-lookup Dappend Dlook.
+
+%worlds (csig | asig | var | ovar) (append-lookup _ _).
+%total D (append-lookup D _).
+
+
+
+sappend-slookup : sappend (scons G1 X T) G2 G
+                         -> slookup G X T -> type.
+%mode sappend-slookup +X1 -X2.
+
+-nil      : sappend-slookup sappend/nil slookup/hit.
+
+-cons     : sappend-slookup (sappend/cons Dappend)
+                (slookup/miss Dlook)
+             <- sappend-slookup Dappend Dlook.
+
+%worlds (csig | asig | var | ovar) (sappend-slookup _ _).
+%total D (sappend-slookup D _).
+
+
+
+%%% simplification preserves typing %%%
+
+at-ofe-simp : simpctx G G' -> simp A T -> at-ofe G R A 
+               -> at-ofes G' R T -> type.
+%mode at-ofe-simp +X1 +X2 +X3 -X4.
+
+ofe-simp : simpctx G G' -> simp A T -> ofe G M A
+            -> ofes G' M T -> type.
+%mode ofe-simp +X1 +X2 +X3 -X4.
+
+atkofe-simp : simpctx G G' -> ksimp K H -> at-kofe G P K
+               -> at-kofes G' P H -> type.
+%mode atkofe-simp +X1 +X2 +X3 -X4.
+
+kofe-simp : simpctx G G' -> ksimp K K' -> kofe G A K 
+             -> kofes G' A K' -> type.
+%mode kofe-simp +X0 +X1 +X2 -X3.
+
+wfkinde-simp : simpctx G G' -> wfkinde G K -> wfkindes G' K -> type.
+%mode wfkinde-simp +X1 +X2 -X3.
+
+-closed     : at-ofe-simp Dsimpctx Dsimp (at-ofe/closed Datof)
+                  (at-ofes/closed Dsimp Datof).
+
+-const      : at-ofe-simp Dsimpctx Dsimp (at-ofe/const Dkofe Dcof)
+                  (at-ofes/const Dsimp Dkofes Dcof)
+               <- kofe-simp Dsimpctx ksimp/type Dkofe Dkofes.
+
+-var        : at-ofe-simp Dsimpctx Dsimp (at-ofe/var _ Dlookup)
+                  (at-ofes/var Dlookup')
+               <- lookup-simp Dsimpctx Dsimp Dlookup Dlookup'.
+
+-app        : at-ofe-simp Dsimpctx Dsimp (at-ofe/app Dsub Dof Datof) D
+               <- can-simp _ DsimpA
+               <- ({x} can-simp _ (DsimpB x))
+               <- at-ofe-simp Dsimpctx (simp/pi DsimpB DsimpA) Datof Datof'
+               <- ofe-simp Dsimpctx DsimpA Dof Dof'
+               <- tpsub-preserves-simp Dsub DsimpB Dsimp'
+               <- simp-fun Dsimp' Dsimp Deq
+               <- atofes-resp sctx-eq/i atm-eq/i Deq (at-ofes/app Dof' Datof') D.
+
+-at         : ofe-simp Dsimpctx simp/base (ofe/at Datof) (ofes/at Datof')
+               <- at-ofe-simp Dsimpctx simp/base Datof Datof'.
+
+-lam        : ofe-simp Dsimpctx (simp/pi DsimpB DsimpA) (ofe/lam _ Dof)
+                  (ofes/lam Dof')
+               <- ({x} 
+                      ofe-simp 
+                      (simpctx/cons DsimpA Dsimpctx) 
+                      (DsimpB x) 
+                      (Dof x)
+                      (Dof' x)).
+
+-base       : kofe-simp Dsimpctx _ (kofe/base Datkofe) (kofes/base Datkofes)
+               <- atkofe-simp Dsimpctx ksimp/type Datkofe Datkofes.
+
+-pi         : kofe-simp Dsimpctx _ (kofe/pi ([x] DkofeB x) DkofeA)
+                  (kofes/pi ([x] DkofesB x) DsimpA DkofesA)
+               <- can-simp _ DsimpA
+               <- kofe-simp Dsimpctx ksimp/type DkofeA DkofesA
+               <- ({x}
+                    kofe-simp (simpctx/cons DsimpA Dsimpctx) ksimp/type (DkofeB x) 
+                      (DkofesB x)).
+
+-alam       : kofe-simp Dsimpctx (ksimp/pi DsimpK DsimpA) 
+                  (kofe/lam ([x] DofB x) DofA)
+                  (kofes/lam DofB')
+               <- ({x}
+                      kofe-simp
+                      (simpctx/cons DsimpA Dsimpctx) (DsimpK x) (DofB x)
+                      (DofB' x)).
+
+-closed     : atkofe-simp Dsimpctx Dksimp (at-kofe/closed Datkof)
+                  (at-kofes/closed Dksimp Datkof).
+
+-const      : atkofe-simp Dsimpctx Dksimp (at-kofe/const Dwfkinde Dckof)
+                  (at-kofes/const Dksimp Dwfkindes Dckof)
+               <- wfkinde-simp Dsimpctx Dwfkinde Dwfkindes.
+
+-app        : atkofe-simp Dsimpctx Dksimp (at-kofe/app Dsub Dofe Datkofe)
+                  D
+               <- can-simp _ Dsimp
+               <- ({x} can-ksimp _ (Dksimp' x))
+               <- atkofe-simp Dsimpctx (ksimp/pi ([x] Dksimp' x) Dsimp) Datkofe 
+                  Datkofes
+               <- ofe-simp Dsimpctx Dsimp Dofe Dofes
+               <- ksub-preserves-ksimp Dsub Dksimp' DsimpKx
+               <- ksimp-fun DsimpKx Dksimp Deq
+               <- atkofes-resp sctx-eq/i atp-eq/i Deq 
+                  (at-kofes/app Dofes Datkofes) D.
+
+-ktype      : wfkinde-simp _ wfkinde/tp wfkindes/type.
+
+-kpi        : wfkinde-simp Dsimpctx (wfkinde/pi ([x] Dwfkinde x) Dkofe)
+                  (wfkindes/pi ([x] Dwfkindes x) Dsimp Dkofes)
+               <- can-simp _ Dsimp
+               <- kofe-simp Dsimpctx ksimp/type Dkofe Dkofes
+               <- ({x}
+                    wfkinde-simp (simpctx/cons Dsimp Dsimpctx) (Dwfkinde x)
+                      (Dwfkindes x)).
+
+%worlds (csig | asig | bind | var | evar) 
+  (at-ofe-simp _ _ _ _)
+  (ofe-simp _ _ _ _) 
+  (atkofe-simp _ _ _ _)
+  (kofe-simp _ _ _ _)
+  (wfkinde-simp _ _ _).
+%total (D1 D2 D3 D4 D5)
+  (at-ofe-simp _ _ D1 _)
+  (ofe-simp _ _ D2 _)
+  (atkofe-simp _ _ D3 _)
+  (kofe-simp _ _ D4 _)
+  (wfkinde-simp _ D5 _).
+
+
+tpsub-simp : tpsub ([x] A x) M Ax -> ({x} simp (A x) T) 
+              -> simp Ax T -> type.
+%mode tpsub-simp +X1 +X2 -X3.
+
+- : tpsub-simp
+        (tpsub/pi ([y] DsubB y) DsubA)
+        ([x] simp/pi ([y] DsimpB x y) (DsimpA x))
+%%        
+        (simp/pi ([y] DsimpBx y) DsimpAx)
+%%
+     <- tpsub-simp DsubA DsimpA DsimpAx
+     <- ({y}
+            tpsub-simp (DsubB y) ([x] DsimpB x y) (DsimpBx y)).
+
+- : tpsub-simp (tpsub/base _) ([x] simp/base) simp/base.
+
+- : tpsub-simp
+        (tpsub/lam ([y] Dsub y))
+        ([x] simp/lam ([y] Dsimp x y))
+        (simp/lam ([y] Dsimp' y))
+     <- ({y}
+            tpsub-simp (Dsub y) ([x] Dsimp x y) (Dsimp' y)).
+
+%worlds (csig | asig | var) (tpsub-simp _ _ _).
+%total D (tpsub-simp _ D _).
+
+
+%{
+strengthen-simpctx : ({x:atm} simpctx (G x) G')
+                   -> ({x} ctx-eq (G x) Gx) -> type.
+%mode strengthen-simpctx +X1 -X2.
+
+- : strengthen-simpctx ([x] simpctx/nil) ([_] ctx-eq/i).
+
+- : strengthen-simpctx
+        ([x] simpctx/cons
+            (DsimpA x : simp (A x) T)
+            (Dsimpctx x : simpctx (G x) G')
+          : simpctx (cons (G x) Y (A x)) (scons G' Y T))
+        ([x] DeqGYA x)
+     <- strengthen-simpctx Dsimpctx
+        ([x] DeqG x : ctx-eq (G x) Gx)
+     <- ({x}
+            cons-compat (DeqG x) atm-eq/i (DeqAA' x)
+            (DeqGYA x : ctx-eq (cons (G x) Y (A x)) (cons Gx Y A')))
+        .
+
+%worlds (csig | asig | var) (strengthen-simpctx _ _).
+%total D (strengthen-simpctx D _).
+XXX not provable!
+
+maybe something like
+
+- : ({x} simpctx (G x)) G' -> csub ([x] G x) _ Gx 
+     -> simpctx Gx G' -> type.
+
+? }%
+
+strengthen-simpctx : ({x:atm} simpctx G (G' x))
+                      -> ({x} sctx-eq (G' x) G'') -> type.
+%mode strengthen-simpctx +X1 -X2.
+
+-nil  : strengthen-simpctx ([_] simpctx/nil) ([_] sctx-eq/i).
+
+-cons : strengthen-simpctx
+            ([x] simpctx/cons (Dsimpctx x) (Dsimp x))
+            DeqGxS
+         <- strengthen-simpctx Dsimp
+            ([x] DeqG x : sctx-eq (G x) G')
+         <- ({x}
+                scons-compat (DeqG x) atm-eq/i stp-eq/i
+                (DeqGxS x : sctx-eq (scons (G x) Y T) (scons G' Y T))).
+
+%worlds (csig | asig | var) (strengthen-simpctx _ _).
+%total D (strengthen-simpctx D _).
+
+csub-simp : {G} csub ([x] G x) M Gx 
+             -> ({x} simpctx (G x) (G' x)) 
+             -> drop ([x] G' x) G''
+%%                
+             -> simpctx Gx G'' -> type.
+%mode csub-simp +G +X1 +X2 +X3 -X4.
+
+-base   : csub-simp _
+              (csub/base : csub ([x] cons G x A) M G)
+              ([x] 
+                  simpctx/cons 
+                  (Dsimp x : simp A T) 
+                  (Dsimpctx x : simpctx G (G' x)))
+              (drop/base (Ddrop : drop ([x] G' x) G''))
+              Dsimpctx'
+           <- csub-closed _ _ 
+              (DsubG : csub ([x] G) M G)
+           <- csub-simp _ DsubG Dsimpctx Ddrop
+              (Dsimpctx' : simpctx G G'').
+
+-nil : csub-simp _ csub/nil ([_] simpctx/nil) _
+           simpctx/nil .
+
+-cons   : csub-simp
+              ([x] cons (G x) Y (A x))
+              (csub/cons 
+                  (DsubA : tpsub ([x] A x) M Ax) 
+                  (DsubG : csub ([x] G x) M Gx))
+              ([x] simpctx/cons
+                  (DsimpA x : simp (A x) T)
+                  (DsimpG x : simpctx (G x) G'))
+              drop/closed
+              (simpctx/cons DsimpAx DsimpGx)
+           <- csub-simp ([x] G x) DsubG DsimpG drop/closed
+              (DsimpGx : simpctx Gx G')
+           <- tpsub-simp DsubA DsimpA
+              (DsimpAx : simp Ax T)
+              .
+
+-cons   : csub-simp ([x] cons (G x) Y (A x))
+              (csub/cons
+                  (DsubA : tpsub ([x] A x) M Ax)
+                  (DsubG : csub ([x] G x) M Gx)
+                : csub ([x] cons (G x) Y (A x)) M (cons Gx Y Ax))
+              ([x] simpctx/cons
+                  (DsimpA x : simp (A x) T)
+                  (DsimpG x : simpctx (G x) (G' x)))
+              (drop/cons
+                  (Ddrop : drop ([x] G' x) G'')
+                : drop ([x] scons (G' x) Y T) (scons G'' _ _))
+              (simpctx/cons
+                  DsimpAx
+                  DsimpGx)
+           <- tpsub-simp DsubA DsimpA
+              (DsimpAx : simp Ax T)
+           <- csub-simp ([x] G x) DsubG DsimpG Ddrop
+              (DsimpGx : simpctx Gx G'').
+
+%worlds (csig | asig | var) (csub-simp _ _ _ _ _).
+%total G (csub-simp G _ _ _ _).
+
+lookup-simp-rev : slookup G' X T -> simpctx G G'
+               -> lookup G X A
+               -> simp A T -> type.
+%mode lookup-simp-rev +X1 +X2 -X3 -X4.
+
+-hit    : lookup-simp-rev 
+              slookup/hit 
+              (simpctx/cons (Dsimp : simp A T) (Dsimpctx : simpctx G G'))
+              lookup/hit
+              Dsimp.
+
+-miss   : lookup-simp-rev
+              (slookup/miss (Dlook : slookup G' X T))
+              (simpctx/cons (Dsimp : simp B S) (Dsimpctx : simpctx G G'))
+              (lookup/miss Dlook')
+              Dsimp'
+           <- lookup-simp-rev Dlook Dsimpctx
+              (Dlook' : lookup G X A)
+              (Dsimp' : simp A T).
+
+%worlds (csig | asig | var) (lookup-simp-rev _ _ _ _).
+%total D (lookup-simp-rev D _ _ _).
+

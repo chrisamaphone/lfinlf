@@ -1,0 +1,173 @@
+%%%% regularity (implicit context) %%%%
+
+atkof-reg : at-kof P K -> wfkind K -> type.
+%mode atkof-reg +X1 -X2.
+
+-const : atkof-reg (at-kof/const D _) D.
+
+-app   : atkof-reg 
+             (at-kof/app
+                 (DsubK : ksub ([x] K x) M Kx)
+                 (DofM : of M B)
+                 (DofP : at-kof P (kpi B ([x] K x))))
+%%             
+             DwfKx
+%%
+          <- atkof-reg DofP
+             (wfkind/pi
+                 ([x] [d:vof x B] DwfK x d : wfkind (K x))
+                 _)
+          <- ksubst DsubK ([x] [d] DwfK x d) DofM
+             (DwfKx : wfkind Kx).
+
+
+%worlds (csig | asig | bind | var | ovar) (atkof-reg _ _).
+%total D (atkof-reg D _).
+
+atof-reg : at-of R A -> kof A ktype -> type.
+%mode atof-reg +X1 -X2.
+
+-const  : atof-reg (at-of/const Dkof _) Dkof.
+
+-var    : atof-reg (at-of/var Dkof _) Dkof.
+
+-app    : atof-reg 
+              (at-of/app
+                  (Dtpsub : tpsub ([x] B x) M Bx)
+                  (DofM : of M A)
+                  (DofR : at-of R (pi A [x] B x)))
+%%              
+              DkofBx
+%%
+           <- atof-reg DofR
+              (kof/pi
+                  ([x] [d:vof x A] DkofB x d : kof (B x) ktype)
+                  (DkofA : kof A ktype))
+           <- tpsubst Dtpsub ksub/type ([x] [d] DkofB x d) DofM 
+              (DkofBx : kof Bx ktype).
+
+%worlds (csig | asig | bind | var | ovar) (atof-reg _ _).
+%total D (atof-reg D _).
+
+
+of-reg : of M A -> kof A ktype -> type.
+%mode of-reg +X1 -X2.
+
+-at   : of-reg (of/at Datof) Dkof
+         <- atof-reg Datof Dkof.
+
+-lam  : of-reg (of/lam DofA ([x] [d:vof x A] DofM x d : of (M x) (B x)))
+            (kof/pi DofB DofA)
+         <- ({x} {d}
+                of-reg (DofM x d)
+                (DofB x d : kof (B x) ktype)).
+
+%worlds (csig | asig | bind | var) (of-reg _ _).
+%total D (of-reg D _).
+
+
+%%%% regularity (explicit context) %%%%
+
+atofe-reg : ordered G -> at-ofe G R A -> kofe G A ktype -> type.
+%mode atofe-reg +X0 +X1 -X2.
+
+-closed : atofe-reg _ (at-ofe/closed Datof) Dkofe
+           <- atof-reg Datof Dkof
+           <- kof-to-kofe Dkof DkofeNil
+           <- append-nil _ Dappend
+           <- weaken-kofe' Dappend DkofeNil Dkofe.
+
+-const  : atofe-reg _ (at-ofe/const Dkof _) Dkof.
+
+-var    : atofe-reg _ (at-ofe/var Dkof _) Dkof.
+
+-app    : atofe-reg
+              (Dord : ordered G)
+              (at-ofe/app
+                  (Dtpsub : tpsub ([x] B x) M Bx)
+                  (DofM : ofe G M A)
+                  (DofR : at-ofe G R (pi A [x] B x)))
+%%              
+              DkofBx
+%%              
+           <- atofe-reg Dord DofR
+              (kofe/pi
+                  ([x] DkofB x : kofe (cons G x A) (B x) ktype)
+                  (DkofA : kofe G A ktype))
+           <- extend-ordered _ Dord _
+              ([x] [d:isvar x _] Dord' x d : ordered (cons G x A))
+           <- tpsubst-e Dord' ([_] append/nil) csub/base DofM Dtpsub DkofB
+              ksub/type
+              DkofBx.
+
+%worlds (csig | asig | bind | var | ovar) (atofe-reg _ _ _).
+%total D (atofe-reg _ D _).
+
+atkofe-reg : ordered G -> at-kofe G P K -> wfkinde G K -> type.
+%mode atkofe-reg +X1 +X2 -X3.
+
+-closed : atkofe-reg _ (at-kofe/closed Datkof) Dwfkinde
+           <- atkof-reg Datkof Dwfkind
+           <- wfkind-to-wfkinde Dwfkind DwfkindeNil
+           <- append-nil _ Dappend
+           <- weaken-wfkinde' Dappend DwfkindeNil Dwfkinde.
+
+-const  : atkofe-reg _ (at-kofe/const Dwfkinde _) Dwfkinde.
+
+-app    : atkofe-reg
+              (Dord : ordered G)
+              (at-kofe/app
+                  (Dsub : ksub ([x] K x) M Kx)
+                  (DofM : ofe G M A)
+                  (DofP : at-kofe G P (kpi A [x] K x)))
+%%
+              DofKx
+%%
+           <- atkofe-reg Dord DofP
+              (wfkinde/pi
+                  ([x] DofK x : wfkinde (cons G x A) (K x))
+                  (DofA : kofe G A ktype))
+           <- extend-ordered _ Dord _
+              ([x] [d] Dord' x d : ordered (cons G x A))
+           <- ksubst-e Dord' ([_] append/nil) csub/base DofM Dsub DofK
+              DofKx.
+
+%worlds (csig | asig | bind | var | ovar) (atkofe-reg _ _ _).
+%total D (atkofe-reg _ D _).
+
+ofe-reg : ordered G -> ofe G M A -> kofe G A ktype -> type.
+%mode ofe-reg +X1 +X2 -X3.
+
+-at   : ofe-reg Dord (ofe/at Datofe) Dkofe
+         <- atofe-reg Dord Datofe Dkofe.
+
+-lam  : ofe-reg Dord (ofe/lam Dkofe Dofe) (kofe/pi Dkofe' Dkofe)
+         <- extend-ordered _ Dord _
+            ([x] [d] Dord' x d)
+         <- ({x} {d}
+                ofe-reg (Dord' x d) (Dofe x) (Dkofe' x)).
+
+%worlds (csig | asig | bind | var | ovar) (ofe-reg _ _ _).
+%total D (ofe-reg _ D _).
+
+
+kofe-reg : ordered G -> kofe G M A -> wfkinde G A -> type.
+%mode kofe-reg +X1 +X2 -X3.
+
+-base : kofe-reg Dord (kofe/base Datofe) Dkofe
+         <- atkofe-reg Dord Datofe Dkofe.
+
+-lam  : kofe-reg Dord (kofe/lam Dofe Dkofe) (wfkinde/pi Dkofe' Dkofe)
+         <- extend-ordered _ Dord _
+            ([x] [d] Dord' x d)
+         <- ({x} {d}
+                kofe-reg (Dord' x d) (Dofe x) (Dkofe' x)).
+
+-pi   : kofe-reg Dord (kofe/pi Dofe Dkofe) wfkinde/tp.
+
+%worlds (csig | asig | bind | var | ovar) (kofe-reg _ _ _).
+%total D (kofe-reg _ D _).
+
+
+
+

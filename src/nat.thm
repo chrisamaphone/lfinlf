@@ -1,0 +1,48 @@
+%%%% equality %%%%
+
+lt-resp : nat-eq N1 N1' -> nat-eq N2 N2' -> lt N1 N2 -> lt N1' N2' -> type.
+%mode lt-resp +D1 +D2 +D3 -D. 
+
+- : lt-resp nat-eq/i nat-eq/i D D.
+
+%worlds () (lt-resp _ _ _ _). 
+%total {} (lt-resp _ _ _ _).
+
+
+lt-succ : {N} lt N (s N) -> type.
+%mode lt-succ +X1 -X2.
+
+- : lt-succ 0 lt/z.
+
+- : lt-succ (s N) (lt/s D)
+  <- lt-succ N D.
+
+%worlds () (lt-succ _ _).
+%total N (lt-succ N _).
+
+
+%%%% lt %%%%
+
+
+lt-trans : lt N1 N2 -> lt N2 N3 -> lt N1 N3 -> type.
+%mode lt-trans +D1 +D2 -D3.
+
+- : lt-trans lt/z (lt/s _) lt/z.
+- : lt-trans (lt/s D1) (lt/s D2) (lt/s D3)
+     <- lt-trans D1 D2 D3.
+
+%worlds () (lt-trans _ _ _).
+%total D (lt-trans D _ _).
+
+
+lt-antisymm : lt N N -> false -> type.
+%mode lt-antisymm +X1 -X2.
+
+- : lt-antisymm (lt/s D) D'
+     <- lt-antisymm D D'.
+
+%worlds () (lt-antisymm _ _).
+%total D (lt-antisymm D _).
+
+
+

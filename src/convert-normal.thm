@@ -1,0 +1,198 @@
+atomic : etm -> type.
+normal : etm -> type.
+tpatomic : etp -> type.
+tpnormal : etp -> type.
+
+atomic/const  : atomic (econst C).
+
+atomic/var    : atomic X
+                 <- variable X.
+
+atomic/app    : atomic (eapp M N)
+                 <- atomic M
+                 <- normal N.
+
+normal/at     : normal M
+                 <- atomic M.
+
+normal/lam    : normal (elam A M)
+                 <- tpnormal A
+                 <- ({x} variable x -> normal (M x)).
+
+tpatomic/const: tpatomic (eaconst C).
+
+tpatomic/app  : tpatomic (eaapp A M)
+                 <- tpatomic A
+                 <- normal M.
+
+tpnormal/base : tpnormal A
+                 <- tpatomic A.
+
+tpnormal/pi   : tpnormal (epi A ([x] B x))
+                 <- tpnormal A
+                 <- ({x} variable x -> tpnormal (B x)).
+
+tpnormal/lam  : tpnormal (ealam A [x] B x)
+                 <- tpnormal A
+                 <- ({x} variable x -> tpnormal (B x)).
+
+aconverte-atomic  : aconverte _ _ _ EM -> atomic EM -> type.
+%mode aconverte-atomic +X1 -X2.
+
+converte-normal   : converte _ _ _ EM -> normal EM -> type.
+%mode converte-normal +X1 -X2.
+
+atpconverte-atomic: atpconverte _ _ _ EA -> tpatomic EA -> type.
+%mode atpconverte-atomic +X1 -X2.
+
+tpconverte-normal : tpconverte _ _ _ EA -> tpnormal EA -> type.
+%mode tpconverte-normal +X1 -X2.
+
+-const    : aconverte-atomic (aconverte/const _ _ _) atomic/const.
+
+-var      : aconverte-atomic (aconverte/var Dvtrans _ _) (atomic/var Dvar)
+             <- vtrans-variable Dvtrans Dvar.
+
+-vari     : aconverte-atomic (aconverte/vari Dvtrans _ _ _)
+                (atomic/var Dvar)
+             <- vtrans-variable Dvtrans Dvar.
+
+-app      : aconverte-atomic
+                (aconverte/app _ Dconvert Daconvert)
+                (atomic/app Dnormal Datomic)
+             <- converte-normal Dconvert Dnormal
+             <- aconverte-atomic Daconvert Datomic.
+
+-at       : converte-normal
+                (converte/at Daconvert)
+                (normal/at Datomic)
+             <- aconverte-atomic Daconvert Datomic.
+
+-lam      : converte-normal
+                (converte/lam
+                    ([x] [ex] [xt:vtrans ex x]
+                        DconvertM x ex xt 
+                      : converte (cons G x A) (M x) (B x) (EM ex))
+                    (DconvertA : tpconverte G A ktype EA))
+                (normal/lam DnormalM DnormalA)
+             <- tpconverte-normal DconvertA DnormalA
+             <- ({x} {ex} {xt:vtrans ex x} {dv:variable ex}
+                    vtrans-variable xt dv
+                 -> converte-normal
+                    (DconvertM x ex xt)
+                    (DnormalM ex dv : normal (EM ex))).
+
+%%
+
+-const    : atpconverte-atomic (atpconverte/const _ _ _) tpatomic/const.
+
+-app      : atpconverte-atomic (atpconverte/app _ Dconvert Daconvert)
+                (tpatomic/app Dnormal Datomic)
+             <- converte-normal Dconvert Dnormal
+             <- atpconverte-atomic Daconvert Datomic.
+
+-base     : tpconverte-normal
+                (tpconverte/base Daconvert)
+                (tpnormal/base Datomic)
+             <- atpconverte-atomic Daconvert Datomic.
+
+-pi       : tpconverte-normal
+                (tpconverte/pi ([x] [ex] [xt] DconvertB x ex xt) DconvertA)
+                (tpnormal/pi DnormalB DnormalA)
+             <- tpconverte-normal DconvertA DnormalA
+             <- ({x} {ex} {xt} {dv:variable ex} vtrans-variable xt dv
+                 -> tpconverte-normal (DconvertB x ex xt)
+                    (DnormalB ex dv)).
+
+-lam      : tpconverte-normal
+                (tpconverte/lam ([x] [ex] [xt] DconvertB x ex xt) DconvertA)
+                (tpnormal/lam DnormalB DnormalA)
+             <- tpconverte-normal DconvertA DnormalA
+             <- ({x} {ex} {xt} {dv:variable ex} vtrans-variable xt dv
+                 -> tpconverte-normal (DconvertB x ex xt)
+                    (DnormalB ex dv)).
+
+%worlds (bind | evvar | tvvar | tvobind | sbind')
+  (aconverte-atomic _ _)
+  (converte-normal _ _)
+  (atpconverte-atomic _ _)
+  (tpconverte-normal _ _).
+%total (D1 D2 D3 D4) 
+  (aconverte-atomic D1 _)
+  (converte-normal D2 _)
+  (atpconverte-atomic D3 _)
+  (tpconverte-normal D4 _).
+
+
+atomic-reduce-refl : atomic M -> reduce M M -> type.
+%mode atomic-reduce-refl +X1 -X2.
+
+normal-reduce-refl : normal M -> reduce M M -> type.
+%mode normal-reduce-refl +X1 -X2.
+
+tpnormal-reduce-refl : tpnormal A -> tpreduce A A -> type.
+%mode tpnormal-reduce-refl +X1 -X2.
+
+tpatomic-reduce-refl : tpatomic A -> tpreduce A A -> type.
+%mode tpatomic-reduce-refl +X1 -X2.
+
+-const  : atomic-reduce-refl atomic/const reduce/refl.
+
+-var    : atomic-reduce-refl (atomic/var D) reduce/refl.
+
+-app    : atomic-reduce-refl
+              (atomic/app Dnorm Datom)
+              (reduce/app D2 D1)
+           <- atomic-reduce-refl Datom D1
+           <- normal-reduce-refl Dnorm D2.
+
+-at     : normal-reduce-refl
+              (normal/at Datomic)
+              Dreduce
+           <- atomic-reduce-refl Datomic Dreduce.
+
+-lam    : normal-reduce-refl
+              (normal/lam ([x] [dv] Dnormal x dv) Dtnormal)
+              (reduce/lam ([x] [dv] Dreduce x dv) Dtreduce)
+           <- ({x} {dv:variable x}
+                  normal-reduce-refl (Dnormal x dv)
+                  (Dreduce x dv))
+           <- tpnormal-reduce-refl Dtnormal Dtreduce.
+
+%%
+
+-const  : tpatomic-reduce-refl tpatomic/const tpreduce/const.
+
+-app    : tpatomic-reduce-refl
+              (tpatomic/app Dnorm Datom)
+              (tpreduce/app Dred Dtpred)
+           <- tpatomic-reduce-refl Datom Dtpred
+           <- normal-reduce-refl Dnorm Dred.
+
+-base   : tpnormal-reduce-refl
+              (tpnormal/base Datom)
+              Dreduce
+           <- tpatomic-reduce-refl Datom Dreduce.
+
+-pi     : tpnormal-reduce-refl
+              (tpnormal/pi ([x] [d] DnormalB x d) DnormalA)
+              (tpreduce/pi ([x] [d] DreduceB x d) DreduceA)
+           <- tpnormal-reduce-refl DnormalA DreduceA
+           <- ({x} {d} tpnormal-reduce-refl (DnormalB x d) (DreduceB x d)).
+
+-lam    : tpnormal-reduce-refl
+              (tpnormal/lam ([x] [d] DnormalB x d) DnormalA)
+              (tpreduce/lam ([x] [d] DreduceB x d) DreduceA)
+           <- tpnormal-reduce-refl DnormalA DreduceA
+           <- ({x} {d} tpnormal-reduce-refl (DnormalB x d) (DreduceB x d)).
+
+%worlds (tvvar | tvobind | evvar) 
+  (normal-reduce-refl _ _)
+  (atomic-reduce-refl _ _)
+  (tpnormal-reduce-refl _ _)
+  (tpatomic-reduce-refl _ _).
+%total (D1 D2 D3 D4) 
+  (normal-reduce-refl D1 _)
+  (atomic-reduce-refl D2 _)
+  (tpnormal-reduce-refl D3 _)
+  (tpatomic-reduce-refl D4 _).

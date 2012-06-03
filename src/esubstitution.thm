@@ -1,0 +1,378 @@
+
+esubst-of-gen     : (evof M A -> eof N B)
+                     -> (eof M A -> eof N B) -> type.
+%mode esubst-of-gen +X1 -X2.
+
+esubst-kof-gen    : (evof M A -> ekof B K)
+                     -> (eof M A -> ekof B K) -> type.
+%mode esubst-kof-gen +X1 -X2.
+
+esubst-wfkind-gen : (evof M A -> ewfkind K)
+                     -> (eof M A -> ewfkind K) -> type.
+%mode esubst-wfkind-gen +X1 -X2.
+
+esubst-eqtm-gen   : (evof M A -> eqtm N N' B)
+                     -> (eof M A -> eqtm N N' B) -> type.
+%mode esubst-eqtm-gen +X1 -X2.
+
+esubst-eqtp-gen   : (evof M A -> eqtp B C K)
+                     -> (eof M A -> eqtp B C K) -> type.
+%mode esubst-eqtp-gen +X1 -X2.
+
+esubst-eqkind-gen   : (evof M A -> eqkind B C)
+                     -> (eof M A -> eqkind B C) -> type.
+%mode esubst-eqkind-gen +X1 -X2.
+
+-varoth : esubst-of-gen
+              ([dv:evof M A]
+                  eof/var
+                  (DofB dv : ekof B ektype)
+                  (DofX : evof X B))
+              ([d] eof/var (DofB' d) DofX)
+           <- esubst-kof-gen ([dv] DofB dv)
+              ([d] DofB' d : ekof B ektype).
+
+-varsam : esubst-of-gen
+              ([dv:evof M A]
+                  eof/var
+                  (DofA dv : ekof A ektype)
+                  dv)
+              ([d] d).
+
+-const  : esubst-of-gen
+              ([dv:evof M A]
+                  eof/const
+                  (DofB dv : ekof B ektype)
+                  (DofC : ecof C B))
+              ([d] eof/const (DofB' d) DofC)
+           <- esubst-kof-gen ([dv] DofB dv)
+              ([d] DofB' d : ekof B ektype).
+
+-app    : esubst-of-gen
+              ([dv] eof/app (DofM2 dv) (DofN1 dv))
+              ([d] eof/app (DofM2' d) (DofN1' d))
+           <- esubst-of-gen DofN1 DofN1'
+           <- esubst-of-gen DofM2 DofM2'.
+
+-lam    : esubst-of-gen
+              ([dv] eof/lam (D1 dv) (D2 dv))
+              ([d] eof/lam (D1' d) (D2' d))
+           <- esubst-kof-gen D1 D1'
+           <- ({y} {e} esubst-of-gen ([dv] D2 dv y e) ([d] D2' d y e)).
+
+-eqtp   : esubst-of-gen
+              ([dv:evof M A]
+                  eof/eqtp
+                  (DeqBC dv : eqtp B C ektype)
+                  (DofN dv  : eof N B))
+%%
+              ([d:eof M A]
+                  eof/eqtp
+                  (DeqBC' d)
+                  (DofN' d))
+%%
+           <- esubst-of-gen ([dv] DofN dv)
+              ([d] DofN' d : eof N B)
+           <- esubst-eqtp-gen ([dv] DeqBC dv)
+              ([d] DeqBC' d : eqtp B C ektype).
+
+-ext    : esubst-of-gen
+              ([dv:evof M A]
+                  eof/ext
+                  ([x] [dx] DofApp dv x dx : eof (eapp N x) (C x))
+                  (DofN dv : eof N (epi B C')))
+%%
+              ([d]
+                  eof/ext
+                  (DofApp' d)
+                  (DofN' d))
+%%
+           <- esubst-of-gen DofN
+              ([d] DofN' d : eof N (epi B C'))
+           <- ({x} {dx}
+                  esubst-of-gen ([dv] DofApp dv x dx)
+                  ([d] DofApp' d x dx : eof (eapp N x) (C x))).
+
+%%
+
+-const  : esubst-kof-gen
+              ([dv] ekof/const (Dwfkind dv) Dckof)
+              ([d] ekof/const (Dwfkind' d) Dckof)
+           <- esubst-wfkind-gen Dwfkind Dwfkind'.
+
+-app    : esubst-kof-gen
+              ([dv] ekof/app (DofM dv) (DofA dv))
+              ([d] ekof/app (DofM' d) (DofA' d))
+           <- esubst-of-gen DofM DofM'
+           <- esubst-kof-gen DofA DofA'.
+
+-pi     : esubst-kof-gen
+              ([dv] ekof/pi ([x] [dx] D2 dv x dx) (D1 dv))
+              ([d] ekof/pi ([x] [dx] D2' d x dx) (D1' d))
+           <- esubst-kof-gen D1 D1'
+           <- ({x} {dx} 
+                  esubst-kof-gen ([dv] D2 dv x dx) ([d] D2' d x dx)).
+
+-lam    : esubst-kof-gen
+              ([dv] ekof/lam (D1 dv) (D2 dv))
+              ([d] ekof/lam (D1' d) (D2' d))
+           <- esubst-kof-gen D1 D1'
+           <- ({y} {e} esubst-kof-gen ([dv] D2 dv y e) ([d] D2' d y e)).
+
+-eqkind : esubst-kof-gen
+              ([dv] ekof/eqkind (Deqkind dv) (Dkof dv))
+              ([d] ekof/eqkind (Deqkind' d) (Dkof' d))
+           <- esubst-kof-gen Dkof Dkof'
+           <- esubst-eqkind-gen Deqkind Deqkind'.
+
+-ext    : esubst-kof-gen
+              ([dv] ekof/ext ([y] [e] Dkof dv y e) (Deof dv))
+              ([d] ekof/ext ([y] [e] Dkof' d y e) (Deof' d))
+           <- esubst-kof-gen Deof Deof'
+           <- ({y} {e} esubst-kof-gen 
+                  ([dv] Dkof dv y e) ([d] Dkof' d y e)).
+
+%%
+
+-tp     : esubst-wfkind-gen ([dv] ewfkind/tp) ([d] ewfkind/tp).
+
+-pi     : esubst-wfkind-gen
+              ([dv] ewfkind/pi ([y] [e] D2 dv y e) (D1 dv))
+              ([d] ewfkind/pi ([y] [e] D2' d y e) (D1' d))
+           <- esubst-kof-gen D1 D1'
+           <- ({y} {e}
+                  esubst-wfkind-gen ([dv] D2 dv y e) ([d] D2' d y e)).
+
+%%
+
+-app    : esubst-eqtm-gen
+              ([dv] eqtm/app (Deq2 dv) (Deq1 dv))
+              ([d] eqtm/app (Deq2' d) (Deq1' d))
+           <- esubst-eqtm-gen Deq1 Deq1'
+           <- esubst-eqtm-gen Deq2 Deq2'.
+
+-lam    : esubst-eqtm-gen
+              ([dv] eqtm/lam ([y] [e] Deqtm dv y e) (Deqtp dv))
+              ([d] eqtm/lam ([y] [e] Deqtm' d y e) (Deqtp' d))
+           <- esubst-eqtp-gen Deqtp Deqtp'
+           <- ({y} {e}
+                  esubst-eqtm-gen ([dv] Deqtm dv y e) ([d] Deqtm' d y e)).
+
+-ext    : esubst-eqtm-gen
+              ([dv] eqtm/ext ([y] [e] DeqtmApp dv y e) (DofN dv) (DofM dv))
+              ([d] eqtm/ext ([y] [e] DeqtmApp' d y e) (DofN' d) (DofM' d))
+           <- ({y} {e}
+                  esubst-eqtm-gen ([dv] DeqtmApp dv y e)
+                  ([d] DeqtmApp' d y e))
+           <- esubst-of-gen DofN DofN'
+           <- esubst-of-gen DofM DofM'.
+
+-extw   : esubst-eqtm-gen
+              ([dv] eqtm/extw ([y] [e] DeqtmApp dv y e) (Deqtm dv))
+              ([d] eqtm/extw ([y] [e] DeqtmApp' d y e) (Deqtm' d))
+           <- ({y} {e}
+                  esubst-eqtm-gen ([dv] DeqtmApp dv y e)
+                  ([d] DeqtmApp' d y e))
+           <- esubst-eqtm-gen Deqtm Deqtm'.
+
+-beta   : esubst-eqtm-gen
+              ([dv] eqtm/beta (DofN dv) ([y] [e] DofM dv y e))
+              ([d] eqtm/beta (DofN' d) ([y] [e] DofM' d y e))
+           <- esubst-of-gen DofN DofN'
+           <- ({y} {e}
+                  esubst-of-gen ([dv] DofM dv y e) ([d] DofM' d y e)).
+
+-sym    : esubst-eqtm-gen
+              ([dv] eqtm/sym (Deqtm dv))
+              ([dv] eqtm/sym (Deqtm' dv))
+           <- esubst-eqtm-gen Deqtm Deqtm'.
+
+-trans  : esubst-eqtm-gen
+              ([dv] eqtm/trans (D2 dv) (D1 dv))
+              ([d] eqtm/trans (D2' d) (D1' d))
+           <- esubst-eqtm-gen D1 D1'
+           <- esubst-eqtm-gen D2 D2'.
+
+-refl   : esubst-eqtm-gen
+              ([dv] eqtm/refl (Dof dv))
+              ([d] eqtm/refl (Dof' d))
+           <- esubst-of-gen Dof Dof'.
+
+-tpcon  : esubst-eqtm-gen
+              ([dv] eqtm/typecon (Deqtp dv) (Deqtm dv))
+              ([d] eqtm/typecon (Deqtp' d) (Deqtm' d))
+           <- esubst-eqtp-gen Deqtp Deqtp'
+           <- esubst-eqtm-gen Deqtm Deqtm'.
+
+%%
+
+-app    : esubst-eqtp-gen
+              ([dv] eqtp/app (Deqtm dv) (Deqtp dv))
+              ([d] eqtp/app (Deqtm' d) (Deqtp' d))
+           <- esubst-eqtp-gen Deqtp Deqtp'
+           <- esubst-eqtm-gen Deqtm Deqtm'.
+
+-pi     : esubst-eqtp-gen
+              ([dv] eqtp/pi ([y] [e] D2 dv y e) (D1 dv))
+              ([d] eqtp/pi ([y] [e] D2' d y e) (D1' d))
+           <- esubst-eqtp-gen D1 D1'
+           <- ({y} {e}
+                  esubst-eqtp-gen ([dv] D2 dv y e) ([d] D2' d y e)).
+
+-lam    : esubst-eqtp-gen
+              ([dv] eqtp/lam (D2 dv) (D1 dv))
+              ([d] eqtp/lam (D2' d) (D1' d))
+           <- esubst-eqtp-gen D1 D1'
+           <- ({y} {e} esubst-eqtp-gen ([dv] D2 dv y e) ([d] D2' d y e)).
+
+-ext    : esubst-eqtp-gen
+              ([dv] eqtp/ext ([y] [e] DeqtpApp dv y e) (DofB dv) (DofA dv))
+              ([d] eqtp/ext ([y] [e] DeqtpApp' d y e) (DofB' d) (DofA' d))
+           <- ({y} {e}
+                  esubst-eqtp-gen ([dv] DeqtpApp dv y e)
+                  ([d] DeqtpApp' d y e))
+           <- esubst-kof-gen DofB DofB'
+           <- esubst-kof-gen DofA DofA'.
+
+-extw   : esubst-eqtp-gen
+              ([dv] eqtp/extw ([y] [e] DeqtmApp dv y e) (Deqtm dv))
+              ([d] eqtp/extw ([y] [e] DeqtmApp' d y e) (Deqtm' d))
+           <- ({y} {e}
+                  esubst-eqtp-gen ([dv] DeqtmApp dv y e)
+                  ([d] DeqtmApp' d y e))
+           <- esubst-eqtp-gen Deqtm Deqtm'.
+
+
+-beta   : esubst-eqtp-gen
+              ([dv] eqtp/beta (DofN dv) ([y] [e] DofB dv y e))
+              ([d] eqtp/beta (DofN' d) ([y] [e] DofB' d y e))
+           <- esubst-of-gen DofN DofN'
+           <- ({y} {e}
+                  esubst-kof-gen ([dv] DofB dv y e) ([d] DofB' d y e)).
+
+-sym    : esubst-eqtp-gen
+              ([dv] eqtp/sym (Deqtp dv))
+              ([dv] eqtp/sym (Deqtp' dv))
+           <- esubst-eqtp-gen Deqtp Deqtp'.
+
+-trans  : esubst-eqtp-gen
+              ([dv] eqtp/trans (D2 dv) (D1 dv))
+              ([d] eqtp/trans (D2' d) (D1' d))
+           <- esubst-eqtp-gen D1 D1'
+           <- esubst-eqtp-gen D2 D2'.
+
+-refl   : esubst-eqtp-gen
+              ([dv] eqtp/refl (Dof dv))
+              ([d] eqtp/refl (Dof' d))
+           <- esubst-kof-gen Dof Dof'.
+
+-kcon   : esubst-eqtp-gen
+              ([dv] eqtp/kcon (Deqkind dv) (Deqtp dv))
+              ([d] eqtp/kcon (Deqkind' d) (Deqtp' d))
+           <- esubst-eqkind-gen Deqkind Deqkind'
+           <- esubst-eqtp-gen Deqtp Deqtp'.
+
+%%
+
+-tp     : esubst-eqkind-gen ([dv] eqkind/tp) ([d] eqkind/tp).
+
+-pi     : esubst-eqkind-gen
+              ([dv] eqkind/pi ([y] [e] Deqkind dv y e) (Deqtp dv))
+              ([d] eqkind/pi ([y] [e] Deqkind' d y e) (Deqtp' d))
+           <- ({y} {e}
+                  esubst-eqkind-gen ([dv] Deqkind dv y e)
+                  ([d] Deqkind' d y e))
+           <- esubst-eqtp-gen Deqtp Deqtp'.
+
+-sym    : esubst-eqkind-gen
+              ([dv] eqkind/sym (Deqkind dv))
+              ([dv] eqkind/sym (Deqkind' dv))
+           <- esubst-eqkind-gen Deqkind Deqkind'.
+
+-trans  : esubst-eqkind-gen
+              ([dv] eqkind/trans (D2 dv) (D1 dv))
+              ([d] eqkind/trans (D2' d) (D1' d))
+           <- esubst-eqkind-gen D1 D1'
+           <- esubst-eqkind-gen D2 D2'.
+
+-refl   : esubst-eqkind-gen
+              ([dv] eqkind/refl (Dof dv))
+              ([d] eqkind/refl (Dof' d))
+           <- esubst-wfkind-gen Dof Dof'.
+
+%worlds (ecsig | easig | evar | ebind) 
+  (esubst-of-gen _ _) (esubst-kof-gen _ _) (esubst-wfkind-gen _ _)
+  (esubst-eqtm-gen _ _) (esubst-eqtp-gen _ _) (esubst-eqkind-gen _ _).
+%total (D1 D2 D3 D4 D5 D6)
+  (esubst-of-gen D1 _) (esubst-kof-gen D2 _) (esubst-wfkind-gen D3 _)
+  (esubst-eqtm-gen D4 _) (esubst-eqtp-gen D5 _) (esubst-eqkind-gen D6 _).
+
+esubst-eqtp : ({x} evof x A -> eqtp (B x) (B' x) (K x))
+                 -> eof N A
+                 -> eqtp (B N) (B' N) (K N) -> type.
+%mode esubst-eqtp +X1 +X2 -X3.
+
+- : esubst-eqtp D1 D2 (D1' D2)
+     <- esubst-eqtp-gen (D1 _) D1'.
+
+%worlds (ecsig | easig | evar | ebind) (esubst-eqtp _ _ _).
+%total {} (esubst-eqtp _ _ _).
+
+
+esubst-eqkind : ({x} evof x A -> eqkind (K x) (K' x))
+                 -> eof N A
+                 -> eqkind (K N) (K' N) -> type.
+%mode esubst-eqkind +X1 +X2 -X3.
+
+- : esubst-eqkind D1 D2 (D1' D2)
+     <- esubst-eqkind-gen (D1 _) D1'.
+
+%worlds (ecsig | easig | evar | ebind) (esubst-eqkind _ _ _).
+%total {} (esubst-eqkind _ _ _).
+
+
+esubst-wfkind : ({x} evof x A -> ewfkind (K x))
+                 -> eof N A
+                 -> ewfkind (K N) -> type.
+%mode esubst-wfkind +X1 +X2 -X3.
+
+- : esubst-wfkind D1 D2 (D1' D2)
+     <- esubst-wfkind-gen (D1 _) D1'.
+
+%worlds (ecsig | easig | evar | ebind) (esubst-wfkind _ _ _).
+%total {} (esubst-wfkind _ _ _).
+
+esubst-kof : ({x} evof x A -> ekof (B x) (K x))
+              -> eof N A
+              -> ekof (B N) (K N) -> type.
+%mode esubst-kof +X1 +X2 -X3.
+
+- : esubst-kof D1 D2 (D1' D2)
+     <- esubst-kof-gen (D1 _) D1'.
+
+%worlds (ecsig | easig | evar | ebind) (esubst-kof _ _ _).
+%total {} (esubst-kof _ _ _).
+
+esubst : ({x} evof x A -> eof (M x) (B x))
+          -> eof N A
+          -> eof (M N) (B N) -> type.
+%mode esubst +X1 +X2 -X3.
+
+- : esubst D1 D2 (D1' D2)
+     <- esubst-of-gen (D1 _) D1'.
+
+%worlds (ecsig | easig | evar | ebind) (esubst _ _ _).
+%total D (esubst D _ _).
+
+esubst-eqtm : ({x} evof x A -> eqtm (B x) (C x) (K x))
+              -> eof N A
+              -> eqtm (B N) (C N) (K N) -> type.
+%mode esubst-eqtm +X1 +X2 -X3.
+
+- : esubst-eqtm D1 D2 (D1' D2)
+     <- esubst-eqtm-gen (D1 _) D1'.
+
+%worlds (ecsig | easig | evar | ebind) (esubst-eqtm _ _ _).
+%total {} (esubst-eqtm _ _ _).
+
+

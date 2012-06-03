@@ -1,0 +1,1399 @@
+
+strengthen-vtrans : ({x} {ex} vtrans ex x -> vtrans (EX ex) X)
+                     -> ({ex} etm-eq (EX ex) EX')
+                     -> vtrans EX' X -> type.
+%mode strengthen-vtrans +X1 -X2 -X3.
+
+- : strengthen-vtrans ([x] [ex] [d] D) ([ex] etm-eq/i) D.
+
+%worlds (csig | asig | bind | ovar | tvar | evar) (strengthen-vtrans _ _ _).
+%total {} (strengthen-vtrans _ _ _).
+
+%%%% Lemmas about reduction and its transitive closure %%%%
+
+tpreduce-refl : {A} tpreduce A A -> type.
+%mode tpreduce-refl +A -D.
+
+-const  : tpreduce-refl (eaconst A) tpreduce/const.
+
+-pi     : tpreduce-refl (epi A B) (tpreduce/pi DredB DredA)
+           <- tpreduce-refl A DredA
+           <- ({x} {dv}
+                  tpreduce-refl (B x)
+                  (DredB x dv : tpreduce (B x) (B x))).
+
+-lam    : tpreduce-refl (ealam A B) (tpreduce/lam DredB DredA)
+           <- tpreduce-refl A DredA
+           <- ({x} {dv}
+                  tpreduce-refl (B x)
+                  (DredB x dv : tpreduce (B x) (B x))).
+
+-app    : tpreduce-refl (eaapp A M) (tpreduce/app reduce/refl DredA)
+           <- tpreduce-refl A DredA.
+
+%worlds (ecsig | easig | evvar | tvar) (tpreduce-refl _ _).
+%total A (tpreduce-refl A _).
+
+kreduce-refl : {K} kreduce K K -> type.
+%mode kreduce-refl +K -D.
+
+-type   : kreduce-refl ektype kreduce/type.
+
+-pi     : kreduce-refl (ekpi A B) (kreduce/pi DredB DredA)
+           <- tpreduce-refl A DredA
+           <- ({x} {dv}
+                  kreduce-refl (B x)
+                  (DredB x dv : kreduce (B x) (B x))).
+
+%worlds (ecsig | easig | evvar) (kreduce-refl _ _).
+%total A (kreduce-refl A _).
+
+%% Compatibility of reduce* %%
+
+reduce*-lam-compat : tpreduce* A A'
+                      -> ({x} variable x -> reduce* (M x) (M' x))
+                      -> reduce* (elam A M) (elam A' M') -> type.
+%mode reduce*-lam-compat +X1 +X2 -X3.
+
+-refl : reduce*-lam-compat
+            (tpreduce*/refl : tpreduce* A A)
+            ([x] [dv:variable x] reduce*/refl : reduce* (M x) (M x))
+            (reduce*/trans
+                reduce*/refl
+                (reduce/lam ([x] [d] reduce/refl) D))
+         <- tpreduce-refl _ D.
+
+-refl : reduce*-lam-compat
+            (tpreduce*/trans
+              (DredA' : tpreduce* A' A'')
+              (DredA  : tpreduce A A')
+              : tpreduce* A A'')
+            ([x] [dv:variable x] reduce*/refl : reduce* (M x) (M x))
+            (reduce*/trans
+                DredLam'
+                (reduce/lam ([x] [d] reduce/refl) DredA))
+         <- reduce*-lam-compat DredA' ([x] [dv] reduce*/refl)
+            (DredLam' : reduce* (elam A' M) (elam A'' M)).
+
+-trans  : reduce*-lam-compat
+              (Dtpreduce : tpreduce* A A')
+              ([x] [dv:variable x]
+                  reduce*/trans
+                  (Dred*M' x dv : reduce* (M' x) (M'' x))
+                  (DredM x dv : reduce (M x) (M' x)))
+              (reduce*/trans
+                  Dred*Lam
+                  (reduce/lam DredM DredA))
+           <- reduce*-lam-compat Dtpreduce Dred*M'
+              (Dred*Lam : reduce* (elam A M') (elam A' M''))
+           <- tpreduce-refl A DredA.
+
+%worlds (ecsig | easig | evvar | tbind) (reduce*-lam-compat _ _ _).
+%total {D1 D2} (reduce*-lam-compat D1 D2 _).
+
+reduce*-app-compat : reduce* M M' -> reduce* N N'
+                      -> reduce* (eapp M N) (eapp M' N') -> type.
+%mode reduce*-app-compat +X1 +X2 -X3.
+
+-refl   : reduce*-app-compat
+              (reduce*/refl : reduce* M M)
+              (reduce*/refl : reduce* N N)
+              reduce*/refl.
+
+-reflt  : reduce*-app-compat
+              (reduce*/refl : reduce* M M)
+              (reduce*/trans
+                  (Dred*N' : reduce* N' N'')
+                  (DredN : reduce N N'))
+              (reduce*/trans
+                  Dred*App'
+                  (reduce/app DredN reduce/refl))
+           <- reduce*-app-compat reduce*/refl Dred*N'
+              (Dred*App' : reduce* (eapp M N') (eapp M N'')).
+
+-trefl  : reduce*-app-compat
+              (reduce*/trans
+                  (Dred*M' : reduce* M' M'')
+                  (DredM : reduce M M'))
+              (reduce*/refl : reduce* N N)
+              (reduce*/trans
+                  Dred*App'
+                  (reduce/app reduce/refl DredM))
+           <- reduce*-app-compat Dred*M' reduce*/refl
+              (Dred*App' : reduce* (eapp M' N) (eapp M'' N)).
+
+-tt     : reduce*-app-compat
+              (reduce*/trans
+                  (Dred*M : reduce* M' M'')
+                  (DredM : reduce M M'))
+              (reduce*/trans
+                  (Dred*N : reduce* N' N'')
+                  (DredN : reduce N N'))
+              (reduce*/trans
+                  Dred*App
+                  (reduce/app DredN DredM))
+           <- reduce*-app-compat Dred*M Dred*N
+              (Dred*App : reduce* (eapp M' N') (eapp M'' N'')).
+
+%worlds (ecsig | easig | evvar) (reduce*-app-compat _ _ _).
+%total {D1 D2} (reduce*-app-compat D1 D2 _).
+
+tpreduce-refl : {A} tpreduce A A -> type.
+%mode tpreduce-refl +X1 -X2.
+
+-const  : tpreduce-refl (eaconst A) tpreduce/const.
+
+-app    : tpreduce-refl (eaapp A M) (tpreduce/app reduce/refl DredA)
+           <- tpreduce-refl A (DredA : tpreduce A A).
+
+-pi     : tpreduce-refl (epi A B) (tpreduce/pi DredB DredA)
+           <- tpreduce-refl A DredA
+           <- ({x} {dv:variable x}
+                  tpreduce-refl (B x) (DredB x dv)).
+
+-lam    : tpreduce-refl (ealam A B) (tpreduce/lam DredB DredA)
+           <- tpreduce-refl A DredA
+           <- ({x} {dv:variable x}
+                  tpreduce-refl (B x) (DredB x dv)).
+
+%worlds (ecsig | easig | evvar) (tpreduce-refl _ _).
+%total D (tpreduce-refl D _).
+
+tpreduce*-app-compat : tpreduce* M M' -> reduce* N N'
+                      -> tpreduce* (eaapp M N) (eaapp M' N') -> type.
+%mode tpreduce*-app-compat +X1 +X2 -X3.
+
+-refl   : tpreduce*-app-compat
+              (tpreduce*/refl : tpreduce* M M)
+              (reduce*/refl : reduce* N N)
+              tpreduce*/refl.
+
+-reflt  : tpreduce*-app-compat
+              (tpreduce*/refl : tpreduce* M M)
+              (reduce*/trans
+                  (Dred*N' : reduce* N' N'')
+                  (DredN : reduce N N'))
+              (tpreduce*/trans
+                  Dred*App'
+                  (tpreduce/app DredN DredM))
+           <- tpreduce*-app-compat tpreduce*/refl Dred*N'
+              (Dred*App' : tpreduce* (eaapp M N') (eaapp M N''))
+           <- tpreduce-refl _ DredM.
+
+-trefl  : tpreduce*-app-compat
+              (tpreduce*/trans
+                  (Dred*M' : tpreduce* M' M'')
+                  (DredM : tpreduce M M'))
+              (reduce*/refl : reduce* N N)
+              (tpreduce*/trans
+                  Dred*App'
+                  (tpreduce/app reduce/refl DredM))
+           <- tpreduce*-app-compat Dred*M' reduce*/refl
+              (Dred*App' : tpreduce* (eaapp M' N) (eaapp M'' N)).
+
+-tt     : tpreduce*-app-compat
+              (tpreduce*/trans
+                  (Dred*M : tpreduce* M' M'')
+                  (DredM : tpreduce M M'))
+              (reduce*/trans
+                  (Dred*N : reduce* N' N'')
+                  (DredN : reduce N N'))
+              (tpreduce*/trans
+                  Dred*App
+                  (tpreduce/app DredN DredM))
+           <- tpreduce*-app-compat Dred*M Dred*N
+              (Dred*App : tpreduce* (eaapp M' N') (eaapp M'' N'')).
+
+%worlds (ecsig | easig | evvar) (tpreduce*-app-compat _ _ _).
+%total {D1 D2} (tpreduce*-app-compat D1 D2 _).
+
+tpreduce*-lam-compat : tpreduce* A A'
+                      -> ({x} variable x -> tpreduce* (M x) (M' x))
+                      -> tpreduce* (ealam A M) (ealam A' M') -> type.
+%mode tpreduce*-lam-compat +X1 +X2 -X3.
+
+-refl : tpreduce*-lam-compat
+            (tpreduce*/refl : tpreduce* A A)
+            ([x] [dv:variable x] tpreduce*/refl : tpreduce* (M x) (M x))
+            (tpreduce*/trans
+                tpreduce*/refl
+                (tpreduce/lam D' D))
+         <- ({x} {d} tpreduce-refl _ (D' x d))
+         <- tpreduce-refl _ D.
+
+-refl : tpreduce*-lam-compat
+            (tpreduce*/trans
+              (DredA' : tpreduce* A' A'')
+              (DredA  : tpreduce A A')
+              : tpreduce* A A'')
+            ([x] [dv:variable x] tpreduce*/refl : tpreduce* (M x) (M x))
+            (tpreduce*/trans
+                DredLam'
+                (tpreduce/lam Drefl DredA))
+         <- ({x} {d} tpreduce-refl _ (Drefl x d))
+         <- tpreduce*-lam-compat DredA' ([x] [dv] tpreduce*/refl)
+            (DredLam' : tpreduce* (ealam A' M) (ealam A'' M)).
+
+-trans  : tpreduce*-lam-compat
+              (Dtpreduce : tpreduce* A A')
+              ([x] [dv:variable x]
+                  tpreduce*/trans
+                  (Dred*M' x dv : tpreduce* (M' x) (M'' x))
+                  (DredM x dv : tpreduce (M x) (M' x)))
+              (tpreduce*/trans
+                  Dred*Lam
+                  (tpreduce/lam DredM DredA))
+           <- tpreduce*-lam-compat Dtpreduce Dred*M'
+              (Dred*Lam : tpreduce* (ealam A M') (ealam A' M''))
+           <- tpreduce-refl A DredA.
+
+%worlds (ecsig | easig | evvar) (tpreduce*-lam-compat _ _ _).
+%total {D1 D2} (tpreduce*-lam-compat D1 D2 _).
+
+tpreduce*-pi-compat : tpreduce* A A'
+                       -> ({x} variable x -> tpreduce* (B x) (B' x))
+%%
+                       -> tpreduce* (epi A B) (epi A' B') -> type.
+%mode tpreduce*-pi-compat +X1 +X2 -X3.
+
+-refl : tpreduce*-pi-compat
+            (tpreduce*/refl : tpreduce* A A)
+            ([x] [dv:variable x] tpreduce*/refl : tpreduce* (M x) (M x))
+            (tpreduce*/trans
+                tpreduce*/refl
+                (tpreduce/pi D' D))
+         <- ({x} {d} tpreduce-refl _ (D' x d))
+         <- tpreduce-refl _ D.
+
+-refl : tpreduce*-pi-compat
+            (tpreduce*/trans
+              (DredA' : tpreduce* A' A'')
+              (DredA  : tpreduce A A')
+              : tpreduce* A A'')
+            ([x] [dv:variable x] tpreduce*/refl : tpreduce* (M x) (M x))
+            (tpreduce*/trans
+                DredLam'
+                (tpreduce/pi Drefl DredA))
+         <- ({x} {d} tpreduce-refl _ (Drefl x d))
+         <- tpreduce*-pi-compat DredA' ([x] [dv] tpreduce*/refl)
+            (DredLam' : tpreduce* (epi A' M) (epi A'' M)).
+
+-trans  : tpreduce*-pi-compat
+              (Dtpreduce : tpreduce* A A')
+              ([x] [dv:variable x]
+                  tpreduce*/trans
+                  (Dred*M' x dv : tpreduce* (M' x) (M'' x))
+                  (DredM x dv : tpreduce (M x) (M' x)))
+              (tpreduce*/trans
+                  Dred*Lam
+                  (tpreduce/pi DredM DredA))
+           <- tpreduce*-pi-compat Dtpreduce Dred*M'
+              (Dred*Lam : tpreduce* (epi A M') (epi A' M''))
+           <- tpreduce-refl A DredA.
+
+%worlds (ecsig | easig | evvar) (tpreduce*-pi-compat _ _ _).
+%total {D1 D2} (tpreduce*-pi-compat D1 D2 _).
+
+kreduce*-pi-compat : tpreduce* A A'
+                       -> ({x} variable x -> kreduce* (B x) (B' x))
+%%
+                       -> kreduce* (ekpi A B) (ekpi A' B') -> type.
+%mode kreduce*-pi-compat +X1 +X2 -X3.
+
+-refl : kreduce*-pi-compat
+            (tpreduce*/refl : tpreduce* A A)
+            ([x] [dv:variable x] kreduce*/refl : kreduce* (M x) (M x))
+            (kreduce*/trans
+                kreduce*/refl
+                (kreduce/pi D' D))
+         <- ({x} {d} kreduce-refl _ (D' x d))
+         <- tpreduce-refl _ D.
+
+-refl : kreduce*-pi-compat
+            (tpreduce*/trans
+              (DredA' : tpreduce* A' A'')
+              (DredA  : tpreduce A A')
+              : tpreduce* A A'')
+            ([x] [dv:variable x] kreduce*/refl : kreduce* (M x) (M x))
+            (kreduce*/trans
+                DredLam'
+                (kreduce/pi Drefl DredA))
+         <- ({x} {d} kreduce-refl _ (Drefl x d))
+         <- kreduce*-pi-compat DredA' ([x] [dv] kreduce*/refl)
+            (DredLam' : kreduce* (ekpi A' M) (ekpi A'' M)).
+
+-trans  : kreduce*-pi-compat
+              (Dkreduce : tpreduce* A A')
+              ([x] [dv:variable x]
+                  kreduce*/trans
+                  (Dred*M' x dv : kreduce* (M' x) (M'' x))
+                  (DredM x dv : kreduce (M x) (M' x)))
+              (kreduce*/trans
+                  Dred*Lam
+                  (kreduce/pi DredM DredA))
+           <- kreduce*-pi-compat Dkreduce Dred*M'
+              (Dred*Lam : kreduce* (ekpi A M') (ekpi A' M''))
+           <- tpreduce-refl A DredA.
+
+%worlds (ecsig | easig | evvar) (kreduce*-pi-compat _ _ _).
+%total {D1 D2} (kreduce*-pi-compat D1 D2 _).
+
+%% Other notions of transitivity for reduce* %%
+
+reduce*-trans2 : reduce* M N -> reduce* N O -> reduce* M O -> type.
+%mode reduce*-trans2 +X1 +X2 -X3.
+
+- : reduce*-trans2 reduce*/refl (DreduceN : reduce* N O)
+        DreduceN.
+
+- : reduce*-trans2
+        (reduce*/trans (Dred*M' : reduce* M' N) (DredM : reduce M M'))
+        (Dred*N : reduce* N O)
+        (reduce*/trans Dred*M'O DredM)
+     <- reduce*-trans2 Dred*M' Dred*N
+        (Dred*M'O : reduce* M' O).
+
+%worlds (ecsig | easig | evvar) (reduce*-trans2 _ _ _).
+%total D (reduce*-trans2 D _ _).
+
+
+%%%% Explicit Contexts %%%%
+
+convert-sub-e : {T} simp A T
+                 -> ({x} isvar x I -> ordered (G x))
+                 -> ({x} append (cons G1 x A) (G2 x) (G x))
+                 -> csub G N Gx
+                 -> ({x} {ex} vtrans ex x
+                     -> converte (G x) (M x) (B x) (EM ex))
+                 -> converte G1 N A EN
+                 -> sub ([x] M x) N Mx
+                 -> tpsub ([x] B x) N Bx
+%%
+                 -> converte Gx Mx Bx EO
+                 -> reduce* (EM EN) EO -> type.
+%mode convert-sub-e +T +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 -X8 -X9.
+
+aconvert-rrsub-e : {T} simp A T
+                    -> ({x} isvar x I -> ordered (G x))
+                    -> ({x} append (cons G1 x A) (G2 x) (G x))
+                    -> csub G N Gx
+                    -> ({x} {ex} vtrans ex x
+                        -> aconverte (G x) (R x) (B x) (EM ex))
+                    -> converte G1 N A EN
+                    -> rrsub ([x] R x) N Rx
+                    -> tpsub ([x] B x) N Bx
+%%
+                    -> aconverte Gx Rx Bx EO
+                    -> reduce* (EM EN) EO -> type.
+%mode aconvert-rrsub-e +T +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 -X8 -X9.
+
+aconvert-rmsub-e : {T} simp A T
+                    -> ({x} isvar x I -> ordered (G x))
+                    -> ({x} append (cons G1 x A) (G2 x) (G x))
+                    -> csub G N Gx
+                    -> ({x} {ex} vtrans ex x
+                        -> aconverte (G x) (R x) (B x) (EM ex))
+                    -> converte G1 N A EN
+                    -> rmsub ([x] R x) N Mx
+                    -> tpsub ([x] B x) N Bx
+%%
+                    -> converte Gx Mx Bx EO
+                    -> reduce* (EM EN) EO -> type.
+%mode aconvert-rmsub-e +T +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 -X8 -X9.
+
+tpconvert-sub-e : {T} simp A T
+                   -> ({x} isvar x I -> ordered (G x))
+                   -> ({x} append (cons G1 x A) (G2 x) (G x))
+                   -> csub G N Gx
+                   -> ({x} {ex} vtrans ex x
+                       -> tpconverte (G x) (B x) (K x) (EB ex))
+                   -> converte G1 N A EN
+                   -> tpsub ([x] B x) N Bx
+                   -> ksub ([x] K x) N Kx
+%%
+                   -> tpconverte Gx Bx Kx EC
+                   -> tpreduce* (EB EN) EC -> type.
+%mode tpconvert-sub-e +T +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 -X8 -X9.
+
+atpconvert-sub-e : {T} simp A T
+                   -> ({x} isvar x I -> ordered (G x))
+                   -> ({x} append (cons G1 x A) (G2 x) (G x))
+                   -> csub G N Gx
+                   -> ({x} {ex} vtrans ex x
+                       -> atpconverte (G x) (B x) (K x) (EB ex))
+                   -> converte G1 N A EN
+                   -> atpsub ([x] B x) N Bx
+                   -> ksub ([x] K x) N Kx
+%%
+                   -> atpconverte Gx Bx Kx EC
+                   -> tpreduce* (EB EN) EC -> type.
+%mode atpconvert-sub-e +T +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 -X8 -X9.
+
+kconvert-sub-e  : {T} simp A T
+                   -> ({x} isvar x I -> ordered (G x))
+                   -> ({x} append (cons G1 x A) (G2 x) (G x))
+                   -> csub G N Gx
+                   -> ({x} {ex} vtrans ex x
+                       -> kconverte (G x) (K x) (EK ex))
+                   -> converte G1 N A EN
+                   -> ksub ([x] K x) N Kx
+%%
+                   -> kconverte Gx Kx EKx
+                   -> kreduce* (EK EN) EKx -> type.
+%mode kconvert-sub-e +T +X0 +X1 +X2 +X3 +X4 +X5 +X6 -X7 -X8.
+
+-rr     : convert-sub-e _ Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub G N Gx)
+              ([x] [ex] [xt]
+                  converte/at
+                  (DconvertR x ex xt 
+                    : aconverte (G x) (R x) (base (P x)) (EM ex)))
+              (DconvertN : converte G1 N A EN)
+              (sub/rr (DsubR : rrsub ([x] R x) N Rx))
+              (tpsub/base (DsubP : atpsub ([x] P x) N Px))
+%%
+              (converte/at DconvertRx)
+              DreduceEMx
+%%
+           <- aconvert-rrsub-e _ Dsimp Dord Dappend Dcsub 
+              DconvertR DconvertN DsubR (tpsub/base DsubP)
+              (DconvertRx : aconverte Gx Rx (base Px) EMx)
+              (DreduceEMx : reduce* (EM EN) EMx).
+
+-rm     : convert-sub-e _ Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub G N Gx)
+              ([x] [ex] [xt]
+                  converte/at
+                  (DconvertR x ex xt 
+                    : aconverte (G x) (R x) (base (P x)) (EM ex)))
+              (DconvertN : converte G1 N A EN)
+              (sub/rm (DsubR : rmsub ([x] R x) N (at Rx)))
+              (tpsub/base (DsubP : atpsub ([x] P x) N Px))
+%%
+              DconvertLRx
+              DreduceEMx
+%%
+           <- aconvert-rmsub-e _ Dsimp Dord Dappend Dcsub 
+              DconvertR DconvertN DsubR (tpsub/base DsubP)
+              (DconvertLRx : converte Gx (at Rx) (base Px) EMx)
+              (DreduceEMx : reduce* (EM EN) EMx).
+
+-lam    : convert-sub-e _ Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub G N Gx)
+              ([x] [ex] [xt]
+                  converte/lam
+                  ([y] [ey] [yt]
+                      DconvertM x ex xt y ey yt
+                    : converte (cons (G x) y (B x)) (M x y) (C x y) (EM ex ey))
+                  (DconvertB x ex xt : tpconverte (G x) (B x) ktype (EB ex)))
+              (DconvertN : converte G1 N A EN)
+              (sub/lam 
+                  ([y] DsubMx y : sub ([x] M x y) N (Mx y)))
+              (tpsub/pi 
+                  ([y] DsubC y : tpsub ([x] C x y) N (Cx y))
+                  (DsubB : tpsub ([x] B x) N Bx))
+%%
+              (converte/lam DconvertMx DconvertBx)
+              Dred*lam
+%%
+           <- tpconvert-sub-e _ Dsimp Dord Dappend Dcsub 
+              DconvertB DconvertN DsubB ksub/type
+              (DconvertBx : tpconverte Gx Bx ktype EBx)
+              (DreduceEBx : tpreduce* (EB EN) EBx)
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) J
+                  ([y] [e] Dord' x d y e : ordered (cons (G x) y (B x))))
+           <- ({y} {e} {ey} {yt} {dv}
+                  vtrans-variable yt dv ->
+                  convert-sub-e _ Dsimp
+                  ([x] [d] Dord' x d y e) 
+                  ([x] append/cons (Dappend x))
+                  (csub/cons DsubB Dcsub) 
+                  ([x] [ex] [xt] DconvertM x ex xt y ey yt)
+                  DconvertN
+                  (DsubMx y) (DsubC y)
+                  (DconvertMx y ey yt 
+                    : converte (cons Gx y Bx) (Mx y) (Cx y) (EMx ey))
+                  (DreduceEMx ey dv : reduce* (EM EN ey) (EMx ey)))
+              %%
+           <- reduce*-lam-compat DreduceEBx DreduceEMx
+              (Dred*lam : reduce* (elam (EB EN) (EM EN)) (elam EBx EMx)).
+
+%%
+
+-const  : aconvert-rrsub-e _ Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub ([x] G x) N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  aconverte/const
+                  (Dtpconvert x ex xt
+                    : tpconverte (G x) B ktype (EB ex))
+                  (DofB x : kof B ktype)
+                  (Dcof : cof C B))
+              (DconvertN : converte G1 N A EN)
+              _
+              (DsubBx : tpsub ([x] B) N Bx)
+%%
+              (aconverte/const DconvertBx DofBx Dcof')
+              (reduce*/trans reduce*/refl reduce/refl)
+%%
+           <- tpsub-absent B N (DsubB : tpsub ([_] B) N B)
+           <- tpconvert-sub-e _ Dsimp Dord Dappend Dcsub Dtpconvert DconvertN
+              DsubB ksub/type
+              (DconvertB : tpconverte Gx B ktype EBx)
+              _
+           <- tpsub-fun DsubB DsubBx
+              (DeqBBx : tp-eq B Bx)
+           <- kof-resp DeqBBx kind-eq/i (DofB aca)
+              (DofBx : kof Bx ktype)
+           <- cof-resp DeqBBx Dcof (Dcof' : cof C Bx)
+              %%
+           <- tpconverte-resp DconvertB ctx-eq/i DeqBBx kind-eq/i etp-eq/i
+              (DconvertBx : tpconverte Gx Bx ktype EBx).
+
+-var    : aconvert-rrsub-e _ Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub ([x] G x) N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  aconverte/var
+                  (Dvtrans x ex xt : vtrans (EY ex) Y)
+                  (DconvertB x ex xt : tpconverte (G x) (B x) ktype (EB ex))
+                  (Dlook x : lookup (G x) Y (B x)))
+              (DconvertN : converte G1 N A EN)
+              rrsub/closed
+              (DsubB : tpsub ([x] B x) N Bx)
+%%
+              (aconverte/var Dvtrans' DconvertBx DlookGx)
+              Dreduce
+%%
+           <- tpconvert-sub-e _ Dsimp Dord Dappend Dcsub DconvertB DconvertN 
+              DsubB ksub/type
+              (DconvertBx : tpconverte Gx Bx ktype EBx)
+              (DreduceEBx : tpreduce* (EB EN) EBx)
+           <- csub-lookup Dcsub Dlook 
+              (DsubB' : tpsub ([x] B x) N Bx')
+              (DlookGx' : lookup Gx Y Bx')
+           <- tpsub-fun DsubB' DsubB
+              (DeqB' : tp-eq Bx' Bx)
+           <- lookup-compat ctx-eq/i atm-eq/i DeqB' DlookGx'
+              (DlookGx : lookup Gx Y Bx)
+              %%
+           <- strengthen-vtrans Dvtrans
+              ([ex] Deq ex : etm-eq (EY ex) EY')
+              (Dvtrans' : vtrans EY' Y)
+           <- ({ex}
+                  etm-eq-sym (Deq ex)
+                  (Deq' ex : etm-eq EY' (EY ex)))
+           <- vtrans-variable Dvtrans' (Dvariable : variable EY')
+           <- reduce*-resp (reduce*/trans reduce*/refl reduce/refl)
+              (Deq' EN) etm-eq/i
+              (Dreduce : reduce* (EY EN) EY').
+
+
+-vari   : aconvert-rrsub-e _ Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub ([x] G x) N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  aconverte/vari
+                  (Dvtrans x ex xt : vtrans (EY ex) Y)
+                  (DconvertB x ex xt 
+                    : tpconverte (G x) (B x) ktype (EB ex))
+                  (DofB x : kof (B x) ktype)
+                  (Dvof x : vof Y (B x)))
+              (DconvertN : converte G1 N A EN)
+              rrsub/closed
+              (DsubB : tpsub ([x] B x) N Bx)
+%%
+              (aconverte/vari Dvtrans' DconvertBx DofBx Dvof'')
+              Dreduce
+%%
+              %% Strengthen x out of B
+           <- vof-noassm Dvof
+              ([x] DeqB x : tp-eq (B x) B')
+           <- tpsub-compat DeqB tm-eq/i tp-eq/i DsubB
+              (DsubB'x : tpsub ([_] B') N Bx)
+           <- tpsub-absent B' N
+              (DsubB' : tpsub ([_] B') N B')
+           <- tpsub-fun DsubB' DsubB'x
+              (DeqB'Bx : tp-eq B' Bx)
+              %% DconvertBx
+           <- tpconvert-sub-e _ Dsimp Dord Dappend Dcsub DconvertB
+              DconvertN DsubB ksub/type
+              (DconvertBx : tpconverte Gx Bx ktype EBx)
+              _
+              %% kof Bx ktype
+           <- kof-resp (DeqB aca) kind-eq/i (DofB aca)
+              (DofB' : kof B' ktype)
+           <- kof-resp DeqB'Bx kind-eq/i DofB'
+              (DofBx : kof Bx ktype)
+              %% vof Y Bx
+           <- vof-resp (Dvof aca) atm-eq/i (DeqB aca)
+              (Dvof' : vof Y B')
+           <- vof-resp Dvof' atm-eq/i DeqB'Bx
+              (Dvof'' : vof Y Bx)
+              %% variable EY' and reduce* (EY EN) EY'
+           <- strengthen-vtrans Dvtrans
+              ([ex] DeqEY ex : etm-eq (EY ex) EY')
+              (Dvtrans' : vtrans EY' Y)
+           <- vtrans-variable Dvtrans' 
+              (Dvar : variable EY')
+           <- etm-eq-sym (DeqEY EN)
+              (DeqEY' : etm-eq EY' (EY EN))
+           <- reduce*-resp (reduce*/trans reduce*/refl reduce/refl)
+              DeqEY' etm-eq/i
+              (Dreduce : reduce* (EY EN) EY').
+
+-app    : aconvert-rrsub-e _ Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub ([x] G x) N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  aconverte/app
+                  (DsubC x : tpsub ([y] C x y) (M x) (Cy x))
+                  (DconvertM x ex xt : converte (G x) (M x) (B x) (EM ex))
+                  (DconvertR x ex xt 
+                    : aconverte (G x) (R x) (pi (B x) ([y] C x y)) (EL ex))
+                : aconverte (G x) 
+                  (app (R x) (M x)) (Cy x) (eapp (EL ex) (EM ex)))
+              (DconvertN : converte G1 N A EN)
+              (rrsub/app
+                  (DsubM : sub ([x] M x) N Mx)
+                  (DsubR : rrsub ([x] R x) N Rx))
+              (DsubCy : tpsub ([x] Cy x) N Cyx)
+%%
+              (aconverte/app DsubCx'' DconvertMx DconvertRx)
+              DreduceApp
+%%
+           <- ({x} {ex} {xt}
+                  aconverte-reg-il (DconvertR x ex xt)
+                  (DofR x : at-ofe (G x) (R x) (pi (B x) ([y] C x y))))
+           <- ({x} {d}
+                  atofe-reg (Dord x d) (DofR x)
+                  (kofe/pi
+                      ([y] DofC x y : kofe (cons (G x) y (B x)) (C x y) ktype)
+                      (DofB x : kofe (G x) (B x) ktype)))
+           <- converte-reg-il DconvertN
+              (DofN : ofe G1 N A)
+              %%
+           <- can-tpsub-e Dappend Dord DofB DofN
+              (DsubB : tpsub ([x] B x) N Bx)
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) J
+                  ([y] [e] Dord' x d y e : ordered (cons (G x) y (B x))))
+           <- ({y} {e}
+                  can-tpsub-e
+                  ([x] append/cons (Dappend x)) 
+                  ([x] [d] Dord' x d y e) 
+                  ([x] DofC x y) DofN
+                  (DsubC' y : tpsub ([x] C x y) N (Cx y)))
+           <- aconvert-rrsub-e _ Dsimp Dord Dappend Dcsub DconvertR DconvertN 
+              DsubR (tpsub/pi DsubC' DsubB)
+              (DconvertRx : aconverte Gx Rx (pi Bx ([y] Cx y)) EO)
+              (DreduceEOx : reduce* (EL EN) EO)
+           <- convert-sub-e _ Dsimp Dord Dappend Dcsub DconvertM DconvertN 
+              DsubM DsubB
+              (DconvertMx : converte Gx Mx Bx EMx)
+              (DreduceEMx : reduce* (EM EN) EMx)
+              %%
+           <- ({x} {ex} {xt}
+                  converte-reg-il (DconvertM x ex xt)
+                  (DofM x : ofe (G x) (M x) (B x)))
+           <- tpsub-permute-e Dord Dappend DofN DofM DofC
+              DsubM DsubC DsubC'
+              (DsubCy' : tpsub ([x] Cy x) N Cxy)
+              (DsubCx' : tpsub ([y] Cx y) Mx Cxy)
+           <- tpsub-fun DsubCy' DsubCy
+              (DeqCxyCyx : tp-eq Cxy Cyx)
+           <- tpsub-compat ([y] tp-eq/i) tm-eq/i DeqCxyCyx DsubCx'
+              (DsubCx'' : tpsub ([y] Cx y) Mx Cyx)
+              %%
+           <- reduce*-app-compat DreduceEOx DreduceEMx
+              (DreduceApp : reduce* (eapp (EL EN) (EM EN)) (eapp EO EMx)).
+
+-appclo : aconvert-rrsub-e _ Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub ([x] G x) N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  aconverte/app
+                  (DsubC x : tpsub ([y] C x y) M (Cy x))
+                  (DconvertM x ex xt : converte (G x) M (B x) (EM ex))
+                  (DconvertR x ex xt 
+                    : aconverte (G x) R (pi (B x) ([y] C x y)) (EL ex))
+                : aconverte (G x) (app R M) (Cy x) (eapp (EL ex) (EM ex)))
+              (DconvertN : converte G1 N A EN)
+              rrsub/closed
+              (DsubCy : tpsub ([x] Cy x) N Cyx)
+%%
+              (aconverte/app DsubCx'' DconvertM' DconvertR')
+              Dred*App
+%%
+           <- ({x} {ex} {xt}
+                  aconverte-reg-il (DconvertR x ex xt)
+                  (DofR x : at-ofe (G x) R (pi (B x) ([y] C x y))))
+           <- ({x} {d}
+                  atofe-reg (Dord x d) (DofR x)
+                  (kofe/pi
+                      ([y] DofC x y : kofe (cons (G x) y (B x)) (C x y) ktype)
+                      (DofB x : kofe (G x) (B x) ktype)))
+           <- converte-reg-il DconvertN
+              (DofN : ofe G1 N A)
+           <- can-tpsub-e Dappend Dord DofB DofN
+              (DsubB : tpsub ([x] B x) N Bx)
+           <- sub-absent M N (DsubM : sub ([_] M) N M)
+           <- convert-sub-e _ Dsimp Dord Dappend Dcsub DconvertM DconvertN 
+              DsubM DsubB
+              (DconvertM' : converte Gx M Bx EMx)
+              (DreduceEMx : reduce* (EM EN) EMx)
+              %%
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) J
+                  ([y] [e] Dord' x d y e : ordered (cons (G x) y (B x))))
+           <- ({y} {e}
+                  can-tpsub-e 
+                  ([x] append/cons (Dappend x)) 
+                  ([x] [d] Dord' x d y e) 
+                  ([x] DofC x y) DofN
+                  (DsubC' y : tpsub ([x] C x y) N (Cx y)))
+           <- aconvert-rrsub-e _ Dsimp Dord Dappend Dcsub DconvertR DconvertN
+              rrsub/closed (tpsub/pi DsubC' DsubB)
+              (DconvertR' : aconverte Gx R (pi Bx ([y] Cx y)) ELx)
+              (DreduceELx : reduce* (EL EN) ELx)
+              %%
+           <- ({x} {ex} {xt}
+                  converte-reg-il (DconvertM x ex xt)
+                  (DofM x : ofe (G x) M (B x)))
+           <- tpsub-permute-e Dord Dappend DofN DofM DofC DsubM 
+              DsubC DsubC'
+              (DsubCy' : tpsub ([x] Cy x) N Cxy)
+              (DsubCx' : tpsub ([y] Cx y) M Cxy)
+           <- tpsub-fun DsubCy' DsubCy
+              (DeqCxyCyx : tp-eq Cxy Cyx)
+           <- tpsub-compat ([_]tp-eq/i) tm-eq/i DeqCxyCyx DsubCx'
+              (DsubCx'' : tpsub ([y] Cx y) M Cyx)
+              %%
+           <- reduce*-app-compat DreduceELx DreduceEMx
+              (Dred*App : reduce* (eapp (EL EN) (EM EN)) (eapp ELx EMx)).
+
+%%%%
+
+-var    : aconvert-rmsub-e T
+              (Dsimp : simp A T)
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub G N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  aconverte/var
+                  xt
+                  (DconvertA' x ex xt 
+                    : tpconverte (G x) (A' x) ktype (EA' ex))
+                  (Dlook' x : lookup (G x) x (A' x)))
+              (DconvertN : converte G1 N A EN)
+              (rmsub/var : rmsub ([x] x) N N)
+              (DsubA' : tpsub ([x] A' x) N Ax)
+%%
+              DconvertN''
+              reduce*/refl
+%%
+           <- ({x} append-lookup (Dappend x) (Dlook x : lookup (G x) x A))
+           <- ({x} {d}
+                  lookup-fun (Dord x d) (Dlook' x) (Dlook x)
+                  (DeqA'A x : tp-eq (A' x) A))
+           <- tpsub-absent _ _ (DsubA : tpsub ([_] A) N A)
+           <- tpsub-compat DeqA'A tm-eq/i tp-eq/i DsubA'
+              (DsubA'' : tpsub ([x] A) N Ax)
+           <- tpsub-fun DsubA DsubA''
+              (DeqAAx : tp-eq A Ax)
+           <- converte-resp DconvertN ctx-eq/i tm-eq/i DeqAAx etm-eq/i
+              (DconvertN' : converte G1 N Ax EN)
+              %% weaken G1 to Gx
+           <- ({x} {d}
+                  ordered-append (Dappend x) (Dord x d)
+                  (DordG1xA x d : ordered (cons G1 x A)))
+           <- ({x} {d}
+                  ordered-cons (DordG1xA x d)
+                  (DordG1 x d : ordered G1))
+           <- csub-append Dcsub Dappend
+              (Dappend' : append G1 G2x Gx)
+           <- csub-ordered Dord Dcsub
+              (Dord' : ordered Gx)
+           <- weaken-converte' Dappend' DconvertN'
+              (DconvertN'' : converte Gx N Ax EN).
+
+-app    : aconvert-rmsub-e T 
+              (Dsimp : simp A T)
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub G N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  aconverte/app
+                  (DsubCy x : tpsub ([y] C x y) (M x) (Cy x))
+                  (DconvertM x ex xt
+                    : converte (G x) (M x) (B x) (EM ex))
+                  (DconvertR x ex xt
+                    : aconverte (G x) (R x) (pi (B x) ([y] C x y)) (ER ex)))
+              (DconvertN : converte G1 N A EN)
+              (rmsub/app
+                  (DsubL : sub ([y] L y) Mx Ly)
+                  (DsubM : sub ([x] M x) N Mx)
+                  (DsubR : rmsub ([x] R x) N (lam ([y] L y))))
+              (DsubCyx : tpsub ([x] Cy x) N Cyx)
+%%
+              DconvertLy
+              DredApp
+%%
+           <- converte-reg-il DconvertN (DofN : ofe G1 N A)
+           <- ({x} {ex} {xt}
+                  aconverte-reg-il (DconvertR x ex xt)
+                  (DofR x : at-ofe (G x) (R x) (pi (B x) ([y] C x y))))
+           <- ({x} {d}
+                  atofe-reg (Dord x d) (DofR x)
+                  (kofe/pi
+                      ([y] DofC x y : kofe (cons (G x) y (B x)) (C x y) ktype)
+                      (DofB x : kofe (G x) (B x) ktype)))
+           <- can-tpsub-e Dappend Dord DofB DofN
+              (DsubB : tpsub ([x] B x) N Bx)
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) _
+                  ([y] [e] Dord' x d y e: ordered (cons (G x) y (B x))))
+           <- ({y} {e}
+                  can-tpsub-e
+                  ([x] append/cons (Dappend x)) 
+                  ([x] [d] Dord' x d y e)
+                  ([x] DofC x y) DofN
+                  (DsubCx y : tpsub ([x] C x y) N (Cx y)))
+           <- aconvert-rmsub-e _ Dsimp Dord Dappend Dcsub DconvertR DconvertN 
+              DsubR (tpsub/pi DsubCx DsubB)
+              (converte/lam
+                  ([y] [ey] [yt:vtrans ey y]
+                      DconvertL y ey yt
+                    : converte (cons Gx y Bx) (L y) (Cx y) (ELx ey))
+                  (DconvertBx : tpconverte Gx Bx ktype EBx))
+              (DreduceERx : reduce* (ER EN) (elam EBx ([ey] ELx ey)))
+              %%
+           <- convert-sub-e _ Dsimp Dord Dappend Dcsub DconvertM DconvertN 
+              DsubM DsubB
+              (DconvertMx : converte Gx Mx Bx EMx)
+              (DreduceEMx : reduce* (EM EN) EMx) 
+              %%
+           <- ({x} {ex} {xt}
+                  converte-reg-il (DconvertM x ex xt) 
+                  (DofM x : ofe (G x) (M x) (B x)))
+           <- tpsub-permute-e Dord Dappend DofN DofM DofC 
+              DsubM DsubCy DsubCx
+              (DsubCyx' : tpsub ([x] Cy x) N Cxy)
+              (DsubCxy' : tpsub ([y] Cx y) Mx Cxy)
+           <- tpsub-fun DsubCyx' DsubCyx
+              (DeqCxyCyx : tp-eq Cxy Cyx)
+           <- tpsub-compat ([_]tp-eq/i) tm-eq/i DeqCxyCyx DsubCxy'
+              (DsubCxy : tpsub ([y] Cx y) Mx Cyx)
+              %%
+           <- csub-ordered Dord Dcsub
+              (Dordx : ordered Gx)
+           <- extend-ordered _ Dordx _
+              ([y] [e] Dordx' y e : ordered (cons Gx y Bx))
+              %% Convince twelf that S < T
+           <- ({x} can-simp (B x) (DsimpB x : simp (B x) S))
+           <- ({x} {y} can-simp (C x y) (DsimpC x y : simp (C x y) U))
+           <- ({x} can-simpctx _ (Dsimpctx x : simpctx (G x) (Gs x)))
+           <- ({x}
+                  at-ofe-simp (Dsimpctx x) 
+                  (simp/pi ([y] DsimpC x y) (DsimpB x)) (DofR x)
+                  (DofRsimp x : at-ofes (Gs x) (R x) (arrow S U)))
+           <- tpsub-preserves-simp DsubB DsimpB
+              (DsimpBx : simp Bx S)
+           <- rmsub-headvar DsubR (Dheadvar : headvar ([x] R x))
+           <- ({x} {d} ordered-simpctx (Dsimpctx x) (Dord x d) (Dsord x d))
+           <- ({x} append-lookup (Dappend x) (Dlook x : lookup (G x) x A))
+           <- ({x}
+                  lookup-simp (Dsimpctx x) Dsimp (Dlook x)
+                  (Dslook x : slookup (Gs x) x T))
+           <- headvar-stp-size Dsord Dslook DofRsimp Dheadvar
+              (Dleq : stp-leq (arrow S U) T)
+           <- employ-stp-leq (arrow S U) T Dleq
+              %%
+           <- convert-sub-e S DsimpBx Dordx' ([_]append/nil) csub/base 
+              DconvertL DconvertMx DsubL DsubCxy
+              (DconvertLy : converte Gx Ly Cyx ELy)
+              (DreduceELy : reduce* (ELx EMx) ELy)
+              %%
+           <- reduce*-app-compat DreduceERx DreduceEMx
+              (DredApp1 : reduce*
+                        (eapp (ER EN) (EM EN))
+                        (eapp (elam EBx ELx) EMx))
+           <- reduce*-trans2 DredApp1 (reduce*/trans DreduceELy reduce/beta)
+              (DredApp : reduce* (eapp (ER EN) (EM EN)) ELy).
+
+%%%%
+
+-base   : tpconvert-sub-e T Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub ([x] G x) N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  tpconverte/base
+                  (Datpconverte x ex xt
+                    : atpconverte (G x) (P x) ktype (EP ex)))
+              (DconvertN : converte G1 N A EN)
+              (tpsub/base (DsubP : atpsub ([x] P x) N Px))
+              ksub/type
+%%
+              (tpconverte/base DconvertPx)
+              DreduceEPx
+%%
+           <- atpconvert-sub-e T Dsimp Dord Dappend Dcsub Datpconverte
+              DconvertN DsubP ksub/type
+              DconvertPx
+              DreduceEPx.
+
+-pi     : tpconvert-sub-e T Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub ([x] G x) N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  tpconverte/pi
+                  ([y] [ey] [yt:vtrans ey y]
+                      DconvertC x ex xt y ey yt
+                    : tpconverte (cons (G x) y (B x)) 
+                      (C x y) ktype (EC ex ey))
+                  (DconvertB x ex xt
+                    : tpconverte (G x) (B x) ktype (EB ex)))
+              (DconvertN : converte G1 N A EN)
+              (tpsub/pi 
+                  ([y] DsubC y : tpsub ([x] C x y) N (Cx y))
+                  (DsubB : tpsub ([x] B x) N Bx))
+              ksub/type
+%%
+              (tpconverte/pi DconvertCx DconvertBx)
+              DreducePi
+%%
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) _
+                  ([y] [e] Dord' x d y e : ordered (cons (G x) y (B x))))
+           <- ({y} {e} {ey} {yt} {dv:variable ey} vtrans-variable yt dv
+               -> tpconvert-sub-e T Dsimp ([x] [d] Dord' x d y e)
+                  ([x] append/cons (Dappend x)) (csub/cons DsubB Dcsub)
+                  ([x] [ex] [xt] DconvertC x ex xt y ey yt) DconvertN
+                  (DsubC y) ksub/type
+                  (DconvertCx y ey yt 
+                    : tpconverte (cons Gx y Bx) (Cx y) ktype (ECx ey))
+                  (DreduceECx ey dv : tpreduce* (EC EN ey) (ECx ey)))
+           <- tpconvert-sub-e T Dsimp Dord Dappend Dcsub DconvertB
+              DconvertN DsubB ksub/type
+              (DconvertBx : tpconverte Gx Bx ktype EBx)
+              (DreduceEBx : tpreduce* (EB EN) EBx)
+              %%
+           <- tpreduce*-pi-compat DreduceEBx DreduceECx
+              DreducePi.
+
+-lam    : tpconvert-sub-e T Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub ([x] G x) N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  tpconverte/lam
+                  ([y] [ey] [yt:vtrans ey y]
+                      DconvertC x ex xt y ey yt
+                    : tpconverte (cons (G x) y (B x)) 
+                      (C x y) (K x y) (EC ex ey))
+                  (DconvertB x ex xt
+                    : tpconverte (G x) (B x) ktype (EB ex)))
+              (DconvertN : converte G1 N A EN)
+              (tpsub/lam 
+                  ([y] DsubC y : tpsub ([x] C x y) N (Cx y)))
+              (ksub/pi
+                  ([y] DsubK y : ksub ([x] K x y) N (Kx y)) 
+                  (DsubB : tpsub ([x] B x) N Bx))
+%%
+              (tpconverte/lam DconvertCx DconvertBx)
+              DredLam
+%%
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) _
+                  ([y] [e] Dord' x d y e : ordered (cons (G x) y (B x))))
+           <- ({y} {e} {ey} {yt} {dv:variable ey} vtrans-variable yt dv
+               -> tpconvert-sub-e T Dsimp ([x] [d] Dord' x d y e)
+                  ([x] append/cons (Dappend x)) (csub/cons DsubB Dcsub)
+                  ([x] [ex] [xt] DconvertC x ex xt y ey yt) DconvertN
+                  (DsubC y) (DsubK y)
+                  (DconvertCx y ey yt 
+                    : tpconverte (cons Gx y Bx) (Cx y) (Kx y) (ECx ey))
+                  (DreduceECx ey dv : tpreduce* (EC EN ey) (ECx ey)))
+           <- tpconvert-sub-e T Dsimp Dord Dappend Dcsub DconvertB
+              DconvertN DsubB ksub/type
+              (DconvertBx : tpconverte Gx Bx ktype EBx)
+              (DreduceEBx : tpreduce* (EB EN) EBx)
+              %%
+           <- tpreduce*-lam-compat DreduceEBx DreduceECx
+              DredLam.
+
+-const  : atpconvert-sub-e T Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub ([x] G x) N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  atpconverte/const
+                  (Dkconvert x ex xt
+                    : kconverte (G x) K (EK ex))
+                  (DofK x : wfkind K)
+                  (Dcof : ckof C K))
+              (DconvertN : converte G1 N A EN)
+              _
+              (DsubKx : ksub ([x] K) N Kx)
+%%
+              (atpconverte/const DconvertKx DofKx Dcofx)
+              tpreduce*/refl
+%%
+           <- ksub-absent K N (DsubK : ksub ([_] K) N K)
+           <- kconvert-sub-e _ Dsimp Dord Dappend Dcsub Dkconvert DconvertN
+              DsubK
+              (DconvertK : kconverte Gx K EKx)
+              _
+              %%
+           <- ksub-fun DsubK DsubKx
+              (DeqKKx : kind-eq K Kx)
+           <- kconverte-resp DconvertK ctx-eq/i DeqKKx ekind-eq/i
+              (DconvertKx : kconverte Gx Kx EKx)
+           <- wfkind-resp DeqKKx (DofK aca) (DofKx : wfkind Kx)
+           <- ckof-resp DeqKKx Dcof (Dcofx : ckof C Kx).
+
+%%
+
+-app    : atpconvert-sub-e _ Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub ([x] G x) N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  atpconverte/app
+                  (DsubC x : ksub ([y] C x y) (M x) (Cy x))
+                  (DconvertM x ex xt : converte (G x) (M x) (B x) (EM ex))
+                  (DconvertR x ex xt 
+                    : atpconverte (G x) (R x) (kpi (B x) ([y] C x y)) (EL ex))
+                : atpconverte (G x) 
+                  (aapp (R x) (M x)) (Cy x) (eaapp (EL ex) (EM ex)))
+              (DconvertN : converte G1 N A EN)
+              (atpsub/app
+                  (DsubM : sub ([x] M x) N Mx)
+                  (DsubR : atpsub ([x] R x) N Rx))
+              (DsubCy : ksub ([x] Cy x) N Cyx)
+%%
+              (atpconverte/app DsubCx'' DconvertMx DconvertRx)
+              DreduceApp
+%%
+           <- ({x} {ex} {xt}
+                  atpconverte-reg-il (DconvertR x ex xt)
+                  (DofR x : at-kofe (G x) (R x) (kpi (B x) ([y] C x y))))
+           <- ({x} {d}
+                  atkofe-reg (Dord x d) (DofR x)
+                  (wfkinde/pi
+                      ([y] DofC x y : wfkinde (cons (G x) y (B x)) (C x y))
+                      (DofB x : kofe (G x) (B x) ktype)))
+           <- converte-reg-il DconvertN
+              (DofN : ofe G1 N A)
+              %%
+           <- can-tpsub-e Dappend Dord DofB DofN
+              (DsubB : tpsub ([x] B x) N Bx)
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) J
+                  ([y] [e] Dord' x d y e : ordered (cons (G x) y (B x))))
+           <- ({y} {e}
+                  can-ksub-e
+                  ([x] append/cons (Dappend x)) 
+                  ([x] [d] Dord' x d y e) 
+                  ([x] DofC x y) DofN
+                  (DsubC' y : ksub ([x] C x y) N (Cx y)))
+           <- atpconvert-sub-e _ Dsimp Dord Dappend Dcsub DconvertR DconvertN 
+              DsubR (ksub/pi DsubC' DsubB)
+              (DconvertRx : atpconverte Gx Rx (kpi Bx ([y] Cx y)) EO)
+              (DreduceEOx : tpreduce* (EL EN) EO)
+           <- convert-sub-e _ Dsimp Dord Dappend Dcsub DconvertM DconvertN 
+              DsubM DsubB
+              (DconvertMx : converte Gx Mx Bx EMx)
+              (DreduceEMx : reduce* (EM EN) EMx)
+           <- ({x} {ex} {xt}
+                  converte-reg-il (DconvertM x ex xt)
+                  (DofM x : ofe (G x) (M x) (B x)))
+           <- ksub-permute-e Dord Dappend DofN DofM DofC
+              DsubM DsubC DsubC'
+              (DsubCy' : ksub ([x] Cy x) N Cxy)
+              (DsubCx' : ksub ([y] Cx y) Mx Cxy)
+           <- ksub-fun DsubCy' DsubCy
+              (DeqCxyCyx : kind-eq Cxy Cyx)
+           <- ksub-compat ([y] kind-eq/i) tm-eq/i DeqCxyCyx DsubCx'
+              (DsubCx'' : ksub ([y] Cx y) Mx Cyx)
+              %%
+           <- tpreduce*-app-compat DreduceEOx DreduceEMx
+              (DreduceApp
+                : tpreduce* (eaapp (EL EN) (EM EN)) (eaapp EO EMx)).
+
+-appclo : atpconvert-sub-e _ Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub ([x] G x) N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  atpconverte/app
+                  (DsubC x : ksub ([y] C x y) M (Cy x))
+                  (DconvertM x ex xt : converte (G x) M (B x) (EM ex))
+                  (DconvertR x ex xt 
+                    : atpconverte (G x) R (kpi (B x) ([y] C x y)) (EL ex))
+                : atpconverte (G x) (aapp R M) (Cy x) (eaapp (EL ex) (EM ex)))
+              (DconvertN : converte G1 N A EN)
+              atpsub/closed
+              (DsubCy : ksub ([x] Cy x) N Cyx)
+%%
+              (atpconverte/app DsubCx'' DconvertM' DconvertR')
+              DredApp
+%%
+           <- ({x} {ex} {xt}
+                  atpconverte-reg-il (DconvertR x ex xt)
+                  (DofR x : at-kofe (G x) R (kpi (B x) ([y] C x y))))
+           <- ({x} {d}
+                  atkofe-reg (Dord x d) (DofR x)
+                  (wfkinde/pi
+                      ([y] DofC x y : wfkinde (cons (G x) y (B x)) (C x y))
+                      (DofB x : kofe (G x) (B x) ktype)))
+           <- converte-reg-il DconvertN
+              (DofN : ofe G1 N A)
+           <- can-tpsub-e Dappend Dord DofB DofN
+              (DsubB : tpsub ([x] B x) N Bx)
+           <- sub-absent M N (DsubM : sub ([_] M) N M)
+           <- convert-sub-e _ Dsimp Dord Dappend Dcsub DconvertM DconvertN 
+              DsubM DsubB
+              (DconvertM' : converte Gx M Bx EMx)
+              (DreduceEMx : reduce* (EM EN) EMx)
+              %%
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) J
+                  ([y] [e] Dord' x d y e : ordered (cons (G x) y (B x))))
+           <- ({y} {e}
+                  can-ksub-e 
+                  ([x] append/cons (Dappend x)) 
+                  ([x] [d] Dord' x d y e) 
+                  ([x] DofC x y) DofN
+                  (DsubC' y : ksub ([x] C x y) N (Cx y)))
+           <- atpconvert-sub-e _ Dsimp Dord Dappend Dcsub DconvertR DconvertN
+              atpsub/closed (ksub/pi DsubC' DsubB)
+              (DconvertR' : atpconverte Gx R (kpi Bx ([y] Cx y)) ELx)
+              (DreduceELx : tpreduce* (EL EN) ELx)
+              %%
+           <- ({x} {ex} {xt}
+                  converte-reg-il (DconvertM x ex xt)
+                  (DofM x : ofe (G x) M (B x)))
+           <- ksub-permute-e Dord Dappend DofN DofM DofC DsubM 
+              DsubC DsubC'
+              (DsubCy' : ksub ([x] Cy x) N Cxy)
+              (DsubCx' : ksub ([y] Cx y) M Cxy)
+           <- ksub-fun DsubCy' DsubCy
+              (DeqCxyCyx : kind-eq Cxy Cyx)
+           <- ksub-compat ([_] kind-eq/i) tm-eq/i DeqCxyCyx DsubCx'
+              (DsubCx'' : ksub ([y] Cx y) M Cyx)
+              %%
+           <- tpreduce*-app-compat DreduceELx DreduceEMx
+              DredApp.
+
+%%%%
+
+-type   : kconvert-sub-e _ _ _ _ _ ([x] [ex] [xt] kconverte/type) _
+              ksub/type
+              kconverte/type
+              kreduce*/refl.
+
+-pi     : kconvert-sub-e T Dsimp
+              ([x] [d] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              (Dcsub : csub ([x] G x) N Gx)
+              ([x] [ex] [xt:vtrans ex x]
+                  kconverte/pi
+                  ([y] [ey] [yt:vtrans ey y]
+                      DconvertC x ex xt y ey yt
+                    : kconverte (cons (G x) y (B x)) (C x y) (EC ex ey))
+                  (DconvertB x ex xt
+                    : tpconverte (G x) (B x) ktype (EB ex)))
+              (DconvertN : converte G1 N A EN)
+              (ksub/pi 
+                  ([y] DsubC y : ksub ([x] C x y) N (Cx y))
+                  (DsubB : tpsub ([x] B x) N Bx))
+%%
+              (kconverte/pi DconvertCx DconvertBx)
+              DredPi
+%%
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) _
+                  ([y] [e] Dord' x d y e : ordered (cons (G x) y (B x))))
+           <- ({y} {e} {ey} {yt} {dv:variable ey} vtrans-variable yt dv
+               -> kconvert-sub-e T Dsimp ([x] [d] Dord' x d y e)
+                  ([x] append/cons (Dappend x)) (csub/cons DsubB Dcsub)
+                  ([x] [ex] [xt] DconvertC x ex xt y ey yt) DconvertN
+                  (DsubC y)
+                  (DconvertCx y ey yt 
+                    : kconverte (cons Gx y Bx) (Cx y) (ECx ey))
+                  (DreduceECx ey dv : kreduce* (EC EN ey) (ECx ey)))
+           <- tpconvert-sub-e T Dsimp Dord Dappend Dcsub DconvertB
+              DconvertN DsubB ksub/type
+              (DconvertBx : tpconverte Gx Bx ktype EBx)
+              (DreduceEBx : tpreduce* (EB EN) EBx)
+              %%
+           <- kreduce*-pi-compat DreduceEBx DreduceECx
+              DredPi.
+
+%worlds (csig-ei | asig-ei | sbind | evvar | tvvar | tvobind) 
+  (convert-sub-e    _ _ _ _ _ _ _ _ _ _ _)
+  (aconvert-rrsub-e _ _ _ _ _ _ _ _ _ _ _)
+  (aconvert-rmsub-e _ _ _ _ _ _ _ _ _ _ _)
+  (tpconvert-sub-e  _ _ _ _ _ _ _ _ _ _ _)
+  (atpconvert-sub-e _ _ _ _ _ _ _ _ _ _ _)
+  (kconvert-sub-e   _ _ _ _ _ _ _ _ _ _).
+%total {(T1 T2 T3 T4 T5 T6) (D1 D2 D3 D4 D5 D6)}
+  (convert-sub-e    T1 _ _ _ _ D1 _ _ _ _ _)
+  (aconvert-rrsub-e T2 _ _ _ _ D2 _ _ _ _ _)
+  (aconvert-rmsub-e T3 _ _ _ _ D3 _ _ _ _ _)
+  (tpconvert-sub-e  T4 _ _ _ _ D4 _ _ _ _ _)
+  (atpconvert-sub-e T5 _ _ _ _ D5 _ _ _ _ _)
+  (kconvert-sub-e   T6 _ _ _ _ D6 _ _ _ _).
+
+
+%%%%%
+
+convert-sub   : ({x} vof x A
+                    -> {ex} vtrans ex x
+                    -> convert (M x) (B x) (EM ex))
+                 -> convert N A EN
+                 -> sub ([x] M x) N Mx
+                 -> tpsub ([x] B x) N Bx
+%%
+                 -> convert Mx Bx EO
+                 -> reduce* (EM EN) EO -> type.
+%mode convert-sub +X1 +X2 +X3 +X4 -X5 -X6.
+
+-   : convert-sub
+          ([x] [d:vof x A] [ex] [xt] DconvM x d ex xt)
+          DconvN
+          DsubM
+          DsubB
+%%          
+          DconvMx
+          DreduceEMx
+%%          
+       <- convert1-to-converte DconvM
+          ([x] [ex] [xt] 
+              DconveM x ex xt : converte (cons nil x A) (M x) (B x) (EM ex))
+       <- convert-to-converte-nil DconvN 
+          (DconveN : converte nil N A EN)
+       <- can-simp _ (Dsimp : simp A T)
+       <- extend-ordered _ ordered/nil _ Dord
+       <- convert-sub-e _ Dsimp Dord ([_] append/nil) csub/base 
+          DconveM DconveN DsubM DsubB
+          (DconveMx : converte nil Mx Bx EMx)
+          (DreduceEMx : reduce* (EM EN) EMx)
+          %%
+       <- ({x} {d} {ex} {xt}
+              convert-reg-il (DconvM x d ex xt)
+              (DofM x d : of (M x) (B x)))
+       <- convert-reg-il DconvN (DofN : of N A)
+       <- subst DsubM DsubB DofM DofN
+          (DofMx : of Mx Bx)
+       <- can-convert DofMx
+          (DconvMx' : convert Mx Bx EMx')
+       <- convert-to-converte-nil DconvMx'
+          (DconveMx' : converte nil Mx Bx EMx')
+       <- converte-fun ordered/nil DconveMx' DconveMx
+          (Deq : etm-eq EMx' EMx)
+       <- convert-resp DconvMx' tm-eq/i tp-eq/i Deq
+          (DconvMx : convert Mx Bx EMx).
+
+%worlds (csig-ei | asig-ei | sbind) (convert-sub _ _ _ _ _ _).
+%total {} (convert-sub _ _ _ _ _ _).
+
+
+convert-tpsub : ({x} vof x A
+                    -> {ex} vtrans ex x
+                    -> tpconvert (B x) (K x) (EB ex))
+                 -> convert N A EN
+                 -> tpsub ([x] B x) N Bx
+                 -> ksub ([x] K x) N Kx
+%%
+                 -> tpconvert Bx Kx EC
+                 -> tpreduce* (EB EN) EC  -> type.
+%mode convert-tpsub +X0 +X1 +X2 +X3 -X4 -X5.
+
+-   : convert-tpsub
+          ([x] [d:vof x A] [ex] [xt] DconvM x d ex xt)
+          DconvN
+          DsubM
+          DsubB
+%%          
+          DconvMx
+          DreduceEMx
+%%          
+       <- tpconvert1-to-tpconverte DconvM
+          ([x] [ex] [xt] DconveM x ex xt)
+       <- convert-to-converte-nil DconvN 
+          (DconveN : converte nil N A EN)
+       <- can-simp _ (Dsimp : simp A T)
+       <- extend-ordered _ ordered/nil _ Dord
+       <- tpconvert-sub-e _ Dsimp Dord ([_] append/nil) csub/base 
+          DconveM DconveN DsubM DsubB
+          DconveMx
+          DreduceEMx
+          %%
+       <- ({x} {d} {ex} {xt}
+              tpconvert-reg-il (DconvM x d ex xt)
+              (DofM x d))
+       <- convert-reg-il DconvN (DofN : of N A)
+       <- tpsubst DsubM DsubB DofM DofN
+          (DofMx : kof Mx Bx)
+       <- can-tpconvert DofMx
+          (DconvMx' : tpconvert Mx Bx EMx')
+       <- tpconvert-to-tpconverte-nil DconvMx'
+          (DconveMx' : tpconverte nil Mx Bx EMx')
+       <- tpconverte-fun ordered/nil DconveMx' DconveMx
+          (Deq : etp-eq EMx' EMx)
+       <- tpconvert-resp DconvMx' tp-eq/i kind-eq/i Deq
+          (DconvMx : tpconvert Mx Bx EMx).
+
+%worlds (csig-ei | asig-ei | sbind) (convert-tpsub _ _ _ _ _ _).
+%total {} (convert-tpsub _ _ _ _ _ _).
+
+convert-ksub  : ({x} vof x A
+                    -> {ex} vtrans ex x
+                    -> kconvert (K x) (EK ex))
+                 -> convert N A EN
+                 -> ksub ([x] K x) N Kx
+%%
+                 -> kconvert Kx EKx
+                 -> kreduce* (EK EN) EKx -> type.
+%mode convert-ksub +X1 +X2 +X3 -X4 -X5.
+
+-   : convert-ksub DconvM DconvN DsubM DconvMx DredEMx
+       <- kconvert1-to-kconverte DconvM
+          ([x] [ex] [xt] DconveM x ex xt)
+       <- convert-to-converte-nil DconvN 
+          (DconveN : converte nil N A EN)
+       <- can-simp _ (Dsimp : simp A T)
+       <- extend-ordered _ ordered/nil _ Dord
+       <- kconvert-sub-e _ Dsimp Dord ([_] append/nil) csub/base 
+          DconveM DconveN DsubM
+          DconveMx DredEMx
+       <- ({x} {d} {ex} {xt}
+              kconvert-reg-il (DconvM x d ex xt)
+              (DofM x d))
+       <- convert-reg-il DconvN (DofN : of N A)
+       <- ksubst DsubM DofM DofN DofMx
+       <- can-kconvert DofMx DconvMx'
+       <- kconvert-to-kconverte-nil DconvMx' DconveMx'
+       <- kconverte-fun ordered/nil DconveMx' DconveMx Deq
+       <- kconvert-resp DconvMx' kind-eq/i Deq
+          (DconvMx : kconvert Mx EMx).
+
+%worlds (csig-ei | asig-ei | sbind) (convert-ksub _ _ _ _ _).
+%total {} (convert-ksub _ _ _ _ _).
+

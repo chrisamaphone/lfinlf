@@ -1,0 +1,188 @@
+
+app-rrsub-invert : rrsub ([x] app (Q x) (M x)) N (app Q' M')
+                    -> rrsub ([x] Q x) N Q'
+                    -> sub ([x] M x) N M' -> type.
+%mode app-rrsub-invert +X1 -X2 -X3.
+
+-closed   : app-rrsub-invert
+                (rrsub/closed : rrsub ([_] app Q M) N (app Q M))
+                rrsub/closed
+                Dmclosed
+             <- sub-absent M N
+                (Dmclosed : sub ([_] M) N M).
+
+-app      : app-rrsub-invert (rrsub/app D2 D1) D1 D2.
+
+%worlds (csig | asig | bind | var | ovar) (app-rrsub-invert _ _ _).
+%total D (app-rrsub-invert D _ _).
+
+app-of-invert : at-of (app Q M) Ax
+                 -> at-of Q (pi A2 [x] A x)
+                 -> of M A2 
+                 -> tpsub ([x] A x) M Ax -> type.
+%mode app-of-invert +X1 -X2 -X3 -X4.
+
+-app      : app-of-invert
+                (at-of/app
+                    (Dsub : tpsub ([x] A x) M Ax)
+                    (DofM : of M A2)
+                    (DofR : at-of R (pi A2 [x] A x)))
+%%
+                DofR
+                DofM
+                Dsub.
+
+%worlds (csig | asig | bind | var | ovar) (app-of-invert _ _ _ _).
+%total D (app-of-invert D _ _ _).
+
+
+app-ofes-invert : sordered G -> at-ofes G (app Q M) S 
+                   -> at-ofes G Q (arrow S2 S) -> ofes G M S2 -> type.
+%mode app-ofes-invert +X0 +X1 -X2 -X3.
+
+-app      : app-ofes-invert _ (at-ofes/app DofM DofR) DofR DofM.
+
+-var      : app-ofes-invert Dord (at-ofes/var (Dlook : slookup G (app Q M) S))
+                DofR DofM
+             <- slookup-isvar Dlook Dord
+                (Disvar : isvar (app Q M) _)
+             <- isvar-app-contra Disvar Dfalse
+             <- false-implies-atofes Dfalse
+                (DofR : at-ofes G Q (arrow o S))
+             <- false-implies-ofes Dfalse
+                (DofM : ofes G M o).
+
+-closed   : app-ofes-invert _ 
+                (at-ofes/closed 
+                    (Dsimp : simp A S) 
+                    (Datof : at-of (app Q M) A)
+                  : at-ofes G (app Q M) S)
+%%                
+                DofesQ'
+                DofesM'
+%%                
+             <- app-of-invert Datof
+                (DofQ : at-of Q (pi A2 [x] A' x))
+                (DofM : of M A2)
+                (Dsub : tpsub ([x] A' x) M A)
+             <- ({x} can-simp (A' x)
+                  (DsimpA' x : simp (A' x) S'))
+             <- tpsub-preserves-simp Dsub DsimpA'
+                (DsimpA : simp A S')
+             <- simp-fun DsimpA Dsimp
+                (DeqS'S : stp-eq S' S)
+             <- ({x}
+                    simp-compat tp-eq/i DeqS'S (DsimpA' x)
+                    (DsimpA'S x : simp (A' x) S))
+             <- of-to-ofe DofM
+                (DofeM : ofe nil M A2)
+             <- atof-to-atofe DofQ
+                (DofeQ : at-ofe nil Q (pi A2 [x] A' x))
+             <- can-simp A2
+                (DsimpA2 : simp A2 S2)
+             <- ofe-simp simpctx/nil DsimpA2 DofeM
+                (DofesM : ofes snil M S2)
+             <- at-ofe-simp simpctx/nil (simp/pi ([x] DsimpA'S x) DsimpA2) DofeQ
+                (DofesQ : at-ofes snil Q (arrow S2 S))
+             <- sappend-nil G
+                (Dappend : sappend snil G G)
+             <- weaken-ofes' Dappend DofesM
+                (DofesM' : ofes G M S2)
+             <- weaken-atofes' Dappend DofesQ
+                (DofesQ' : at-ofes G Q (arrow S2 S)).
+
+%worlds (csig | asig | bind | var | ovar | evar) (app-ofes-invert _ _ _ _).
+%total D (app-ofes-invert _ D _ _).
+
+
+aapp-kofes-invert : sordered G -> at-kofes G (aapp P M) H 
+                   -> at-kofes G P (karrow S2 H') -> ofes G M S2 -> type.
+%mode aapp-kofes-invert +X0 +X1 -X2 -X3.
+
+-aapp     : aapp-kofes-invert _ (at-kofes/app DofM DofP) DofP DofM.
+
+-closed   : aapp-kofes-invert _ 
+                (at-kofes/closed
+                    (Dksimp : ksimp K' H')
+                    (at-kof/app 
+                        (Dksub : ksub ([x] K x) M K')
+                        (DofM : of M A)
+                        (DofP : at-kof P (kpi A [x] K x))
+                      : at-kof (aapp P M) K')
+                  : at-kofes G (aapp P M) H')
+%%
+                DofesP'
+                DofesM'
+%%
+                %% get derivation for M
+             <- of-to-ofe DofM
+                (DofeM : ofe nil M A)
+             <- can-simp A
+                (DsimpA : simp A S)
+             <- ofe-simp simpctx/nil DsimpA DofeM
+                (DofesM : ofes snil M S)
+             <- sappend-nil G
+                (Dappend : sappend snil G G)
+             <- weaken-ofes' Dappend DofesM
+                (DofesM' : ofes G M S)
+                %% get derivation for P
+             <- atkof-to-atkofe DofP
+                (DofeP : at-kofe nil P (kpi A [x] K x))
+             <- ({x} 
+                    can-ksimp (K x)
+                    (DsimpK x : ksimp (K x) H))
+             <- atkofe-simp simpctx/nil (ksimp/pi DsimpK DsimpA) DofeP
+                (DofesP : at-kofes snil P (karrow S H))
+             <- weaken-atkofes' Dappend DofesP
+                (DofesP' : at-kofes G P (karrow S H)).
+
+%worlds (csig | asig | bind | var | ovar) (aapp-kofes-invert _ _ _ _).
+%total D (aapp-kofes-invert _ D _ _).
+
+of-const-invert : at-of (const C) A
+                   -> cof C A
+                   -> kof A ktype -> type.
+%mode of-const-invert +X1 -X2 -X3.
+
+-const  : of-const-invert (at-of/const D2 D1) D1 D2.
+
+%worlds (csig | asig | var | bind | ovar) (of-const-invert _ _ _).
+%total {} (of-const-invert _ _ _).
+
+ofes-const-invert : sordered G -> at-ofes G (const C) T
+                     -> cof C A
+                     -> kofes G A sktype
+                     -> simp A T -> type.
+%mode ofes-const-invert +X0 +X1 -X2 -X3 -X4.
+
+-const  : ofes-const-invert _ (at-ofes/const D3 D2 D1)
+              D1 D2 D3.
+
+-var    : ofes-const-invert Dord
+              (at-ofes/var Dlook)
+              Dcof Dkofes Dsimp
+           <- slookup-isvar Dlook Dord Disvar
+           <- isvar-const-contra Disvar Dfalse
+           <- false-implies-cof Dfalse Dcof
+           <- false-implies-kofes Dfalse Dkofes
+           <- false-implies-simp Dfalse Dsimp.
+
+-closed : ofes-const-invert (Dord : sordered G)
+              (at-ofes/closed 
+                  (Dsimp : simp A T)
+                  (DofR : at-of (const C) A))
+              Dcof Dkofes Dsimp
+           <- of-const-invert DofR
+              (Dcof : cof C A)
+              (Dkof : kof A ktype)
+           <- kof-to-kofe Dkof
+              (Dkofenil : kofe nil A ktype)
+           <- kofe-simp simpctx/nil ksimp/type Dkofenil
+              (Dkofesnil : kofes snil A sktype)
+           <- sappend-nil G Dapp
+           <- weaken-kofes' Dapp Dkofesnil
+              (Dkofes : kofes G A sktype).
+
+%worlds (csig | asig | bind | var | ovar) (ofes-const-invert _ _ _ _ _).
+%total D (ofes-const-invert _ D _ _ _).
+

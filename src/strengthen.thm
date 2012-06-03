@@ -1,0 +1,425 @@
+
+%%%%% substitution for absent variables %%%%%
+
+rrsub-absent : {R} {M} rrsub ([_] R) M R -> type.
+%mode rrsub-absent +X1 +X2 -X3.
+
+- : rrsub-absent R M rrsub/closed.
+
+%worlds (csig | asig | var) (rrsub-absent _ _ _).
+%total {} (rrsub-absent _ _ _).
+
+
+sub-absent : {N} {M} sub ([_] N) M N -> type.
+%mode sub-absent +X1 +X2 -X3.
+
+-at   : sub-absent (at R) M (sub/rr rrsub/closed).
+
+-lam  : sub-absent (lam N) M (sub/lam D)
+         <- ({y} sub-absent (N y) M (D y)).
+
+%worlds (csig | asig | var) (sub-absent _ _ _).
+%total N (sub-absent N _ _).
+
+
+atpsub-absent : {P} {M} atpsub ([_] P) M P -> type.
+%mode atpsub-absent +X1 +X2 -X3.
+
+- : atpsub-absent P M atpsub/closed.
+
+%worlds (csig | asig | var) (atpsub-absent _ _ _).
+%total {} (atpsub-absent _ _ _).
+
+
+tpsub-absent : {A} {M} tpsub ([_] A) M A -> type.
+%mode tpsub-absent +X1 +X2 -X3.
+
+-base : tpsub-absent (base P) M (tpsub/base atpsub/closed).
+
+-pi   : tpsub-absent (pi A1 A2) M (tpsub/pi D2 D1)
+         <- tpsub-absent A1 M D1
+         <- ({y}
+                tpsub-absent (A2 y) M (D2 y)).
+
+-lam  : tpsub-absent (alam ([x] A x)) M (tpsub/lam D)
+         <- ({x} tpsub-absent (A x) M (D x)).
+
+%worlds (csig | asig | var) (tpsub-absent _ _ _).
+%total A (tpsub-absent A _ _).
+
+
+ksub-absent : {K} {M} ksub ([_] K) M K -> type.
+%mode ksub-absent +X1 +X2 -X3.
+
+-ktype : ksub-absent ktype M ksub/type.
+
+-kpi   : ksub-absent (kpi A [x] K x) M (ksub/pi ([y] D2 y) D1)
+          <- tpsub-absent A M D1
+          <- ({y}
+                 ksub-absent (K y) M (D2 y)).
+
+%worlds (csig | asig | var) (ksub-absent _ _ _).
+%total K (ksub-absent K _ _).
+
+
+%%%% substitution strengthening %%%%
+
+rrsub-closed : ({x:atm} rrsub R M (Q x)) -> ({x} atm-eq (Q x) Q') -> type.
+%mode rrsub-closed +X1 -X2.
+
+rmsub-closed : ({x:atm} rmsub R M (N x)) -> ({x} tm-eq (N x) N') -> type.
+%mode rmsub-closed +X1 -X2.
+
+sub-closed   : ({x:atm} sub N M (O x)) -> ({x:atm} tm-eq (O x) O') -> type.
+%mode sub-closed +X1 -X2.
+
+atpsub-closed : ({x:atm} atpsub P M (O x)) -> ({x:atm} atp-eq (O x) O') -> type.
+%mode atpsub-closed +X1 -X2.
+
+tpsub-closed : ({x:atm} tpsub ([y] A y) M (B x))
+                -> ({x:atm} tp-eq (B x) B') -> type.
+%mode tpsub-closed +X1 -X2.
+
+ksub-closed  : ({x:atm} ksub ([y] K y) M (K' x))
+                -> ({x:atm} kind-eq (K' x) K'') -> type.
+%mode ksub-closed +X1 -X2.
+
+-closed   : rrsub-closed ([_] rrsub/closed) ([_] atm-eq/i).
+
+-app      : rrsub-closed ([x] rrsub/app (D2 x) (D1 x)) Deq
+             <- rrsub-closed D1 Deq1
+             <- sub-closed   D2 Deq2
+             <- ({x} app-compat (Deq1 x) (Deq2 x) (Deq x)).
+
+-var      : rmsub-closed ([_] rmsub/var) ([_] tm-eq/i).
+
+-app      : rmsub-closed ([x] rmsub/app (D3 x) (D2 x) (D1 x)) Deq
+             <- rmsub-closed D1 Deq1
+             <- ({x} lam-inj (Deq1 x) (Deq1' x))
+             <- sub-closed D2 Deq2
+             <- sub-compat1 Deq1' Deq2 ([_] tm-eq/i) D3 D3'
+             <- sub-closed D3' Deq.
+
+-rr       : sub-closed ([x] sub/rr (D1 x)) Deq'
+             <- rrsub-closed D1 Deq
+             <- ({x} at-compat (Deq x) (Deq' x)).
+
+-rm       : sub-closed ([x] sub/rm (D1 x)) Deq
+             <- rmsub-closed D1 Deq.
+
+-lam      : sub-closed ([x] sub/lam (D1 x)) Deq'
+             <- ({y} sub-closed ([x] D1 x y) ([x] Deq x y))
+             <- ({x} lam-compat (Deq x) (Deq' x)).
+
+-closed   : atpsub-closed ([_] atpsub/closed) ([_] atp-eq/i).
+
+-aapp     : atpsub-closed ([x] atpsub/app (Dsub x) (Datpsub x)) Deq
+             <- sub-closed Dsub Dtmeq
+             <- atpsub-closed Datpsub Datpeq
+             <- ({x} aapp-compat (Datpeq x) (Dtmeq x) (Deq x)).
+
+-base     : tpsub-closed ([x] tpsub/base (Datpsub x)) Deq'
+             <- atpsub-closed Datpsub Deq
+             <- ({x} base-compat (Deq x) (Deq' x)).
+
+-pi       : tpsub-closed ([x] tpsub/pi (D2 x) (D1 x)) Deq
+             <- tpsub-closed D1 Deq1
+             <- ({y} tpsub-closed ([x] D2 x y) ([x] Deq2 x y))
+             <- ({x} pi-compat (Deq1 x) (Deq2 x) (Deq x)).
+
+-lam      : tpsub-closed ([x] tpsub/lam (D x)) Deq'
+             <- ({y} tpsub-closed ([x] D x y) ([x] Deq x y))
+             <- ({x} alam-compat (Deq x) (Deq' x)).
+
+-closed   : ksub-closed ([_] ksub/type) ([_] kind-eq/i).
+
+-kpi      : ksub-closed ([x] ksub/pi (D2 x) (D1 x)) Deq
+             <- tpsub-closed D1 Deq1
+             <- ({y} ksub-closed ([x] D2 x y) ([x] Deq2 x y))
+             <- ({x} kpi-compat (Deq1 x) (Deq2 x) (Deq x)).
+
+
+%worlds (csig | asig | var) 
+  (rrsub-closed  _ _) 
+  (rmsub-closed  _ _)
+  (sub-closed    _ _)
+  (atpsub-closed _ _)
+  (tpsub-closed  _ _) 
+  (ksub-closed   _ _).
+%total (D1 D2 D3 D4 D5 D6)
+  (rrsub-closed  D1 _)
+  (rmsub-closed  D2 _)
+  (sub-closed    D3 _)
+  (atpsub-closed D4 _)
+  (tpsub-closed  D5 _)
+  (ksub-closed   D6 _).
+
+
+rrsub-closed' : ({x:atm} rrsub R M (Q x)) -> rrsub R M Q' -> type.
+%mode rrsub-closed' +X1 -X2.
+
+- : rrsub-closed' Dsub (Dsub' aca)
+     <- rrsub-closed Dsub Deq
+     <- ({x} rrsub-compat ([_] atm-eq/i) tm-eq/i (Deq x) (Dsub x) (Dsub' x)).
+
+%worlds (csig | asig | var) (rrsub-closed' _ _).
+%total {} (rrsub-closed' _ _).
+
+sub-closed' : ({x:atm} sub N M (O x)) -> sub N M O' -> type.
+%mode sub-closed' +X1 -X2.
+
+- : sub-closed' Dsub (Dsub' aca)
+     <- sub-closed Dsub Deq
+     <- ({x} sub-compat ([_] tm-eq/i) tm-eq/i (Deq x) (Dsub x) (Dsub' x)).
+
+%worlds (csig | asig | var) (sub-closed' _ _).
+%total {} (sub-closed' _ _).
+
+
+%{ %% Not needed; deducible by pattern matching.
+cof-strengthen : ({x:atm} cof C (A x)) -> ({x} tp-eq (A x) A') -> type.
+%mode cof-strengthen +X1 -X2.
+
+- : cof-strengthen
+        ([x] cof/i (Dopen x : topen Ac (A x)) (Dccof : ccof C Ac))
+        Deq
+     <- ({x}
+            topen-fun (Dopen x) (Dopen aca)
+            (Deq x : tp-eq (A x) (A aca))).
+
+%worlds (csig | asig | var) (cof-strengthen _ _).
+%total {} (cof-strengthen _ _).
+
+
+ckof-strengthen : ({x:atm} ckof P (K x)) -> ({x} kind-eq (K x) K') -> type.
+%mode ckof-strengthen +X1 -X2.
+
+- : ckof-strengthen
+        ([x] ckof/i (Dkopen x : kopen Kc (K x)) (Dcckof : cckof P Kc))
+        Deq
+%%%
+     <- ({x} 
+            kopen-fun (Dkopen x) (Dkopen aca)
+            (Deq x : kind-eq (K x) (K aca))).
+
+%worlds (csig | asig | var) (ckof-strengthen _ _).
+%total {} (ckof-strengthen _ _).
+}%
+
+%%% noassm %%%
+
+atof-noassm  : ({x:atm} at-of (R x) (A x))
+%%
+                -> ({x} atm-eq (R x) R')
+                -> ({x} tp-eq (A x) A') -> type.
+%mode atof-noassm +X1 -X2 -X3.
+
+of-noassm    : ({x:atm} of (M x) (A x))
+                -> ({x} tm-eq (M x) M') -> type.
+%mode of-noassm +X1 -X2.
+
+atkof-noassm : ({x:atm} at-kof (P x) (K x))
+%%                   
+                -> ({x} atp-eq (P x) P') 
+                -> ({x} kind-eq (K x) K') -> type.
+%mode atkof-noassm +X1 -X2 -X3.
+
+kof-noassm   : ({x:atm} kof (A x) (K x))
+                -> ({x} tp-eq (A x) A') 
+                -> ({x} kind-eq (K x) K') -> type.
+%mode kof-noassm +X1 -X2 -X3.
+
+-const    : atof-noassm 
+                ([x] at-of/const _ (Dcof x : cof C A)) 
+%%                
+                ([_] atm-eq/i)
+                ([_] tp-eq/i).
+
+-var      : atof-noassm 
+                ([x] at-of/var (Dkof x : kof A ktype) (Dvof : vof X A))
+%%                
+                ([_] atm-eq/i)
+                ([_] tp-eq/i).
+
+-app      : atof-noassm
+                ([x] at-of/app
+                    (Dsub x : tpsub ([y] A x y) (M x) (Ax x))
+                    (Dof x : of (M x) (A2 x))
+                    (Datof x : at-of (R x) (pi (A2 x) ([y] A x y))))
+%%
+                Deqa
+                Deqt
+%%                
+             <- atof-noassm Datof
+                ([x] DeqR x  : atm-eq (R x) R')
+                ([x] DeqPi x 
+                  : tp-eq (pi (A2 x) ([y] A x y)) (pi A2' ([y] A' y)))
+             <- of-noassm Dof
+                ([x] DeqM x : tm-eq (M x) M')
+             <- ({x}
+                    pi-inj (DeqPi x)
+                    (DeqA2 x : tp-eq (A2 x) A2')
+                    ([y] DeqA x y : tp-eq (A x y) (A' y)))
+             <- ({x}
+                    app-compat (DeqR x) (DeqM x)
+                    (Deqa x : atm-eq (app (R x) (M x)) (app R' M')))
+             <- ({x}
+                    tpsub-compat (DeqA x) (DeqM x) tp-eq/i (Dsub x)
+                    (Dsub' x : tpsub ([y] A' y) M' (Ax x)))
+             <- tpsub-closed ([x] Dsub' x)
+                ([x] Deqt x : tp-eq (Ax x) Ax').
+
+-at       : of-noassm ([x] of/at (Datof x : at-of (R x) (base (P x))))
+                Deq'
+             <- atof-noassm ([x] Datof x)
+                ([x] Deq x : atm-eq (R x) R')
+                _
+             <- ({x}
+                    at-compat (Deq x)
+                    (Deq' x : tm-eq (at (R x)) (at R'))).
+
+-lam      : of-noassm ([x] of/lam 
+                          (Dkof x : kof (A x) ktype) 
+                          (Dof x : {y} vof y (A x) -> of (M x y) (B x y)))
+%%
+                ([x] Deq' x)
+%%
+             <- kof-noassm Dkof
+                ([x] DeqA x : tp-eq (A x) A')
+                ([x] DeqK x : kind-eq ktype K')
+             <- of-bind-resp1 DeqA Dof
+                ([x] Dof' x : {y} vof y A' -> of (M x y) (B x y))
+             <- ({y} {e}
+                    of-noassm ([x] Dof' x y e)
+                    ([x] DeqM x y : tm-eq (M x y) (M' y)))
+             <- ({x} 
+                    lam-compat (DeqM x)
+                    (Deq' x : tm-eq (lam [y] M x y) (lam [y] M' y))).
+
+-aconst   : atkof-noassm 
+                ([x] at-kof/const _ (Dckof x : ckof A K))
+%%
+                ([_] atp-eq/i)
+                ([_] kind-eq/i).
+
+-aapp     : atkof-noassm
+                ([x] at-kof/app 
+                    (Dksub x : ksub ([y] K x y) (M x) (Ky x))
+                    (Dof x : of (M x) (A x))
+                    (Datkof x : at-kof (P x) (kpi (A x) ([y] K x y))))
+%%
+                DeqAtp
+                DeqKind
+%%
+             <- atkof-noassm Datkof
+                ([x] DeqP x : atp-eq (P x) P')
+                ([x] DeqKpi x 
+                  : kind-eq (kpi (A x) ([y] K x y)) (kpi A' ([y] K' y)))
+             <- of-noassm Dof
+                ([x] DeqM x : tm-eq (M x) M')
+             <- ({x}
+                    kpi-inj (DeqKpi x)
+                    (DeqA x : tp-eq (A x) A')
+                    ([y] DeqK x y : kind-eq (K x y) (K' y)))
+             <- ({x}
+                    aapp-compat (DeqP x) (DeqM x)
+                    (DeqAtp x : atp-eq (aapp (P x) (M x)) (aapp P' M')))
+             <- ({x}
+                    ksub-compat (DeqK x) (DeqM x) kind-eq/i (Dksub x)
+                    (Dksub' x : ksub ([y] K' y) M' (Ky x)))
+             <- ksub-closed ([x] Dksub' x)
+                ([x] DeqKind x : kind-eq (Ky x) Ky').
+
+-base     : kof-noassm
+                ([x] kof/base
+                    (Datkof x : at-kof (P x) ktype))
+%%
+                DeqA
+                ([_] kind-eq/i)
+%%
+             <- atkof-noassm Datkof
+                ([x] DeqP x : atp-eq (P x) P')
+                _
+             <- ({x} 
+                    base-compat (DeqP x)
+                    (DeqA x : tp-eq (base (P x)) (base P'))).
+
+-pi       : kof-noassm
+                ([x] kof/pi
+                    (Dkof2 x : {y} vof y (A1 x) -> kof (A2 x y) ktype)
+                    (Dkof1 x : kof (A1 x) ktype))
+%%
+                Deq'
+                ([_] kind-eq/i)
+%%                
+             <- kof-noassm Dkof1
+                ([x] Deq1 x : tp-eq (A1 x) A1')
+                _
+             <- kof-bind-resp1 Deq1 Dkof2
+                ([x] Dkof2' x : {y} vof y A1' -> kof (A2 x y) ktype)
+             <- ({y} {e}
+                    kof-noassm ([x] Dkof2' x y e)
+                    ([x] Deq2 x y : tp-eq (A2 x y) (A2' y))
+                    ([_] kind-eq/i))
+             <- ({x} pi-compat (Deq1 x) (Deq2 x)
+                    (Deq' x 
+                      : tp-eq (pi (A1 x) [y] A2 x y) (pi A1' [y] A2' y))).
+
+-lam      : kof-noassm
+                ([x] kof/lam
+                    ([y] [d] Dkof x y d : kof (B x y) (K x y))
+                    (DofA x : kof (A x) ktype))
+%%
+                Deq'
+                DeqPi
+%%
+             <- kof-noassm DofA
+                ([x] DeqA x : tp-eq (A x) A')
+                _
+             <- kof-bind-resp1 DeqA Dkof
+                ([x] [y] [d] Dkof' x y d : kof (B x y) (K x y))
+             <- ({y} {d}
+                    kof-noassm ([x] Dkof' x y d)
+                    ([x] DeqB x y : tp-eq (B x y) (B' y))
+                    ([x] DeqK x y : kind-eq (K x y) (K' y)))
+             <- ({x}
+                    alam-compat (DeqB x)
+                    (Deq' x : tp-eq (alam ([y] B x y)) (alam ([y] B' y))))
+             <- ({x}
+                    kpi-compat (DeqA x) ([y] DeqK x y)
+                    (DeqPi x : kind-eq 
+                        (kpi (A x) ([y] K x y)) 
+                        (kpi A' ([y] K' y)))).
+
+%worlds (csig | asig | bind | var) 
+  (atof-noassm  _ _ _) 
+  (of-noassm    _ _) 
+  (atkof-noassm _ _ _)
+  (kof-noassm   _ _ _).
+%total (D1 D2 D3 D4) 
+  (atof-noassm  D1 _ _) 
+  (of-noassm    D2 _) 
+  (atkof-noassm D3 _ _)
+  (kof-noassm   D4 _ _).
+
+vof-noassm : ({x:atm} vof Y (B x)) -> ({x:atm} tp-eq (B x) B') -> type.
+%mode vof-noassm +X1 -X2.
+
+- : vof-noassm _ ([x] tp-eq/i).
+
+%worlds (csig | asig | var | bind) (vof-noassm _ _).
+%total {} (vof-noassm _ _).
+
+vof-noassm-var : ({x} vof x A) -> false -> type.
+%mode vof-noassm-var +X1 -X2.
+%worlds (csig | asig | var | bind) (vof-noassm-var _ _).
+%total {} (vof-noassm-var _ _).
+
+atof-noassm-var : ({x} at-of x (A x)) -> false -> type.
+%mode atof-noassm-var +X1 -X2.
+
+- : atof-noassm-var ([x] at-of/var _ (Dvof x)) Dfalse
+     <- vof-noassm-var Dvof Dfalse.
+
+%worlds (csig | asig | var | bind) (atof-noassm-var _ _).
+%total {} (atof-noassm-var _ _).

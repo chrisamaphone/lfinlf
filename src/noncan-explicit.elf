@@ -1,0 +1,239 @@
+%%% ordered variables %%%
+
+eisvar : etm -> nat -> type.
+
+- : (eisvar _ _ -> eisvar _ _) -> type.
+
+
+eprecedes : etm -> etm -> type.
+
+eprecedes/i : eprecedes X Y
+              <- eisvar X I
+              <- eisvar Y J
+              <- lt I J.
+
+
+%%% contexts %%%
+
+ectx : type.  %name ectx G.
+
+enil : ectx.
+econs : ectx -> etm -> etp -> ectx.
+
+ebounded : ectx -> etm -> type.
+
+ebounded/nil  : ebounded enil X
+                <- eisvar X _.
+ebounded/cons : ebounded (econs G Y _) X
+                <- eprecedes Y X
+                <- ebounded G Y.
+
+
+eordered : ectx -> type.
+
+eordered/nil  : eordered enil.
+eordered/cons : eordered (econs G X _)
+                <- ebounded G X.
+
+
+elookup : ectx -> etm -> etp -> type.
+
+elookup/hit  : elookup (econs G X A) X A.
+
+elookup/miss : elookup (econs G Y _) X A
+               <- elookup G X A.
+
+
+ecsub : (etm -> ectx) -> etm -> ectx -> type.
+
+ecsub/nil  : ecsub ([_] enil) _ enil.
+ecsub/base : ecsub ([x] econs G x A) M G.
+ecsub/cons : ecsub ([x] econs (G x) Y (A x)) M (econs G' Y (A M))
+             <- ecsub ([x] G x) M G'.
+
+
+eappend : ectx -> ectx -> ectx -> type.
+
+eappend/nil : eappend G enil G.
+eappend/cons : eappend G1 (econs G2 X A) (econs G X A)
+               <- eappend G1 G2 G.
+
+%% typing %%
+
+eofe     : ectx -> etm -> etp -> type.
+ekofe    : ectx -> etp -> ekind -> type.
+ewfkinde : ectx -> ekind -> type.
+
+eqtme    : ectx -> etm -> etm -> etp -> type.
+eqtpe    : ectx -> etp -> etp -> ekind -> type.
+eqkinde  : ectx -> ekind -> ekind -> type.
+
+eofe/vari   : eofe G X A
+               <- evof X A
+               <- ekofe G A ektype.
+
+eofe/const  : eofe G (econst C) A
+               <- ecof C A
+               <- ekofe G A ektype.
+
+eofe/var    : eofe G X A
+               <- elookup G X A
+               <- ekofe G A ektype.
+
+eofe/app    : eofe G (eapp M N) (A N)
+               <- eofe G M (epi B ([x] A x))
+               <- eofe G N B.
+
+eofe/lam    : eofe G (elam A ([x] M x)) (epi A ([x] B x))
+               <- ({x} eofe (econs G x A) (M x) (B x))
+               <- ekofe G A ektype.
+
+eofe/eqtp   : eofe G M B
+               <- eofe G M A
+               <- eqtpe G A B ektype.
+
+eofe/ext    : eofe G M (epi A ([x] B x))
+               <- eofe G M (epi A B')
+               <- ({x} eofe (econs G x A) (eapp M x) (B x)).
+
+%%
+
+%{ XXX needed?
+ekofe/closed  : ekofe G A K
+                 <- ekof A K.
+}%
+
+ekofe/const   : ekofe G (eaconst A) K
+                 <- eckof A K
+                 <- ewfkinde G K.
+
+ekofe/app     : ekofe G (eaapp A M) (K M)
+                 <- ekofe G A (ekpi B ([x] K x))
+                 <- eofe G M B.
+
+ekofe/pi      : ekofe G (epi A ([x] B x)) ektype
+                 <- ({x} ekofe (econs G x A) (B x) ektype)
+                 <- ekofe G A ektype.
+
+ekofe/lam     : ekofe G (ealam A ([x] B x)) (ekpi A ([x] K x))
+                 <- ({x} ekofe (econs G x A) (B x) (K x))
+                 <- ekofe G A ektype.
+
+ekofe/eqkind  : ekofe G A K'
+                 <- ekofe G A K
+                 <- eqkinde G K K'.
+
+ekofe/ext     : ekofe G B (ekpi A ([x] K x))
+                 <- ekofe G B (ekpi A ([x] K' x))
+                 <- ({x} ekofe (econs G x A) (eaapp B x) (K x)).
+
+%%
+
+ewfkinde/tp : ewfkinde G ektype.
+
+ewfkinde/pi : ewfkinde G (ekpi A ([x] K x))
+               <- ({x} ewfkinde (econs G x A) (K x))
+               <- ekofe G A ektype.
+
+%% equivalence %%
+
+eqtme/app   : eqtme G (eapp M N) (eapp M' N') (B N)
+              <- eqtme G M M' (epi A ([x] B x))
+              <- eqtme G N N' A.
+
+eqtme/lam   : eqtme G (elam A ([x] M x)) (elam A' ([x] M' x)) 
+                 (epi A ([x] B x))
+              <- eqtpe G A A' ektype
+              <- ({x} eqtme (econs G x A) (M x) (M' x) (B x)).
+
+eqtme/ext   : eqtme G M N (epi A ([x] B x))
+              <- eofe G M (epi A ([x] B' x))
+              <- eofe G N (epi A ([x] B'' x))
+              <- ({x} eqtme (econs G x A) (eapp M x) (eapp N x) (B x)).
+
+eqtme/extw  : eqtme G M N (epi A ([x] B x))
+               <- eqtme G M N (epi A ([x] B' x))
+               <- ({x} eqtme (econs G x A) (eapp M x) (eapp N x) (B x)).
+
+eqtme/beta  : eqtme G (eapp (elam A [x] M x) N) (M N) (B N)
+               <- ({x} eofe (econs G x A) (M x) (B x))
+               <- eofe G N A.
+
+eqtme/sym   : eqtme G N M A
+               <- eqtme G M N A.
+
+eqtme/trans : eqtme G M O A
+               <- eqtme G M N A
+               <- eqtme G N O A.
+
+eqtme/refl  : eqtme G M M A
+               <- eofe G M A.
+
+eqtme/tcon  : eqtme G M N B
+               <- eqtme G M N A
+               <- eqtpe G A B ektype.
+
+%%
+
+eqtpe/app   : eqtpe G (eaapp A M) (eaapp B N) (K M)
+               <- eqtpe G A B (ekpi C [x] K x)
+               <- eqtme G M N C.
+
+eqtpe/pi    : eqtpe G (epi A ([x] B x)) (epi A' ([x] B' x)) ektype
+               <- eqtpe G A A' ektype
+               <- ({x} eqtpe (econs G x A) (B x) (B' x) ektype).
+
+eqtpe/lam   : eqtpe G (ealam A ([x] B x)) (ealam A' ([x] B' x))
+                  (ekpi A ([x] K x))
+               <- eqtpe G A A' ektype
+               <- ({x} eqtpe (econs G x A) (B x) (B' x) (K x)).
+
+eqtpe/ext   : eqtpe G B C (ekpi A ([x] K x))
+               <- ekofe G B (ekpi A ([x] K' x))
+               <- ekofe G C (ekpi A ([x] K'' x))
+               <- ({x} eqtpe (econs G x A) (eaapp B x) (eaapp C x) (K x)).
+
+eqtpe/extw  : eqtpe G B C (ekpi A ([x] K x))
+               <- eqtpe G B C (ekpi A ([x] K' x))
+               <- ({x} eqtpe (econs G x A) (eaapp B x) (eaapp C x) (K x)).
+
+eqtpe/beta  : eqtpe G (eaapp (ealam A ([x] B x)) N) (B N) (K N)
+               <- ({x} ekofe (econs G x A) (B x) (K x))
+               <- eofe G N A.
+
+eqtpe/sym   : eqtpe G B A K
+               <- eqtpe G A B K.
+
+eqtpe/trans : eqtpe G A C K
+               <- eqtpe G A B K
+               <- eqtpe G B C K.
+
+eqtpe/refl  : eqtpe G A A K
+               <- ekofe G A K.
+
+eqtpe/kcon  : eqtpe G A B K'
+               <- eqtpe G A B K
+               <- eqkinde G K K'.
+
+%%
+
+eqkinde/tp  : eqkinde G ektype ektype.
+
+eqkinde/pi  : eqkinde G (ekpi A [x] K x) (ekpi A' [x] K' x)
+               <- eqtpe G A A' ektype
+               <- ({x} eqkinde (econs G x A) (K x) (K' x)).
+
+eqkinde/sym : eqkinde G L K
+               <- eqkinde G K L.
+
+eqkinde/trans : eqkinde G K K''
+                 <- eqkinde G K K'
+                 <- eqkinde G K' K''.
+
+eqkinde/refl  : eqkinde G K K
+                 <- ewfkinde G K.
+
+%% worlds %%
+
+%block eovar : some {n:nat} block {ex:etm} {d:eisvar ex n}.
+

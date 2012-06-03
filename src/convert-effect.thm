@@ -1,0 +1,201 @@
+%% worlds %%
+
+%% for splitting
+vof-const-contra : vof (const C) _ -> false -> type.
+%mode vof-const-contra +X1 -X2.
+%worlds (csig | asig | bind | var | ovar) (vof-const-contra _ _).
+%total {} (vof-const-contra _ _).
+
+%% worlds invariants
+convert-vof : vof X A
+               -> vtrans EX X 
+               -> tpconvert A ktype EA
+               -> evof EX EA -> type.
+%mode convert-vof +X1 -X2 -X3 -X4.
+
+vtrans-variable : vtrans EX X -> variable EX -> type.
+%mode vtrans-variable +X1 -X2.
+
+%block sbind  : some {A:tp} {EA:etp} {d_tpconvert:tpconvert A ktype EA}
+                block {x:atm} {d:vof x A}
+                      {ex:etm} {dt:vtrans ex x}
+                      {ed:evof ex EA}
+                      {dv:variable ex}
+                      {thm1:vtrans-variable dt dv}
+                      {thm2:convert-vof d dt d_tpconvert ed}.
+
+%{
+  same as sbind but w/o the some-bound tpconvert (and corresponding theorem
+  case). This is the world at which we'll actually prove the
+  vtrans-variable invariant since it causes Twelf to split correctly.
+}%
+%block sbind' : some {A:tp} {EA:etp}
+                block {x:atm} {d:vof x A}
+                      {ex:etm} {dt:vtrans ex x}
+                      {ed:evof ex EA}
+                      {dv:variable ex}
+                      {thm1:vtrans-variable dt dv}.
+
+%% another couple of worlds for later explicit contexts lemmas.
+%block tvobind : some {I:nat}
+                  block {x:atm} {d:isvar x I}
+                        {ex:etm} {dt:vtrans ex x}
+                        {dv:variable ex}
+                        {thm:vtrans-variable dt dv}.
+%block tvvar   : block  {x:atm} {ex:etm} {xt:vtrans ex x}  
+                        {dv:variable ex} 
+                        {thm:vtrans-variable xt dv}.
+
+
+% get this to split
+- : convert-vof (Dvof : vof aca _)
+        Dvtrans
+        Dtconvert
+        Devof
+     <- vof-const-contra Dvof Dfalse
+     <- false-implies-vtrans Dfalse Dvtrans
+     <- false-implies-tpconvert Dfalse Dtconvert
+     <- false-implies-evof Dfalse Devof.
+
+%worlds (csig-ei | asig-ei | sbind' | tvobind | tvvar | evvar | bind) (vtrans-variable _ _).
+%total {} (vtrans-variable _ _).
+
+%worlds (csig-ei | asig-ei | sbind | tvar | tvvar) (convert-vof _ _ _ _).
+%total {} (convert-vof _ _ _ _).
+
+
+can-convert : of M A -> convert M A EM -> type.
+%mode can-convert +X1 -X2.
+
+can-aconvert : at-of R A -> aconvert R A EM -> type.
+%mode can-aconvert +X1 -X2.
+
+can-tpconvert : kof A K -> tpconvert A K EA -> type.
+%mode can-tpconvert +X1 -X2.
+
+can-atpconvert : at-kof P K -> atpconvert P K EA -> type.
+%mode can-atpconvert +X1 -X2.
+
+can-kconvert   : wfkind K -> kconvert K EK -> type.
+%mode can-kconvert +X1 -X2.
+
+-const      : can-aconvert
+                  (at-of/const
+                      (DofA : kof A ktype)
+                      (Dcof : cof C A))
+                  (aconvert/const DconvertA DofA Dcof)
+               <- can-tpconvert DofA DconvertA.
+
+-var        : can-aconvert
+                  (at-of/var
+                      (Dkof : kof A ktype)
+                      (Dvof : vof X A))
+                  (aconvert/var Dvtrans Dtpconvert Dkof Dvof)
+               <- convert-vof Dvof Dvtrans _ _
+               <- can-tpconvert Dkof Dtpconvert.
+
+-app        : can-aconvert
+                  (at-of/app
+                      (Dtpsub : tpsub ([x] B x) N Bx)
+                      (DofN : of N A)
+                      (DofR : at-of R (pi A ([x] B x))))
+                  (aconvert/app Dtpsub DconvertN DconvertR)
+               <- can-aconvert DofR DconvertR
+               <- can-convert DofN DconvertN.
+
+-at         : can-convert
+                  (of/at (DofR : at-of R (base P)))
+                  (convert/at DconvertR)
+               <- can-aconvert DofR DconvertR.
+
+-lam        : can-convert
+                  (of/lam DofA ([x] [d:vof x A] DofM x d))
+                  (convert/lam DconvertM DconvertA)
+               <- can-tpconvert DofA DconvertA
+               <- ({x} {d:vof x A}
+                    {ex} {xt:vtrans ex x}
+                      {ed:evof ex EA} {dv:variable ex}
+                      vtrans-variable xt dv ->
+                      convert-vof d xt DconvertA ed
+                   -> can-convert (DofM x d)
+                      (DconvertM x d ex xt 
+                        : convert (M x) (B x) (EM ex))).
+
+%%
+
+-aconst     : can-atpconvert
+                  (at-kof/const 
+                      (Dwfkind : wfkind K) 
+                      (Dckof : ckof A K))
+                  (atpconvert/const Dkconvert Dwfkind Dckof)
+               <- can-kconvert Dwfkind Dkconvert.
+
+-app        : can-atpconvert
+                  (at-kof/app
+                      (Dksub : ksub ([x] K x) M Kx)
+                      (DofM : of M B)
+                      (DofP : at-kof P (kpi B ([x] K x))))
+                  (atpconvert/app Dksub DconvertM DconvertP)
+               <- can-atpconvert DofP DconvertP
+               <- can-convert DofM DconvertM.
+
+-base       : can-tpconvert
+                  (kof/base (DofP : at-kof P ktype))
+                  (tpconvert/base DconvertP)
+               <- can-atpconvert DofP DconvertP.
+
+-lam        : can-tpconvert
+                  (kof/lam ([x] [d:vof x A] DofM x d) DofA)
+                  (tpconvert/lam DconvertM DconvertA)
+               <- can-tpconvert DofA DconvertA
+               <- ({x} {d:vof x A}
+                    {ex} {xt:vtrans ex x}
+                      {ed:evof ex EA} {dv:variable ex}
+                      vtrans-variable xt dv ->
+                      convert-vof d xt DconvertA ed
+                   -> can-tpconvert (DofM x d)
+                      (DconvertM x d ex xt 
+                        : tpconvert (M x) (B x) (EM ex))).
+
+-pi         : can-tpconvert
+                  (kof/pi ([x] [d:vof x A] DofM x d) DofA)
+                  (tpconvert/pi DconvertM DconvertA)
+               <- can-tpconvert DofA DconvertA
+               <- ({x} {d:vof x A}
+                    {ex} {xt:vtrans ex x}
+                      {ed:evof ex EA} {dv:variable ex}
+                      vtrans-variable xt dv ->
+                      convert-vof d xt DconvertA ed
+                   -> can-tpconvert (DofM x d)
+                      (DconvertM x d ex xt 
+                        : tpconvert (M x) ktype (EM ex))).
+
+%%
+
+-type       : can-kconvert wfkind/tp kconvert/type.
+
+-pi         : can-kconvert
+                  (wfkind/pi ([x] [d:vof x A] DofM x d) DofA)
+                  (kconvert/pi DconvertM DconvertA)
+               <- can-tpconvert DofA DconvertA
+               <- ({x} {d:vof x A}
+                    {ex} {xt:vtrans ex x}
+                      {ed:evof ex EA} {dv:variable ex}
+                      vtrans-variable xt dv ->
+                      convert-vof d xt DconvertA ed
+                   -> can-kconvert (DofM x d)
+                      (DconvertM x d ex xt 
+                        : kconvert (M x) (EM ex))).
+
+%worlds (csig-ei | asig-ei | tvar | tvvar | sbind) 
+(can-aconvert _ _)
+(can-convert _ _) 
+(can-atpconvert _ _)
+(can-tpconvert _ _)
+(can-kconvert _ _).
+%total (D1 D2 D3 D4 D5) 
+(can-aconvert D1 _)
+(can-convert D2 _)
+(can-atpconvert D3 _)
+(can-tpconvert D4 _)
+(can-kconvert D5 _).

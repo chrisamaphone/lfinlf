@@ -1,0 +1,189 @@
+%%% syntax %%%
+
+kind : type.   %name kind K.
+
+tp   : type.   %name tp A.
+atp  : type.   %name atp P.
+
+tm   : type.   %name tm M.
+atm  : type.   %name atm R x.
+
+%% kinds %%
+
+ktype : kind.
+kpi : tp -> (atm -> kind) -> kind.
+
+
+%% families %%
+
+aconst : ctp -> atp.
+aapp   : atp -> tm -> atp.
+
+pi    : tp -> (atm -> tp) -> tp.
+base  : atp -> tp.
+alam  : (atm -> tp) -> tp.
+
+%% objects %%
+
+const : ctm -> atm.
+app   : atm -> tm -> atm.
+
+lam   : (atm -> tm) -> tm.
+at    : atm -> tm.
+
+%%% judgments %%%
+
+rrsub  : (atm -> atm) -> tm -> atm -> type.
+rmsub  : (atm -> atm) -> tm -> tm -> type.
+sub    : (atm -> tm) -> tm -> tm -> type.
+tpsub  : (atm -> tp) -> tm -> tp -> type.
+atpsub : (atm -> atp) -> tm -> atp -> type.
+ksub   : (atm -> kind) -> tm -> kind -> type.
+
+%% typing %%
+
+of    : tm -> tp -> type.
+cof   : ctp -> tp -> type.
+vof   : atm -> tp -> type.
+at-of : atm -> tp -> type.
+
+kof    : tp -> kind -> type.
+ckof   : ctp -> kind -> type.
+at-kof : atp -> kind -> type.
+
+wfkind : kind -> type.
+
+%% constants %%
+
+cof  : ctm -> tp -> type.
+ckof : ctp -> kind -> type.
+
+%{
+%% Constants should only be declared at closed types/kinds.
+%% XXX fill in when needed -- may not be needed.
+tclosed : tp -> type.
+kclosed : kind -> type.
+}%
+
+% We declare one term that's always in the signature so that vacuous
+% substitutions may be applied.
+unit  : ctm.
+
+%% These blocks represent the signature.
+%block csig : some {A:tp}
+              block {c:ctm} {d:cof c A}. 
+%block asig : some {K:kind}
+              block {a:ctp} {d:ckof a K}. 
+
+
+%%% typing %%%
+
+at-of/const : at-of (const C) A
+               <- cof C A
+               <- kof A ktype.
+
+at-of/var   : at-of X A
+               <- vof X A
+               <- kof A ktype.
+
+at-of/app   : at-of (app R1 M2) B1x
+                <- at-of R1 (pi A2 ([x] B1 x))
+                <- of M2 A2
+                <- tpsub ([x] B1 x) M2 B1x.
+
+of/at       : of (at R) (base P)
+                <- at-of R (base P).
+
+of/lam      : of (lam ([x] M x)) (pi A ([x] B x))
+                <- ({x} vof x A -> of (M x) (B x))
+                <- kof A ktype.
+
+
+at-kof/const : at-kof (aconst A) K
+                <- ckof A K    
+                <- wfkind K.
+
+at-kof/app   : at-kof (aapp P M) K'
+                <- at-kof P (kpi B ([x] K x))
+                <- of M B
+                <- ksub ([x] K x) M K'.
+
+kof/pi       : kof (pi A1 ([x] A2 x)) ktype
+                <- kof A1 ktype
+                <- ({x} vof x A1 -> kof (A2 x) ktype).
+
+kof/base     : kof (base P) ktype
+                <- at-kof P ktype.
+
+kof/lam      : kof (alam ([x] B x)) (kpi A ([x] K x))
+                <- kof A ktype
+                <- ({x} vof x A -> kof (B x) (K x)).
+
+
+wfkind/tp : wfkind ktype.
+ 
+wfkind/pi : wfkind (kpi A ([x] K x))
+             <- kof A ktype
+             <- ({x} vof x A -> wfkind (K x)).
+
+%%% substitution %%%
+
+rrsub/closed : rrsub ([_] R) _ R.
+
+rrsub/app : rrsub ([x] app (R x) (M x)) N (app R' M')
+             <- rrsub ([x] R x) N R'
+             <- sub ([x] M x) N M'.
+
+rmsub/var : rmsub ([x] x) M M.
+
+rmsub/app : rmsub ([x] app (R x) (M x)) N M1'
+             <- rmsub ([x] R x) N (lam M1)
+             <- sub ([x] M x) N M'
+             <- sub ([x] M1 x) M' M1'.
+
+sub/rr  : sub ([x] at (R x)) M (at R')
+           <- rrsub ([x] R x) M R'.
+
+sub/rm  : sub ([x] at (R x)) M (at R')
+           <- rmsub ([x] R x) M (at R'). % note restriction to 'at'
+
+sub/lam : sub ([x] lam ([y] M x y)) N (lam ([y] M' y))
+           <- ({y} sub ([x] M x y) N (M' y)).
+
+
+atpsub/closed : atpsub ([_] P) _ P.
+
+atpsub/app    : atpsub ([x] aapp (P x) (M x)) N (aapp P' M')
+                 <- atpsub ([x] P x) N P'
+                 <- sub ([x] M x) N M'.
+
+tpsub/base : tpsub ([x] base (P x)) M (base P')
+              <- atpsub ([x] P x) M P'.
+
+tpsub/pi   : tpsub ([x] pi (A x) ([y] B x y)) M (pi A' ([y] B' y))
+              <- tpsub ([x] A x) M A'
+              <- ({y} tpsub ([x] B x y) M (B' y)).
+
+tpsub/lam  : tpsub ([x] alam ([y] A x y)) M (alam ([y] A' y))
+              <- ({y} tpsub ([x] A x y) M (A' y)).
+
+ksub/type   : ksub ([_] ktype) _ ktype.
+
+ksub/pi     : ksub ([x] kpi (A x) ([y] K x y)) M (kpi A' [y] K' y)
+               <- tpsub ([x] A x) M A'
+               <- ({y} ksub ([x] K x y) M (K' y)).
+
+
+
+
+%%%% worlds %%%%
+
+%block var : block {x:atm}.
+
+%block bind : some {a:tp} block {x:atm} {d:vof x a}.
+
+%block ofblock : some {x:atm} {a:tp} block {d:vof x a}.
+
+%%%% a closed atom %%%%
+
+aca  : atm = const unit. 

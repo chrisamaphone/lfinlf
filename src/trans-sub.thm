@@ -1,0 +1,683 @@
+
+trans-sub-e : ({x} isvar x I -> ordered (G x))
+               -> ({x} append (cons G1 x A) (G2 x) (G x))
+               -> ({x} {ex} vtrans ex x
+                   -> transe (G x) (EN ex) (N x) (B x))
+               -> trans EM M A
+               -> csub ([x] G x) M Gx
+%%
+               -> sub ([x] N x) M Nx
+               -> tpsub ([x] B x) M Bx
+               -> transe Gx (EN EM) Nx Bx -> type.
+%mode trans-sub-e +X0 +X1 +X2 +X3 +X4 -X5 -X6 -X7.
+
+tptrans-sub-e : ({x} isvar x I -> ordered (G x))
+                 -> ({x} append (cons G1 x A) (G2 x) (G x))
+                 -> ({x} {ex} vtrans ex x
+                     -> tptranse (G x) (EB ex) (B x) (K x))
+                 -> trans EM M A
+                 -> csub ([x] G x) M Gx
+%%
+                 -> tpsub ([x] B x) M Bx
+                 -> ksub ([x] K x) M Kx
+                 -> tptranse Gx (EB EM) Bx Kx -> type.
+%mode tptrans-sub-e +X0 +X1 +X2 +X3 +X4 -X5 -X6 -X7.
+
+-const  : trans-sub-e _ _
+              ([x] [ex] [xt:vtrans ex x]
+                  transe/const 
+                  (Dexpand x : expand (const C) T (N x)) 
+                  (Dsimp x : simp B T) 
+                  (DofB x : kof B ktype) 
+                  (Dcof : cof C B))
+              (DtransM : trans EM M A)
+              (Dcsub : csub ([x] G x) M Gx)
+%%
+              DsubN
+              DsubB
+              (transe/const
+                  (Dexpand' aca)
+                  (Dsimp aca)
+                  (DofB aca)
+                  Dcof)
+%%
+           <- strengthen-expand Dexpand
+              ([x] DeqN x : tm-eq (N x) N')
+           <- ({x} tm-eq-sym (DeqN x) (DeqN' x : tm-eq N' (N x)))
+           <- ({x}
+                  expand-resp atm-eq/i stp-eq/i (DeqN x) (Dexpand x)
+                  (Dexpand' x : expand (const C) T N'))
+           <- sub-absent _ _ (DsubN' : sub ([_] N') M N')
+           <- sub-compat DeqN' tm-eq/i tm-eq/i DsubN'
+              (DsubN : sub ([x] N x) M N')
+           <- tpsub-absent _ _ (DsubB : tpsub ([_] B) M B).
+
+-varsam : trans-sub-e
+              ([x] [d:isvar x I] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              ([x] [ex] [xt:vtrans ex x]
+                  transe/var
+                  (Dexpand x : expand x T (N x))
+                  (DsimpA' x : simp (A' x) T)
+                  % (DofA' x : kof (A' x) ktype)
+                  (DofA' x : kofe (G x) (A' x) ktype)
+                  (DlookA' x : lookup (G x) x (A' x))
+                  xt)
+              (DtransM : trans EM M A)
+              (Dcsub : csub ([x] G x) M Gx)
+%%
+              DsubN'
+              DsubA'
+              DtranseM'
+%%
+              %% Change A' to A in stuff
+           <- ({x} append-lookup (Dappend x)
+                  (DlookA x : lookup (G x) x A))
+           <- ({x} {d}
+                  lookup-fun (Dord x d) (DlookA' x) (DlookA x)
+                  (DeqA'A x : tp-eq (A' x) A))
+           <- ({x} kofe-resp ctx-eq/i (DeqA'A x) kind-eq/i (DofA' x) 
+                  (DofA x : kofe (G x) A ktype))
+           <- ({x}
+                  lookup-compat ctx-eq/i atm-eq/i (DeqA'A x) (DlookA' x)
+                  (Dlook x : lookup (G x) x A))
+           <- ({x}
+                  simp-compat (DeqA'A x) stp-eq/i (DsimpA' x)
+                  (Dsimp x : simp A T))
+              %% Get a bunch of typing assumptions to pass to
+              %% expand-sub
+              %{
+           <- ({x}
+                  kof-to-kofe (DofA x)
+                  (DofenilA x : kofe nil A ktype))
+           <- ({x}
+                  append-nil _ (Dappend' x : append nil (G x) (G x)))
+           <- ({x}
+                  weaken-kofe' (Dappend' x) (DofenilA x)
+                  (DofeA x : kofe (G x) A ktype))
+              }%
+           <- ({x} {d}
+                  expand-reg-e (Dord x d) 
+                  (at-ofe/var (DofA x) (Dlook x))
+                  (Dsimp x) (Dexpand x)
+                  (DofeN x : ofe (G x) (N x) A))
+           <- trans-to-transe _ DtransM
+              (DtranseM : transe G1 EM M A)
+           <- ({x} {d}
+                  ordered-append (Dappend x) (Dord x d)
+                  (DordCons x d : ordered (cons G1 x A)))
+           <- ({x} {d}
+                  ordered-cons (DordCons x d)
+                  (Dord1 x d : ordered G1))
+           <- strengthen-ordered Dord1
+              (Dord1' : ordered G1)
+           <- trans-reg-e Dord1' DtranseM
+              (DofeM : ofe G1 M A)
+           <- can-sub-e Dappend Dord DofeN DofeM
+              (DsubN : sub ([x] N x) M M')
+              %% main important lemma use
+           <- expand-rmsub _ Dexpand DsubN headvar/var
+              (Drmsub : rmsub ([x] x) M M')
+           <- rmsub-fun Drmsub rmsub/var
+              (DeqMM' : tm-eq M' M)
+           <- sub-compat ([_] tm-eq/i) tm-eq/i DeqMM' DsubN
+              (DsubN' : sub ([x] N x) M M)
+              %% Get other outputs
+           <- trans-to-transe _ DtransM
+              (DtranseM' : transe Gx EM M A)
+              %%
+           <- tpsub-absent _ _ (DsubA : tpsub ([x] A) M A)
+           <- ({x} tp-eq-sym (DeqA'A x) (DeqAA' x : tp-eq A (A' x)))
+           <- tpsub-compat ([x] DeqAA' x) tm-eq/i tp-eq/i DsubA
+              (DsubA' : tpsub ([x] A' x) M A).
+
+
+-varoth : trans-sub-e
+              ([x] [d:isvar x I] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              ([x] [ex] [xt:vtrans ex x]
+                  transe/var
+                  (Dexpand x : expand Y T (N x))
+                  (DsimpB x : simp (B x) T)
+                  (DofB x : kofe (G x) (B x) ktype)
+                  (DlookB x : lookup (G x) Y (B x))
+                  (Dvtrans : vtrans EY Y))
+              (DtransM : trans EM M A)
+              (Dcsub : csub ([x] G x) M Gx)
+%%
+              DsubN
+              DsubB
+              (transe/var
+                  (Dexpand' aca)
+                  DsimpBx
+                  DofBx
+                  DlookBx
+                  Dvtrans)
+%%
+           <- csub-lookup Dcsub DlookB
+              (DsubB : tpsub ([x] B x) M Bx)
+              (DlookBx : lookup Gx Y Bx)
+           <- tpsub-simp DsubB DsimpB
+              (DsimpBx : simp Bx T)
+           <- trans-reg DtransM (DofM : of M A)
+           <- of-to-ofe DofM (DofenilM : ofe nil M A)
+           <- append-nil _ (DappendG1 : append nil G1 G1)
+           <- weaken-ofe' DappendG1 DofenilM
+              (DofeM : ofe G1 M A)
+           <- tpsubst-e Dord Dappend Dcsub DofeM
+              DsubB DofB ksub/type
+              (DofBx : kofe Gx Bx ktype)
+              %%
+           <- strengthen-expand Dexpand
+              ([x] DeqN x : tm-eq (N x) N')
+           <- sub-absent _ _
+              (DsubN' : sub ([_] N') M N')
+           <- ({x} tm-eq-sym (DeqN x) (DeqN' x : tm-eq N' (N x)))
+           <- sub-compat DeqN' tm-eq/i tm-eq/i DsubN'
+              (DsubN : sub ([x] N x) M N')
+           <- ({x}
+                  expand-resp atm-eq/i stp-eq/i (DeqN x) (Dexpand x)
+                  (Dexpand' x : expand Y T N')).
+
+-vari   : trans-sub-e
+              ([x] [d:isvar x I] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              ([x] [ex] [xt:vtrans ex x]
+                  transe/vari
+                  (Dexpand x : expand Y T (N x))
+                  (DsimpB x : simp B T)
+                  (DofB x : kof B ktype)
+                  (Dvof : vof Y B)
+                  (Dvtrans : vtrans EY Y))
+              (DtransM : trans EM M A)
+              (Dcsub : csub ([x] G x) M Gx)
+%%
+              DsubN
+              DsubB
+              (transe/vari
+                  (Dexpand' aca)
+                  (DsimpB aca)
+                  (DofB aca)
+                  Dvof
+                  Dvtrans)
+%%
+           <- strengthen-expand Dexpand
+              ([x] DeqN x : tm-eq (N x) N')
+           <- ({x}
+                  expand-resp atm-eq/i stp-eq/i (DeqN x) (Dexpand x)
+                  (Dexpand' x : expand Y T N'))
+              %%
+           <- tpsub-absent _ _
+              (DsubB : tpsub ([x] B) M B)
+              %%
+           <- sub-absent _ _
+              (DsubN' : sub ([x] N') M N')
+           <- ({x} tm-eq-sym (DeqN x) (DeqN' x : tm-eq N' (N x)))
+           <- sub-compat DeqN' tm-eq/i tm-eq/i DsubN'
+              (DsubN : sub ([x] N x) M N').
+
+-app    : trans-sub-e
+              ([x] [d:isvar x I] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              ([x] [ex] [xt:vtrans ex x]
+                  transe/app
+                  (DsubCy x : tpsub ([y] C x y) (N x) (Cy x))
+                  (DsubLy x : sub ([y] L x y) (N x) (Ly x))
+                  (DtransN x ex xt : transe (G x) (EN ex) (N x) (B x))
+                  (DtransL x ex xt
+                    : transe (G x) (EL ex) (lam ([y] L x y))
+                      (pi (B x) ([y] C x y))))
+              (DtransM : trans EM M A)
+              (Dcsub : csub ([x] G x) M Gx)
+%%
+              DsubLyx
+              DsubCyx
+              (transe/app
+                  DsubCxy
+                  DsubLxy
+                  DtransNx
+                  DtransLx)
+%%
+           <- trans-sub-e Dord Dappend DtransN DtransM Dcsub
+              (DsubN : sub ([x] N x) M Nx)
+              (DsubB : tpsub ([x] B x) M Bx)
+              (DtransNx : transe Gx (EN EM) Nx Bx)
+           <- trans-sub-e Dord Dappend DtransL DtransM Dcsub
+              (sub/lam
+                  ([y] DsubLx y : sub ([x] L x y) M (Lx y)))
+              (tpsub/pi
+                  ([y] DsubCx y : tpsub ([x] C x y) M (Cx y))
+                  (DsubB' : tpsub ([x] B x) M Bx'))
+              (DtransLx'
+                : transe Gx (EL EM) (lam ([y] Lx y)) (pi Bx' ([y] Cx y)))
+           <- tpsub-fun DsubB' DsubB
+              (DeqBx : tp-eq Bx' Bx)
+           <- pi-compat DeqBx ([_] tp-eq/i)
+              (DeqPi : tp-eq (pi Bx' ([y] Cx y)) (pi Bx ([y] Cx y)))
+           <- transe-resp ctx-eq/i etm-eq/i tm-eq/i DeqPi DtransLx'
+              (DtransLx
+                : transe Gx (EL EM) (lam ([y] Lx y)) (pi Bx ([y] Cx y)))
+              %% The remainder of this case is to call sub-permute
+              %% M is well-typed
+           <- trans-reg DtransM
+              (DofM : of M A)
+           <- of-to-ofe DofM (DofenilM : ofe nil M A)
+           <- append-nil _ (DappendNil : append nil G1 G1)
+           <- weaken-ofe' DappendNil DofenilM (DofeM : ofe G1 M A)
+              %% N is well-typed
+           <- ({x} {d} {ex} {xt}
+                  trans-reg-e (Dord x d) (DtransN x ex xt)
+                  (DofN x : ofe (G x) (N x) (B x)))
+              %% L is well-typed
+           <- ({x} {d} {ex} {xt}
+                  trans-reg-e (Dord x d) (DtransL x ex xt)
+                  (ofe/lam
+                      (DofB x)
+                      ([y] DofL x y 
+                        : ofe (cons (G x) y (B x)) (L x y) (C x y))))
+              %% C is well-formed
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) J
+                  ([y] [e] Dord' x d y e 
+                    : ordered (cons (G x) y (B x))))
+           <- ({x} {d} {y} {e}
+                  ofe-reg (Dord' x d y e) (DofL x y)
+                  (DofC x y : kofe (cons (G x) y (B x)) (C x y) ktype))
+              %% go
+           <- sub-permute-e Dord Dappend DofeM DofN DofL 
+              DsubN DsubLy DsubLx
+              (DsubLyx : sub ([x] Ly x) M Lyx)
+              (DsubLxy : sub ([y] Lx y) Nx Lyx)
+           <- tpsub-permute-e Dord Dappend DofeM DofN DofC
+              DsubN DsubCy DsubCx
+              (DsubCyx : tpsub ([x] Cy x) M Cyx)
+              (DsubCxy : tpsub ([y] Cx y) Nx Cyx).
+
+-lam    : trans-sub-e
+              ([x] [d:isvar x I] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              ([x] [ex] [xt:vtrans ex x]
+                  transe/lam
+                  ([y] [ey] [yt:vtrans ey y]
+                    DtransN x ex xt y ey yt
+                      : transe (cons (G x) y (B x)) 
+                        (EN ex ey) (N x y) (C x y))
+                  (DtransB x ex xt
+                      : tptranse (G x) (EB ex) (B x) ktype))
+              (DtransM : trans EM M A)
+              (Dcsub : csub ([x] G x) M Gx)
+%%
+              (sub/lam
+                  DsubN)
+              (tpsub/pi
+                  DsubC
+                  DsubB)
+              (transe/lam
+                  DtransNx
+                  DtransBx)
+%%
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) J
+                  ([y] [e] Dord' x d y e : ordered (cons (G x) y (B x))))
+           <- tptrans-sub-e Dord Dappend DtransB DtransM Dcsub
+              (DsubB : tpsub ([x] B x) M Bx)
+              _
+              (DtransBx
+                : tptranse Gx (EB EM) Bx ktype)
+           <- ({y} {e} {ey} {yt}
+                  trans-sub-e ([x] [d] Dord' x d y e)
+                  ([x] append/cons (Dappend x))
+                  ([x] [ex] [xt] DtransN x ex xt y ey yt) DtransM
+                  (csub/cons DsubB Dcsub)
+                  (DsubN y : sub ([x] N x y) M (Nx y))
+                  (DsubC y : tpsub ([x] C x y) M (Cx y))
+                  (DtransNx y ey yt
+                    : transe _ (EN EM ey) (Nx y) (Cx y))).
+
+%%
+
+-const  : tptrans-sub-e _ _
+              ([x] [ex] [xt:vtrans ex x]
+                  tptranse/const 
+                  (Dexpand x : tpexpand (aconst C) T (N x))
+                  (Dsimp x : ksimp B T) 
+                  (DofB x : wfkind B)
+                  (Dcof : ckof C B))
+              (DtransM : trans EM M A)
+              (Dcsub : csub ([x] G x) M Gx)
+%%
+              DsubN
+              DsubB
+              (tptranse/const
+                  (Dexpand' aca)
+                  (Dsimp aca)
+                  (DofB aca)
+                  Dcof)
+%%
+           <- strengthen-tpexpand Dexpand
+              ([x] DeqN x : tp-eq (N x) N')
+           <- ({x} tp-eq-sym (DeqN x) (DeqN' x : tp-eq N' (N x)))
+           <- ({x}
+                  tpexpand-resp atp-eq/i skind-eq/i (DeqN x) (Dexpand x)
+                  (Dexpand' x : tpexpand (aconst C) T N'))
+           <- tpsub-absent _ _ (DsubN' : tpsub ([_] N') M N')
+           <- tpsub-compat DeqN' tm-eq/i tp-eq/i DsubN'
+              (DsubN : tpsub ([x] N x) M N')
+              %%
+           <- ksub-absent _ _ (DsubB : ksub ([_] B) M B).
+
+-app    : tptrans-sub-e
+              ([x] [d:isvar x I] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              ([x] [ex] [xt:vtrans ex x]
+                  tptranse/app
+                  (DsubCy x : ksub ([y] C x y) (N x) (Cy x))
+                  (DsubLy x : tpsub ([y] L x y) (N x) (Ly x))
+                  (DtransN x ex xt : transe (G x) (EN ex) (N x) (B x))
+                  (DtransL x ex xt
+                    : tptranse (G x) (EL ex) (alam ([y] L x y))
+                      (kpi (B x) ([y] C x y))))
+              (DtransM : trans EM M A)
+              (Dcsub : csub ([x] G x) M Gx)
+%%
+              DsubLyx
+              DsubCyx
+              (tptranse/app
+                  DsubCxy
+                  DsubLxy
+                  DtransNx
+                  DtransLx)
+%%
+           <- trans-sub-e Dord Dappend DtransN DtransM Dcsub
+              (DsubN : sub ([x] N x) M Nx)
+              (DsubB : tpsub ([x] B x) M Bx)
+              (DtransNx : transe Gx (EN EM) Nx Bx)
+           <- tptrans-sub-e Dord Dappend DtransL DtransM Dcsub
+              (tpsub/lam
+                  ([y] DsubLx y : tpsub ([x] L x y) M (Lx y)))
+              (ksub/pi
+                  ([y] DsubCx y : ksub ([x] C x y) M (Cx y))
+                  (DsubB' : tpsub ([x] B x) M Bx'))
+              (DtransLx'
+                : tptranse Gx (EL EM) (alam ([y] Lx y)) 
+                  (kpi Bx' ([y] Cx y)))
+           <- tpsub-fun DsubB' DsubB
+              (DeqBx : tp-eq Bx' Bx)
+           <- kpi-compat DeqBx ([_] kind-eq/i)
+              (DeqPi : kind-eq (kpi Bx' ([y] Cx y)) (kpi Bx ([y] Cx y)))
+           <- tptranse-resp ctx-eq/i etp-eq/i tp-eq/i DeqPi DtransLx'
+              (DtransLx
+                : tptranse Gx (EL EM) (alam ([y] Lx y)) 
+                  (kpi Bx ([y] Cx y)))
+              %% The remainder of this case is to call sub-permute
+              %% M is well-typed
+           <- trans-reg DtransM
+              (DofM : of M A)
+           <- of-to-ofe DofM (DofenilM : ofe nil M A)
+           <- append-nil _ (DappendNil : append nil G1 G1)
+           <- weaken-ofe' DappendNil DofenilM (DofeM : ofe G1 M A)
+              %% N is well-typed
+           <- ({x} {d} {ex} {xt}
+                  trans-reg-e (Dord x d) (DtransN x ex xt)
+                  (DofN x : ofe (G x) (N x) (B x)))
+              %% L is well-typed
+           <- ({x} {d} {ex} {xt}
+                  tptrans-reg-e (Dord x d) (DtransL x ex xt)
+                  (kofe/lam
+                      ([y] DofL x y 
+                        : kofe (cons (G x) y (B x)) (L x y) (C x y))
+                      (DofB x)))
+              %% extend the context
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) J
+                  ([y] [e] Dord' x d y e 
+                    : ordered (cons (G x) y (B x))))
+              %% go
+           <- tpsub-permute-e Dord Dappend DofeM DofN DofL 
+              DsubN DsubLy DsubLx
+              (DsubLyx : tpsub ([x] Ly x) M Lyx)
+              (DsubLxy : tpsub ([y] Lx y) Nx Lyx)
+           <- ({x} {d} {y} {e}
+                  kofe-reg (Dord' x d y e) (DofL x y)
+                  (DofC x y : wfkinde (cons (G x) y (B x)) (C x y)))
+           <- ksub-permute-e Dord Dappend DofeM DofN DofC
+              DsubN DsubCy DsubCx
+              (DsubCyx : ksub ([x] Cy x) M Cyx)
+              (DsubCxy : ksub ([y] Cx y) Nx Cyx).
+
+-lam    : tptrans-sub-e
+              ([x] [d:isvar x I] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              ([x] [ex] [xt:vtrans ex x]
+                  tptranse/lam
+                  ([y] [ey] [yt:vtrans ey y]
+                    DtransN x ex xt y ey yt
+                      : tptranse (cons (G x) y (B x)) 
+                        (EN ex ey) (N x y) (C x y))
+                  (DtransB x ex xt
+                      : tptranse (G x) (EB ex) (B x) ktype))
+              (DtransM : trans EM M A)
+              (Dcsub : csub ([x] G x) M Gx)
+%%
+              (tpsub/lam
+                  DsubN)
+              (ksub/pi
+                  DsubC
+                  DsubB)
+              (tptranse/lam
+                  DtransNx
+                  DtransBx)
+%%
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) J
+                  ([y] [e] Dord' x d y e : ordered (cons (G x) y (B x))))
+           <- tptrans-sub-e Dord Dappend DtransB DtransM Dcsub
+              (DsubB : tpsub ([x] B x) M Bx)
+              _
+              (DtransBx
+                : tptranse Gx (EB EM) Bx ktype)
+           <- ({y} {e} {ey} {yt}
+                  tptrans-sub-e ([x] [d] Dord' x d y e)
+                  ([x] append/cons (Dappend x))
+                  ([x] [ex] [xt] DtransN x ex xt y ey yt) DtransM
+                  (csub/cons DsubB Dcsub)
+                  (DsubN y : tpsub ([x] N x y) M (Nx y))
+                  (DsubC y : ksub ([x] C x y) M (Cx y))
+                  (DtransNx y ey yt
+                    : tptranse _ (EN EM ey) (Nx y) (Cx y))).
+
+-pi    : tptrans-sub-e
+              ([x] [d:isvar x I] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              ([x] [ex] [xt:vtrans ex x]
+                  tptranse/pi
+                  ([y] [ey] [yt:vtrans ey y]
+                    DtransN x ex xt y ey yt
+                      : tptranse (cons (G x) y (B x)) 
+                        (EN ex ey) (N x y) ktype)
+                  (DtransB x ex xt
+                      : tptranse (G x) (EB ex) (B x) ktype))
+              (DtransM : trans EM M A)
+              (Dcsub : csub ([x] G x) M Gx)
+%%
+              (tpsub/pi DsubN DsubB)
+              ksub/type
+              (tptranse/pi DtransNx DtransBx)
+%%
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) J
+                  ([y] [e] Dord' x d y e : ordered (cons (G x) y (B x))))
+           <- tptrans-sub-e Dord Dappend DtransB DtransM Dcsub
+              (DsubB : tpsub ([x] B x) M Bx)
+              _
+              (DtransBx
+                : tptranse Gx (EB EM) Bx ktype)
+           <- ({y} {e} {ey} {yt}
+                  tptrans-sub-e ([x] [d] Dord' x d y e)
+                  ([x] append/cons (Dappend x))
+                  ([x] [ex] [xt] DtransN x ex xt y ey yt) DtransM
+                  (csub/cons DsubB Dcsub)
+                  (DsubN y : tpsub ([x] N x y) M (Nx y))
+                  ksub/type
+                  (DtransNx y ey yt
+                    : tptranse _ (EN EM ey) (Nx y) ktype)).
+
+
+%worlds (csig | asig | bind | tbind | tobind) 
+  (trans-sub-e _ _ _ _ _ _ _ _)
+  (tptrans-sub-e _ _ _ _ _ _ _ _).
+%total (D1 D2) 
+  (trans-sub-e _ _ D1 _ _ _ _ _)
+  (tptrans-sub-e _ _ D2 _ _ _ _ _).
+
+ktrans-sub-e : ({x} isvar x I -> ordered (G x))
+                -> ({x} append (cons G1 x A) (G2 x) (G x))
+                -> ({x} {ex} vtrans ex x
+                    -> ktranse (G x) (EK ex) (K x))
+                -> trans EM M A
+                -> csub ([x] G x) M Gx
+%%
+                -> ksub ([x] K x) M Kx
+                -> ktranse Gx (EK EM) Kx -> type.
+%mode ktrans-sub-e +X1 +X2 +X3 +X4 +X5 -X6 -X7.
+
+-type  : ktrans-sub-e _ _ ([x] [ex] [xt] ktranse/type) _ _
+             ksub/type
+             ktranse/type.
+
+-pi    : ktrans-sub-e
+              ([x] [d:isvar x I] Dord x d : ordered (G x))
+              ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+              ([x] [ex] [xt:vtrans ex x]
+                  ktranse/pi
+                  ([y] [ey] [yt:vtrans ey y]
+                    DtransN x ex xt y ey yt
+                      : ktranse (cons (G x) y (B x)) (EN ex ey) (N x y))
+                  (DtransB x ex xt
+                      : tptranse (G x) (EB ex) (B x) ktype))
+              (DtransM : trans EM M A)
+              (Dcsub : csub ([x] G x) M Gx)
+%%
+              (ksub/pi DsubN DsubB)
+              (ktranse/pi DtransNx DtransBx)
+%%
+           <- ({x} {d}
+                  extend-ordered _ (Dord x d) J
+                  ([y] [e] Dord' x d y e : ordered (cons (G x) y (B x))))
+           <- tptrans-sub-e Dord Dappend DtransB DtransM Dcsub
+              (DsubB : tpsub ([x] B x) M Bx)
+              _
+              (DtransBx
+                : tptranse Gx (EB EM) Bx ktype)
+           <- ({y} {e} {ey} {yt}
+                  ktrans-sub-e ([x] [d] Dord' x d y e)
+                  ([x] append/cons (Dappend x))
+                  ([x] [ex] [xt] DtransN x ex xt y ey yt) DtransM
+                  (csub/cons DsubB Dcsub)
+                  (DsubN y : ksub ([x] N x y) M (Nx y))
+                  (DtransNx y ey yt
+                    : ktranse _ (EN EM ey) (Nx y))).
+
+
+%worlds (csig | asig | bind | tbind | tobind)
+  (ktrans-sub-e _ _ _ _ _ _ _).
+%total D (ktrans-sub-e _ _ D _ _ _ _).
+
+trans-sub : ({x} vof x A
+               -> {ex} vtrans ex x -> trans (EN ex) (N x) (B x))
+             -> trans EM M A
+%%
+             -> sub ([x] N x) M Nx
+             -> tpsub ([x] B x) M Bx
+             -> trans (EN EM) Nx Bx -> type.
+%mode trans-sub +X1 +X2 -X3 -X4 -X5.
+
+- : trans-sub
+        ([x] [d] [ex] [xt]
+            DtransN x d ex xt : trans (EN ex) (N x) (B x))
+        (DtransM : trans EM M A)
+%%
+        Dsub
+        Dtpsub
+        Dtrans
+%%
+     <- trans1-to-transe DtransN
+        ([x] [ex] [xt] 
+            DtranseN x ex xt : transe (cons nil x A) (EN ex) (N x) (B x))
+     <- extend-ordered _ ordered/nil _
+        ([x] [d] Dord x d : ordered (cons nil x A))
+     <- trans-sub-e Dord ([x] append/nil) DtranseN DtransM csub/base
+        (Dsub : sub ([x] N x) M Nx)
+        (Dtpsub : tpsub ([x] B x) M Bx)
+        (Dtranse : transe nil (EN EM) Nx Bx)
+     <- transe-to-trans Dtranse
+        (Dtrans : trans (EN EM) Nx Bx).
+
+%worlds (csig | asig | bind | tbind) (trans-sub _ _ _ _ _).
+%total D (trans-sub D _ _ _ _).
+
+tptrans-sub : ({x} vof x A
+                  -> {ex} vtrans ex x
+                  -> tptrans (EB ex) (B x) (K x))
+               -> trans EM M A
+%%
+               -> tpsub ([x] B x) M Bx
+               -> ksub ([x] K x) M Kx
+               -> tptrans (EB EM) Bx Kx -> type.
+%mode tptrans-sub +X1 +X2 -X3 -X4 -X5.
+
+- : tptrans-sub
+        ([x] [d] [ex] [xt]
+            DtransN x d ex xt : tptrans (EN ex) (N x) (B x))
+        (DtransM : trans EM M A)
+%%
+        Dsub
+        Dtpsub
+        Dtrans
+%%
+     <- tptrans1-to-tptranse DtransN
+        ([x] [ex] [xt] 
+            DtranseN x ex xt : tptranse (cons nil x A) (EN ex) (N x) (B x))
+     <- extend-ordered _ ordered/nil _
+        ([x] [d] Dord x d : ordered (cons nil x A))
+     <- tptrans-sub-e Dord ([x] append/nil) DtranseN DtransM csub/base
+        (Dsub : tpsub ([x] N x) M Nx)
+        (Dtpsub : ksub ([x] B x) M Bx)
+        (Dtranse : tptranse nil (EN EM) Nx Bx)
+     <- tptranse-to-tptrans Dtranse
+        (Dtrans : tptrans (EN EM) Nx Bx).
+
+%worlds (csig | asig | bind | tbind) (tptrans-sub _ _ _ _ _).
+%total D (tptrans-sub D _ _ _ _).
+
+ktrans-sub : ({x} vof x A
+                -> {ex} vtrans ex x
+                -> ktrans (EK ex) (K x))
+              -> trans EM M A
+%%
+              -> ksub ([x] K x) M Kx
+              -> ktrans (EK EM) Kx -> type.
+%mode ktrans-sub +X1 +X2 -X3 -X4.
+
+- : ktrans-sub
+        ([x] [d] [ex] [xt]
+            DtransK x d ex xt : ktrans (EK ex) (K x))
+        (DtransM : trans EM M A)
+%%
+        Dsub
+        Dtrans
+%%
+     <- ktrans1-to-ktranse DtransK
+        ([x] [ex] [xt]
+            DtranseK x ex xt : ktranse (cons nil x A) (EK ex) (K x))
+     <- extend-ordered _ ordered/nil _
+        ([x] [d] Dord x d : ordered (cons nil x A))
+     <- ktrans-sub-e Dord ([x] append/nil) DtranseK DtransM csub/base
+        (Dsub : ksub ([x] K x) M Kx)
+        (Dtranse : ktranse nil (EK EM) Kx)
+     <- ktranse-to-ktrans Dtranse
+        (Dtrans : ktrans (EK EM) Kx).
+
+%worlds (csig | asig | bind | tbind) (ktrans-sub _ _ _ _).
+%total {} (ktrans-sub _ _ _ _).
+

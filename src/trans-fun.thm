@@ -1,0 +1,312 @@
+
+cof-fun : cof C A -> cof C A' -> tp-eq A A' -> type.
+%mode cof-fun +X1 +X2 -X3.
+
+- : cof-fun D D' tp-eq/i.
+
+%worlds (csig | asig | var) (cof-fun _ _ _).
+%total {} (cof-fun _ _ _).
+
+ckof-fun : ckof C K -> ckof C K' -> kind-eq K K' -> type.
+%mode ckof-fun +X1 +X2 -X3.
+
+- : ckof-fun D D' kind-eq/i.
+
+%worlds (csig | asig | var) (ckof-fun _ _ _).
+%total {} (ckof-fun _ _ _).
+
+
+vtrans-fun : vtrans EX X -> vtrans EX X' -> atm-eq X X' -> type.
+%mode vtrans-fun +X1 +X2 -X3.
+
+- : vtrans-fun _ _ atm-eq/i.
+
+%worlds (var | tobind) (vtrans-fun _ _ _).
+%total {} (vtrans-fun _ _ _).
+
+
+trans-fun : trans EM M A -> trans EM M' A' 
+             -> tm-eq M M' 
+             -> tp-eq A A' -> type.
+%mode trans-fun +X1 +X2 -X3 -X4.
+
+tptrans-fun : tptrans EA A K -> tptrans EA A' K' 
+               -> tp-eq A A'
+               -> kind-eq K K' -> type.
+%mode tptrans-fun +X1 +X2 -X3 -X4.
+
+-const  : trans-fun
+              (trans/const
+                  (Dexpand : expand (const C) T M)
+                  (Dsimp   : simp A T)
+                  _
+                  (DofC    : cof C A))
+              (trans/const
+                  (Dexpand' : expand (const C) T' M')
+                  (Dsimp'   : simp A' T')
+                  _
+                  (DofC'    : cof C A'))
+%%              
+              DeqMM'
+              DeqAA'
+%%
+           <- cof-fun DofC DofC'
+              (DeqAA' : tp-eq A A')
+           <- simp-compat DeqAA' stp-eq/i Dsimp
+              (DsimpA'T : simp A' T)
+           <- simp-fun Dsimp' DsimpA'T
+              (DeqT'T : stp-eq T' T)
+           <- expand-resp atm-eq/i DeqT'T tm-eq/i Dexpand'
+              (DexpandTM' : expand (const C) T M')
+           <- expand-fun Dexpand DexpandTM'
+              (DeqMM' : tm-eq M M').
+
+-var    : trans-fun
+              (trans/var
+                  (Dexp    : expand X T M)
+                  (Dsimp   : simp A T)
+                  (Dkof    : kof A ktype)
+                  (DofX    : vof X A)
+                  (Dvtrans : vtrans EM X))
+              (trans/var
+                  (Dexp'   : expand X T' M')
+                  (Dsimp'  : simp A T')
+                  (Dkof'   : kof A ktype)
+                  (DofX    : vof X A)
+                  (Dvtrans : vtrans EM X))
+%%              
+              DeqMM'
+              tp-eq/i
+%%
+           <- simp-fun Dsimp Dsimp'
+              (DeqTT' : stp-eq T T')
+           <- expand-resp atm-eq/i DeqTT' tm-eq/i Dexp
+              (Dexp'' : expand X T' M)
+           <- expand-fun Dexp' Dexp''
+              (DeqM'M : tm-eq M' M)
+           <- tm-eq-sym DeqM'M
+              (DeqMM' : tm-eq M M').
+
+-app    : trans-fun
+              (trans/app
+                  (DsubA   : tpsub ([x] A x) N Ax)
+                  (DsubM   : sub ([x] M x) N Mx)
+                  (DtransN : trans EN N B)
+                  (DtransM : trans EM (lam ([x] M x)) (pi B ([x] A x)))
+                : trans (eapp EM EN) Mx Ax)
+              (trans/app
+                  (DsubA'   : tpsub ([x] A' x) N' Ax')
+                  (DsubM'   : sub ([x] M' x) N' Mx')
+                  (DtransN' : trans EN N' B')
+                  (DtransM' : trans EM (lam ([x] M' x)) (pi B' ([x] A' x)))
+                : trans (eapp EM EN) Mx' Ax')
+%%
+              DeqMx
+              DeqAx
+%%
+           <- trans-fun DtransN DtransN'
+              (DeqNN' : tm-eq N N')
+              (DeqB : tp-eq B B')
+           <- trans-fun DtransM DtransM'
+              (DeqLam : tm-eq (lam ([x] M x)) (lam ([x] M' x)))
+              (DeqPi : tp-eq (pi B ([x] A x)) (pi B' ([x] A' x)))
+           <- lam-inj DeqLam
+              ([x] DeqMM' x : tm-eq (M x) (M' x))
+           <- sub-compat ([x] DeqMM' x) DeqNN' tm-eq/i DsubM
+              (DsubM'' : sub ([x] M' x) N' Mx)
+           <- sub-fun DsubM'' DsubM'
+              (DeqMx : tm-eq Mx Mx')
+              %%
+           <- pi-inj DeqPi
+              _
+              ([x] DeqAA' x : tp-eq (A x) (A' x))
+           <- tpsub-compat ([x] DeqAA' x) DeqNN' tp-eq/i DsubA
+              (DsubA'' : tpsub ([x] A' x) N' Ax)
+           <- tpsub-fun DsubA'' DsubA'
+              (DeqAx : tp-eq Ax Ax').
+
+-lam    : trans-fun
+              (trans/lam
+                  ([x] [d:vof x A] [ex] [tr:vtrans ex x]
+                      DtransM x d ex tr : trans (EM ex) (M x) (B x))
+                  (DtransA : tptrans EA A ktype))
+              (trans/lam
+                  ([x] [d:vof x A'] [ex] [tr:vtrans ex x]
+                      DtransM' x d ex tr : trans (EM ex) (M' x) (B' x))
+                  (DtransA' : tptrans EA A' ktype))
+%%
+              DeqLam
+              DeqPi
+%%
+           <- tptrans-fun DtransA DtransA'
+              (DeqAA' : tp-eq A A')
+              _
+           <- trans-resp-underbind DeqAA' DtransM
+              ([x] [d] [ex] [tr]
+                  DtransM'' x d ex tr : trans (EM ex) (M x) (B x))
+           <- ({x} {d} {ex} {tr}
+                  trans-fun (DtransM'' x d ex tr) (DtransM' x d ex tr)
+                  (DeqM x : tm-eq (M x) (M' x))
+                  (DeqBB' x : tp-eq (B x) (B' x)))
+           <- lam-compat ([x] DeqM x)
+              (DeqLam : tm-eq (lam ([x] M x)) (lam ([x] M' x)))
+           <- pi-compat DeqAA' DeqBB'
+              (DeqPi : tp-eq (pi A ([x] B x)) (pi A' ([x] B' x))).
+
+%%%%
+
+-const  : tptrans-fun
+              (tptrans/const
+                  (Dexpand : tpexpand (aconst C) H A)
+                  (Dsimp : ksimp K H)
+                  (DofK : wfkind K)
+                  (DofC : ckof C K))
+              (tptrans/const
+                  (Dexpand' : tpexpand (aconst C) H' A')
+                  (Dsimp' : ksimp K' H')
+                  (DofK' : wfkind K')
+                  (DofC' : ckof C K'))
+%%
+              DeqAA'
+              DeqKK'
+%%
+           <- ckof-fun DofC DofC'
+              (DeqKK' : kind-eq K K')
+           <- ksimp-compat DeqKK' skind-eq/i Dsimp
+              (DsimpK'H : ksimp K' H)
+           <- ksimp-fun Dsimp' DsimpK'H
+              (DeqH'H : skind-eq H' H)
+           <- tpexpand-resp atp-eq/i DeqH'H tp-eq/i Dexpand'
+              (DexpandHA' : tpexpand (aconst C) H A')
+           <- tpexpand-fun Dexpand DexpandHA'
+              (DeqAA' : tp-eq A A').
+
+-app    : tptrans-fun
+              (tptrans/app
+                  (Dksub   : ksub ([x] K x) N Kx)
+                  (Dsub    : tpsub ([x] A x) N Ax)
+                  (DtransN : trans EN N B)
+                  (DtransA : tptrans EA (alam ([x] A x)) (kpi B ([x] K x))))
+              (tptrans/app
+                  (Dksub'   : ksub ([x] K' x) N' Kx')
+                  (Dsub'    : tpsub ([x] A' x) N' Ax')
+                  (DtransN' : trans EN N' B')
+                  (DtransA' : tptrans EA (alam ([x] A' x)) (kpi B' ([x] K' x))))
+%%
+              DeqAx
+              DeqKx
+%%
+           <- trans-fun DtransN DtransN'
+              (DeqNN' : tm-eq N N')
+              (DeqB : tp-eq B B')
+           <- tptrans-fun DtransA DtransA'
+              (DeqLam : tp-eq (alam ([x] A x)) (alam ([x] A' x)))
+              (DeqPi : kind-eq (kpi B [x] K x) (kpi B' [x] K' x))
+           <- alam-inj DeqLam
+              ([x] DeqAA' x : tp-eq (A x) (A' x))
+           <- tpsub-compat ([x] DeqAA' x) DeqNN' tp-eq/i Dsub
+              (Dsub'' : tpsub ([x] A' x) N' Ax)
+           <- tpsub-fun Dsub'' Dsub'
+              (DeqAx : tp-eq Ax Ax')
+              %%
+           <- kpi-inj DeqPi
+              _
+              ([x] DeqK x : kind-eq (K x) (K' x))
+           <- ksub-compat DeqK DeqNN' kind-eq/i Dksub
+              (Dksub'' : ksub ([x] K' x) N' Kx)
+           <- ksub-fun Dksub'' Dksub'
+              (DeqKx : kind-eq Kx Kx').
+
+-lam    : tptrans-fun
+              (tptrans/lam
+                  ([x] [d:vof x A] [ex] [tr:vtrans ex x]
+                      DtransB x d ex tr : tptrans (EB ex) (B x) (K x))
+                  (DtransA : tptrans EA A ktype))
+              (tptrans/lam
+                  ([x] [d:vof x A'] [ex] [tr:vtrans ex x]
+                      DtransB' x d ex tr : tptrans (EB ex) (B' x) (K' x))
+                  (DtransA' : tptrans EA A' ktype))
+%%
+              DeqLam
+              DeqPi
+%%
+           <- tptrans-fun DtransA DtransA'
+              (DeqAA' : tp-eq A A')
+              _
+           <- tptrans-resp-underbind DeqAA' DtransB
+              ([x] [d] [ex] [tr]
+                  DtransB'' x d ex tr : tptrans (EB ex) (B x) (K x))
+           <- ({x} {d} {ex} {tr}
+                  tptrans-fun (DtransB'' x d ex tr) (DtransB' x d ex tr)
+                  (DeqB x : tp-eq (B x) (B' x))
+                  (DeqK x : kind-eq (K x) (K' x)))
+           <- alam-compat ([x] DeqB x)
+              (DeqLam : tp-eq (alam ([x] B x)) (alam ([x] B' x)))
+              %%
+           <- kpi-compat DeqAA' DeqK
+              (DeqPi : kind-eq (kpi A [x] K x) (kpi A' [x] K' x)).
+
+-pi     : tptrans-fun
+              (tptrans/pi
+                  ([x] [dx] [ex] [tr] DtransB x dx ex tr 
+                    : tptrans (EB ex) (B x) ktype)
+                  (DtransA : tptrans EA A ktype))
+              (tptrans/pi
+                  ([x] [dx] [ex] [tr] DtransB' x dx ex tr
+                    : tptrans (EB ex) (B' x) ktype)
+                  (DtransA' : tptrans EA A' ktype))
+%%
+              DeqPi
+              kind-eq/i
+%%
+           <- tptrans-fun DtransA DtransA'
+              (DeqAA' : tp-eq A A')
+              _
+           <- tptrans-resp-underbind DeqAA' DtransB
+              ([x] [dx] [ex] [tr] DtransB'' x dx ex tr
+                : tptrans (EB ex) (B x) ktype)
+           <- ({x} {d} {ex} {tr}
+                  tptrans-fun (DtransB'' x d ex tr) (DtransB' x d ex tr)
+                  (DeqBB' x : tp-eq (B x) (B' x))
+                  kind-eq/i)
+           <- pi-compat DeqAA' ([x] DeqBB' x)
+              (DeqPi : tp-eq (pi A ([x] B x)) (pi A' ([x] B' x))).
+
+
+%worlds (csig | asig | var | bind | ovar | tbind) 
+  (tptrans-fun _ _ _ _) (trans-fun _ _ _ _).
+%total (D1 D2) 
+  (tptrans-fun _ D1 _ _) (trans-fun _ D2 _ _).
+
+
+ktrans-fun : ktrans EK K -> ktrans EK K' -> kind-eq K K' -> type.
+%mode ktrans-fun +X1 +X2 -X3.
+
+-type   : ktrans-fun ktrans/type ktrans/type kind-eq/i.
+
+-pi     : ktrans-fun 
+              (ktrans/pi
+                  ([x] [d:vof x A] [ex] [tr]
+                      DtransK x d ex tr : ktrans (EK ex) (K x))
+                  (DtransA : tptrans EA A ktype))
+              (ktrans/pi
+                  ([x] [d':vof x A'] [ex] [tr]
+                      DtransK' x d' ex tr : ktrans (EK ex) (K' x))
+                  (DtransA' : tptrans EA A' ktype))
+%%              
+              DeqPi
+%%
+           <- tptrans-fun DtransA DtransA'
+              (DeqAA' : tp-eq A A')
+              _
+           <- ktrans-resp-underbind DeqAA' DtransK
+              ([x] [d] [ex] [tr] DtransK'' x d ex tr
+                : ktrans (EK ex) (K x))
+           <- ({x} {d} {ex} {tr}
+                  ktrans-fun (DtransK'' x d ex tr) (DtransK' x d ex tr)
+                  (DeqKK' x : kind-eq (K x) (K' x)))
+           <- kpi-compat DeqAA' ([x] DeqKK' x)
+              (DeqPi : kind-eq (kpi A ([x] K x)) (kpi A' ([x] K' x))).
+
+%worlds (csig | asig | bind | tbind) (ktrans-fun _ _ _).
+%total D (ktrans-fun _ D _).

@@ -1,0 +1,3196 @@
+%%%%%  substitution permutation (explicit context, simple types)  %%%%%
+
+%% (1)
+sub-permute-es : {T1} {T2}
+                     ({x1} isvar x1 I1 -> {x2} isvar x2 I2 -> sordered (G x1 x2))
+                  -> ({x1} {x2} slookup (G x1 x2) x1 T1)
+                  -> ({x1} {x2} slookup (G x1 x2) x2 T2)
+                  -> ({x1} {x2} ofes (G x1 x2) N1 T1)
+                  -> ({x1} {x2} ofes (G x1 x2) (N2 x1) T2)
+                  -> ({x1} {x2} ofes (G x1 x2) (M x1 x2) S)
+%%
+                  -> sub ([x1] N2 x1) N1 N2`
+                  -> ({x1} sub ([x2] M x1 x2) (N2 x1) (M' x1))
+                  -> ({x2} sub ([x1] M x1 x2) N1 (M` x2))
+%%
+                  -> sub ([x1] M' x1) N1 M`'
+                  -> sub ([x2] M` x2) N2` M`' -> type.
+%mode sub-permute-es +T1 +T2 +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+sub-permute-es' : {T1} {T2}
+                     ({x1} isvar x1 I1 -> {x2} isvar x2 I2 -> sordered (G x1 x2))
+                  -> ({x1} {x2} slookup (G x1 x2) x1 T1)
+                  -> ({x1} {x2} slookup (G x1 x2) x2 T2)
+                  -> ({x1} {x2} ofes (G x1 x2) N1 T1)
+                  -> ({x1} {x2} ofes (G x1 x2) (N2 x1) T2)
+                  -> ({x1} {x2} ofes (G x1 x2) (M x1 x2) S)
+%%
+                  -> sub ([x1] N2 x1) N1 N2`
+                  -> ({x1} sub ([x2] M x1 x2) (N2 x1) (M' x1))
+                  -> ({x2} sub ([x1] M x1 x2) N1 (M` x2))
+%%
+                  -> sub ([x1] M' x1) N1 M`'
+                  -> sub ([x2] M` x2) N2` M`' -> type.
+%mode sub-permute-es' +T1 +T2 +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+%% (2)
+rr-rr-permute-es : {T1} {T2}
+                     ({x1} isvar x1 I1 -> {x2} isvar x2 I2 -> sordered (G x1 x2))
+                  -> ({x1} {x2} slookup (G x1 x2) x1 T1)
+                  -> ({x1} {x2} slookup (G x1 x2) x2 T2)
+                  -> ({x1} {x2} ofes (G x1 x2) N1 T1)
+                  -> ({x1} {x2} ofes (G x1 x2) (N2 x1) T2)
+                  -> ({x1} {x2} at-ofes (G x1 x2) (R x1 x2) S)
+%%
+                  -> sub ([x1] N2 x1) N1 N2`
+                  -> ({x1} rrsub ([x2] R x1 x2) (N2 x1) (R' x1))
+                  -> ({x2} rrsub ([x1] R x1 x2) N1 (R` x2))
+%%
+                  -> rrsub ([x1] R' x1) N1 R`'
+                  -> rrsub ([x2] R` x2) N2` R`' -> type.
+%mode rr-rr-permute-es +T1 +T2 +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+rr-rr-permute-es' : {T1} {T2}
+                     ({x1} isvar x1 I1 -> {x2} isvar x2 I2 -> sordered (G x1 x2))
+                  -> ({x1} {x2} slookup (G x1 x2) x1 T1)
+                  -> ({x1} {x2} slookup (G x1 x2) x2 T2)
+                  -> ({x1} {x2} ofes (G x1 x2) N1 T1)
+                  -> ({x1} {x2} ofes (G x1 x2) (N2 x1) T2)
+                  -> ({x1} {x2} at-ofes (G x1 x2) (R x1 x2) S)
+%%
+                  -> sub ([x1] N2 x1) N1 N2`
+                  -> ({x1} rrsub ([x2] R x1 x2) (N2 x1) (R' x1))
+                  -> ({x2} rrsub ([x1] R x1 x2) N1 (R` x2))
+%%
+                  -> rrsub ([x1] R' x1) N1 R`'
+                  -> rrsub ([x2] R` x2) N2` R`' -> type.
+%mode rr-rr-permute-es' +T1 +T2 +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+%% (3)
+rm-rr-permute-es : {T1} {T2}
+                     ({x1} isvar x1 I1 -> {x2} isvar x2 I2 -> sordered (G x1 x2))
+                  -> ({x1} {x2} slookup (G x1 x2) x1 T1)
+                  -> ({x1} {x2} slookup (G x1 x2) x2 T2)
+                  -> ({x1} {x2} ofes (G x1 x2) N1 T1)
+                  -> ({x1} {x2} ofes (G x1 x2) (N2 x1) T2)
+                  -> ({x1} {x2} at-ofes (G x1 x2) (R x1 x2) S)
+%%
+                  -> sub ([x1] N2 x1) N1 N2`
+                  -> ({x1} rmsub ([x2] R x1 x2) (N2 x1) (MR' x1))
+                  -> ({x2} rrsub ([x1] R x1 x2) N1 (R` x2))
+%%
+                  -> sub ([x1] MR' x1) N1 M`'
+                  -> rmsub ([x2] R` x2) N2` M`' -> type.
+%mode rm-rr-permute-es +T1 +T2 +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+rm-rr-permute-es' : {T1} {T2}
+                     ({x1} isvar x1 I1 -> {x2} isvar x2 I2 -> sordered (G x1 x2))
+                  -> ({x1} {x2} slookup (G x1 x2) x1 T1)
+                  -> ({x1} {x2} slookup (G x1 x2) x2 T2)
+                  -> ({x1} {x2} ofes (G x1 x2) N1 T1)
+                  -> ({x1} {x2} ofes (G x1 x2) (N2 x1) T2)
+                  -> ({x1} {x2} at-ofes (G x1 x2) (R x1 x2) S)
+%%
+                  -> sub ([x1] N2 x1) N1 N2`
+                  -> ({x1} rmsub ([x2] R x1 x2) (N2 x1) (MR' x1))
+                  -> ({x2} rrsub ([x1] R x1 x2) N1 (R` x2))
+%%
+                  -> sub ([x1] MR' x1) N1 M`'
+                  -> rmsub ([x2] R` x2) N2` M`' -> type.
+%mode rm-rr-permute-es' +T1 +T2 +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+%% (4)
+rr-rm-permute-es : {T1} {T2}
+                     ({x1} isvar x1 I1 -> {x2} isvar x2 I2 -> sordered (G x1 x2))
+                  -> ({x1} {x2} slookup (G x1 x2) x1 T1)
+                  -> ({x1} {x2} slookup (G x1 x2) x2 T2)
+                  -> ({x1} {x2} ofes (G x1 x2) N1 T1)
+                  -> ({x1} {x2} ofes (G x1 x2) (N2 x1) T2)
+                  -> ({x1} {x2} at-ofes (G x1 x2) (R x1 x2) S)
+%%
+                  -> sub ([x1] N2 x1) N1 N2`
+                  -> ({x1} rrsub ([x2] R x1 x2) (N2 x1) (R' x1))
+                  -> ({x2} rmsub ([x1] R x1 x2) N1 (MR` x2))
+%%
+                  -> rmsub ([x1] R' x1) N1 M`'
+                  -> sub ([x2] MR` x2) N2` M`' -> type.
+%mode rr-rm-permute-es +T1 +T2 +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+rr-rm-permute-es' : {T1} {T2}
+                     ({x1} isvar x1 I1 -> {x2} isvar x2 I2 -> sordered (G x1 x2))
+                  -> ({x1} {x2} slookup (G x1 x2) x1 T1)
+                  -> ({x1} {x2} slookup (G x1 x2) x2 T2)
+                  -> ({x1} {x2} ofes (G x1 x2) N1 T1)
+                  -> ({x1} {x2} ofes (G x1 x2) (N2 x1) T2)
+                  -> ({x1} {x2} at-ofes (G x1 x2) (R x1 x2) S)
+%%
+                  -> sub ([x1] N2 x1) N1 N2`
+                  -> ({x1} rrsub ([x2] R x1 x2) (N2 x1) (R' x1))
+                  -> ({x2} rmsub ([x1] R x1 x2) N1 (MR` x2))
+%%
+                  -> rmsub ([x1] R' x1) N1 M`'
+                  -> sub ([x2] MR` x2) N2` M`' -> type.
+%mode rr-rm-permute-es' +T1 +T2 +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+%% sub-permute
+
+-rrrm     : sub-permute-es T1 T2   %% M = (at R)
+              ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 
+                                      : sordered (G x1 x2))
+              ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+              ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+              ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+              ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+              ([x1] [x2] ofes/at (DofR x1 x2 : at-ofes (G x1 x2) (R x1 x2) o))
+%%
+              (DsubN1N2                  : sub ([x1] N2 x1) N1 N2`)
+              ([x1] sub/rr (DrrsubN2M x1 : rrsub ([x2] R x1 x2) (N2 x1) (R' x1)))
+              ([x2] sub/rm (DrmsubN1M x2 : rmsub ([x1] R x1 x2) N1 (at (R` x2))))
+%%
+              (sub/rm Dsub21)
+              Dsub12
+%%
+           <- rr-rm-permute-es T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofR
+              DsubN1N2 DrrsubN2M DrmsubN1M
+              (Dsub21 : rmsub ([x1] R' x1) N1 (at R`'))
+              (Dsub12 : sub ([x2] (at (R` x2))) N2` (at R`')).
+
+-rmrr   : sub-permute-es T1 T2  %% M = (at R)
+              ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 
+                                      : sordered (G x1 x2))
+              ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+              ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+              ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+              ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+              ([x1] [x2] ofes/at (DofR x1 x2 : at-ofes (G x1 x2) (R x1 x2) o))
+%%
+              (DsubN1N2                  : sub ([x1] N2 x1) N1 N2`)
+              ([x1] sub/rm (DrmsubN2M x1 : rmsub ([x2] R x1 x2) (N2 x1) (at (R' x1))))
+              ([x2] sub/rr (DrrsubN1M x2 : rrsub ([x1] R x1 x2) N1 (R` x2)))
+%%
+              Dsub21
+              (sub/rm Dsub12)
+%%
+           <- rm-rr-permute-es T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofR
+              DsubN1N2 DrmsubN2M DrrsubN1M
+              (Dsub21 : sub ([x1] (at (R' x1))) N1 (at R`'))
+              (Dsub12 : rmsub ([x2] R` x2) N2` (at R`')).
+
+-rrrr   : sub-permute-es T1 T2  %% M = (at R)
+              ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 
+                                      : sordered (G x1 x2))
+              ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+              ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+              ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+              ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+              ([x1] [x2] ofes/at (DofR x1 x2 : at-ofes (G x1 x2) (R x1 x2) o))
+%%
+              (DsubN1N2                  : sub ([x1] N2 x1) N1 N2`)
+              ([x1] sub/rr (DrrsubN2M x1 : rrsub ([x2] R x1 x2) (N2 x1) (R' x1)))
+              ([x2] sub/rr (DrrsubN1M x2 : rrsub ([x1] R x1 x2) N1 (R` x2)))
+%%
+              (sub/rr Drrsub21)
+              (sub/rr Drrsub12)
+%%
+           <- rr-rr-permute-es T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofR
+              DsubN1N2 DrrsubN2M DrrsubN1M
+              (Drrsub21 : rrsub ([x1] R' x1) N1 R`')
+              (Drrsub12 : rrsub ([x2] R` x2) N2` R`').
+
+-rmrm   : sub-permute-es T1 T2  %% M = (at R)
+              ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 
+                                      : sordered (G x1 x2))
+              ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+              ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+              ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+              ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+              ([x1] [x2] ofes/at (DofR x1 x2 : at-ofes (G x1 x2) (R x1 x2) o))
+%%
+              (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+              ([x1] sub/rm (DrmsubN2M x1 : rmsub ([x2] R x1 x2) (N2 x1) (at (R' x1))))
+              ([x2] sub/rm (DrmsubN1M x2 : rmsub ([x1] R x1 x2) N1 (at (R` x2))))
+%%
+              Dsub21
+              Dsub12
+%%              
+           <- ({x2}
+                  rmsub-headvar (DrmsubN1M x2)
+                  (Dheadvar1 x2 : headvar ([x1] R x1 x2)))
+           <- ({x1}
+                  rmsub-headvar (DrmsubN2M x1)
+                  (Dheadvar2 x1 : headvar ([x2] R x1 x2)))
+           <- headvar-contra ([x2] Dheadvar1 x2) ([x1] Dheadvar2 x1) Dfalse
+           <- false-implies-sub Dfalse
+              (Dsub21 : sub ([x1] (at (R' x1))) N1 (at R`'))
+           <- false-implies-sub' Dfalse
+              (Dsub12 : sub ([x2] (at (R` x2))) N2` (at R`')).
+
+-lam    : sub-permute-es  T1 T2  %% M = (lam [y] N y) : (arr S1 S2)
+              ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 
+                                      : sordered (G x1 x2))
+              ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+              ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+              ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+              ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+              ([x1] [x2] ofes/lam 
+                  ([y] DofM x1 x2 y   : ofes (scons (G x1 x2) y S1) (N x1 x2 y) S2))
+%%
+              (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+              ([x1] sub/lam
+                  ([y] DsubN2N x1 y
+                    : sub ([x2] N x1 x2 y) (N2 x1) (N' x1 y))
+                : sub ([x2] lam [y] N x1 x2 y) (N2 x1) (lam [y] N' x1 y))
+              ([x2] sub/lam 
+                  ([y] DsubN1N x2 y
+                    : sub ([x1] N x1 x2 y) N1 (N` x2 y))
+                : sub ([x1] lam [y] N x1 x2 y) N1      (lam [y] N` x2 y))
+%%
+              (sub/lam Dsub21)
+              (sub/lam Dsub12)
+%%              
+           <- ({x1} {d1} 
+                  {x2} {d2}
+                    extend-sordered S1 (Dord x1 d1 x2 d2) _
+                    ([y] [e:isvar y J] Dord' x1 d1 x2 d2 y e 
+                        : sordered (scons (G x1 x2) y S1)))
+           <- ({x1} {x2} {y}
+                  weaken-slookup (Dlook1 x1 x2) y S1
+                  (Dlook1' x1 x2 y 
+                    : slookup (scons (G x1 x2) y S1) x1 T1))
+           <- ({x1} {x2} {y}
+                  weaken-slookup (Dlook2 x1 x2) y S1
+                  (Dlook2' x1 x2 y
+                    : slookup (scons (G x1 x2) y S1) x2 T2))
+           <- ({x1} {x2} {y}
+                  weaken-ofes (DofN1 x1 x2) y S1
+                  (DofN1' x1 x2 y
+                    : ofes (scons (G x1 x2) y S1) N1 T1))
+           <- ({x1} {x2} {y}
+                  weaken-ofes (DofN2 x1 x2) y S1
+                  (DofN2' x1 x2 y
+                    : ofes (scons (G x1 x2) y S1) (N2 x1) T2))
+           <- ({y} {e}
+                  sub-permute-es T1 T2 
+                  ([x1] [d1] [x2] [d2] Dord' x1 d1 x2 d2 y e) 
+                  ([x1] [x2] Dlook1' x1 x2 y)
+                  ([x1] [x2] Dlook2' x1 x2 y)
+                  ([x1] [x2] DofN1' x1 x2 y)
+                  ([x1] [x2] DofN2' x1 x2 y)
+                  ([x1] [x2] DofM x1 x2 y)
+                  DsubN1N2 ([x1] DsubN2N x1 y) ([x2] DsubN1N x2 y)
+                  (Dsub21 y : sub ([x1] N' x1 y) N1 (N`' y))
+                  (Dsub12 y : sub ([x2] N` x2 y) N2` (N`' y))).
+
+%% sub-permute'
+
+-rrrm     : sub-permute-es' T1 T2   %% M = (at R)
+              ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 
+                                      : sordered (G x1 x2))
+              ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+              ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+              ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+              ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+              ([x1] [x2] ofes/at (DofR x1 x2 : at-ofes (G x1 x2) (R x1 x2) o))
+%%
+              (DsubN1N2                  : sub ([x1] N2 x1) N1 N2`)
+              ([x1] sub/rr (DrrsubN2M x1 : rrsub ([x2] R x1 x2) (N2 x1) (R' x1)))
+              ([x2] sub/rm (DrmsubN1M x2 : rmsub ([x1] R x1 x2) N1 (at (R` x2))))
+%%
+              (sub/rm Dsub21)
+              Dsub12
+%%
+           <- rr-rm-permute-es' T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofR
+              DsubN1N2 DrrsubN2M DrmsubN1M
+              (Dsub21 : rmsub ([x1] R' x1) N1 (at R`'))
+              (Dsub12 : sub ([x2] (at (R` x2))) N2` (at R`')).
+
+-rmrr   : sub-permute-es' T1 T2  %% M = (at R)
+              ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 
+                                      : sordered (G x1 x2))
+              ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+              ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+              ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+              ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+              ([x1] [x2] ofes/at (DofR x1 x2 : at-ofes (G x1 x2) (R x1 x2) o))
+%%
+              (DsubN1N2                  : sub ([x1] N2 x1) N1 N2`)
+              ([x1] sub/rm (DrmsubN2M x1 : rmsub ([x2] R x1 x2) (N2 x1) (at (R' x1))))
+              ([x2] sub/rr (DrrsubN1M x2 : rrsub ([x1] R x1 x2) N1 (R` x2)))
+%%
+              Dsub21
+              (sub/rm Dsub12)
+%%
+           <- rm-rr-permute-es' T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofR
+              DsubN1N2 DrmsubN2M DrrsubN1M
+              (Dsub21 : sub ([x1] (at (R' x1))) N1 (at R`'))
+              (Dsub12 : rmsub ([x2] R` x2) N2` (at R`')).
+
+-rrrr   : sub-permute-es' T1 T2  %% M = (at R)
+              ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 
+                                      : sordered (G x1 x2))
+              ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+              ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+              ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+              ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+              ([x1] [x2] ofes/at (DofR x1 x2 : at-ofes (G x1 x2) (R x1 x2) o))
+%%
+              (DsubN1N2                  : sub ([x1] N2 x1) N1 N2`)
+              ([x1] sub/rr (DrrsubN2M x1 : rrsub ([x2] R x1 x2) (N2 x1) (R' x1)))
+              ([x2] sub/rr (DrrsubN1M x2 : rrsub ([x1] R x1 x2) N1 (R` x2)))
+%%
+              (sub/rr Drrsub21)
+              (sub/rr Drrsub12)
+%%
+           <- rr-rr-permute-es' T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofR
+              DsubN1N2 DrrsubN2M DrrsubN1M
+              (Drrsub21 : rrsub ([x1] R' x1) N1 R`')
+              (Drrsub12 : rrsub ([x2] R` x2) N2` R`').
+
+-rmrm   : sub-permute-es' T1 T2  %% M = (at R)
+              ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 
+                                      : sordered (G x1 x2))
+              ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+              ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+              ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+              ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+              ([x1] [x2] ofes/at (DofR x1 x2 : at-ofes (G x1 x2) (R x1 x2) o))
+%%
+              (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+              ([x1] sub/rm (DrmsubN2M x1 : rmsub ([x2] R x1 x2) (N2 x1) (at (R' x1))))
+              ([x2] sub/rm (DrmsubN1M x2 : rmsub ([x1] R x1 x2) N1 (at (R` x2))))
+%%
+              Dsub21
+              Dsub12
+%%              
+           <- ({x2}
+                  rmsub-headvar (DrmsubN1M x2)
+                  (Dheadvar1 x2 : headvar ([x1] R x1 x2)))
+           <- ({x1}
+                  rmsub-headvar (DrmsubN2M x1)
+                  (Dheadvar2 x1 : headvar ([x2] R x1 x2)))
+           <- headvar-contra ([x2] Dheadvar1 x2) ([x1] Dheadvar2 x1) Dfalse
+           <- false-implies-sub Dfalse
+              (Dsub21 : sub ([x1] (at (R' x1))) N1 (at R`'))
+           <- false-implies-sub' Dfalse
+              (Dsub12 : sub ([x2] (at (R` x2))) N2` (at R`')).
+
+-lam    : sub-permute-es'  T1 T2  %% M = (lam [y] N y) : (arr S1 S2)
+              ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 
+                                      : sordered (G x1 x2))
+              ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+              ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+              ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+              ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+              ([x1] [x2] ofes/lam 
+                  ([y] DofM x1 x2 y   : ofes (scons (G x1 x2) y S1) (N x1 x2 y) S2))
+%%
+              (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+              ([x1] sub/lam
+                  ([y] DsubN2N x1 y
+                    : sub ([x2] N x1 x2 y) (N2 x1) (N' x1 y))
+                : sub ([x2] lam [y] N x1 x2 y) (N2 x1) (lam [y] N' x1 y))
+              ([x2] sub/lam 
+                  ([y] DsubN1N x2 y
+                    : sub ([x1] N x1 x2 y) N1 (N` x2 y))
+                : sub ([x1] lam [y] N x1 x2 y) N1      (lam [y] N` x2 y))
+%%
+              (sub/lam Dsub21)
+              (sub/lam Dsub12)
+%%              
+           <- ({x1} {d1} 
+                  {x2} {d2}
+                    extend-sordered S1 (Dord x1 d1 x2 d2) _
+                    ([y] [e:isvar y J] Dord' x1 d1 x2 d2 y e 
+                        : sordered (scons (G x1 x2) y S1)))
+           <- ({x1} {x2} {y}
+                  weaken-slookup (Dlook1 x1 x2) y S1
+                  (Dlook1' x1 x2 y 
+                    : slookup (scons (G x1 x2) y S1) x1 T1))
+           <- ({x1} {x2} {y}
+                  weaken-slookup (Dlook2 x1 x2) y S1
+                  (Dlook2' x1 x2 y
+                    : slookup (scons (G x1 x2) y S1) x2 T2))
+           <- ({x1} {x2} {y}
+                  weaken-ofes (DofN1 x1 x2) y S1
+                  (DofN1' x1 x2 y
+                    : ofes (scons (G x1 x2) y S1) N1 T1))
+           <- ({x1} {x2} {y}
+                  weaken-ofes (DofN2 x1 x2) y S1
+                  (DofN2' x1 x2 y
+                    : ofes (scons (G x1 x2) y S1) (N2 x1) T2))
+           <- ({y} {e}
+                  sub-permute-es' T1 T2 
+                  ([x1] [d1] [x2] [d2] Dord' x1 d1 x2 d2 y e) 
+                  ([x1] [x2] Dlook1' x1 x2 y)
+                  ([x1] [x2] Dlook2' x1 x2 y)
+                  ([x1] [x2] DofN1' x1 x2 y)
+                  ([x1] [x2] DofN2' x1 x2 y)
+                  ([x1] [x2] DofM x1 x2 y)
+                  DsubN1N2 ([x1] DsubN2N x1 y) ([x2] DsubN1N x2 y)
+                  (Dsub21 y : sub ([x1] N' x1 y) N1 (N`' y))
+                  (Dsub12 y : sub ([x2] N` x2 y) N2` (N`' y))).
+
+%% rr-rr-permute
+
+-closed     : rr-rr-permute-es T1 T2
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   : at-ofes (G x1 x2) (R x1) S)
+%%
+                  (DsubN1N2          : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] rrsub/closed : rrsub ([x2] R x1) (N2 x1) (R x1))
+                  ([x2] DsubN1R x2   : rrsub ([x1] R x1) N1 (R` x2))
+%%
+                  (DsubN1R' aca)
+                  DsubN2R`
+%%                  
+               <- rrsub-closed ([x2] DsubN1R x2)
+                  ([x2] Deq x2 : atm-eq (R` x2) R``)
+               <- ({x2}
+                      rrsub-compat ([_] atm-eq/i) tm-eq/i (Deq x2) (DsubN1R x2)
+                      (DsubN1R' x2 : rrsub ([x1] R x1) N1 R``))
+               <- ({x2}
+                      atm-eq-sym (Deq x2)
+                      (Deq' x2 : atm-eq R`` (R` x2)))
+               <- rrsub-compat ([x2] Deq' x2) tm-eq/i atm-eq/i 
+                  (rrsub/closed : rrsub ([x2] R``) N2` R``)
+                  (DsubN2R` : rrsub ([x2] R` x2) N2` R``).
+
+-appclosed  : rr-rr-permute-es T1 T2  % R = Q M
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   : at-ofes (G x1 x2) (app (Q x2) (M x2)) S)
+%%
+                  (DsubN1N2       : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] rrsub/app
+                      (DsubN2M x1 : sub ([x2] M x2) (N2 x1) (M' x1))
+                      (DsubN2Q x1 : rrsub ([x2] Q x2) (N2 x1) (Q' x1)))
+                  ([x2] rrsub/closed 
+                    : rrsub ([x1] app (Q x2) (M x2)) N1 (app (Q x2) (M x2)))
+%%
+                  (rrsub/app Dsub21M Dsub21Q)
+                  (rrsub/app Dsub12M Dsub12Q)
+%%
+               <- ({x2}
+                      sub-absent (M x2) N1
+                      (DsubN1M x2 : sub ([x1] M x2) N1 (M x2)))
+               <- ({x1} {d1} {x2} {d2}
+                      app-ofes-invert (Dord x1 d1 x2 d2) (DofR x1 x2)
+                      (DofQ x1 x2 : at-ofes (G x1 x2) (Q x2) (arrow S2 S))
+                      (DofM x1 x2 : ofes (G x1 x2) (M x2) S2))
+               <- rr-rr-permute-es T1 T2
+                  Dord Dlook1 Dlook2 DofN1 DofN2 DofQ 
+                  DsubN1N2 DsubN2Q ([_] rrsub/closed)
+                  (Dsub21Q : rrsub ([x1] Q' x1) N1 Q`')
+                  (Dsub12Q : rrsub ([x2] Q x2) N2` Q`')
+               <- sub-permute-es T1 T2
+                  Dord Dlook1 Dlook2 DofN1 DofN2 DofM 
+                  DsubN1N2 DsubN2M DsubN1M
+                  (Dsub21M : sub ([x1] M' x1) N1 M`')
+                  (Dsub12M : sub ([x2] M x2) N2` M`').
+
+
+-app        : rr-rr-permute-es T1 T2  %% R = (app Q M)
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   
+                    : at-ofes (G x1 x2) (app (Q x1 x2) (M x1 x2)) S)
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] 
+                      rrsub/app
+                      (DsubN2M x1 : sub ([x2] M x1 x2) (N2 x1) (M' x1))
+                      (DsubN2Q x1 : rrsub ([x2] Q x1 x2) (N2 x1) (Q' x1))
+                    : rrsub ([x2] app (Q x1 x2) (M x1 x2)) (N2 x1)
+                      (app (Q' x1) (M' x1)))
+                  ([x2]
+                      rrsub/app
+                      (DsubN1M x2 : sub ([x1] M x1 x2) N1 (M` x2))
+                      (DsubN1Q x2 : rrsub ([x1] Q x1 x2) N1 (Q` x2))
+                    : rrsub ([x1] app (Q x1 x2) (M x1 x2)) N1 
+                      (app (Q` x2) (M` x2)))
+%%
+                  (rrsub/app Dsub21M Dsub21Q)
+                  (rrsub/app Dsub12M Dsub12Q)
+%%
+               <- ({x1} {d1} {x2} {d2}
+                      app-ofes-invert (Dord x1 d1 x2 d2) (DofR x1 x2)
+                      (DofQ x1 x2 : at-ofes (G x1 x2) (Q x1 x2) (arrow S2 S))
+                      (DofM x1 x2 : ofes (G x1 x2) (M x1 x2) S2))
+               <- rr-rr-permute-es T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofQ
+                  DsubN1N2 DsubN2Q DsubN1Q
+                  (Dsub21Q : rrsub ([x1] Q' x1) N1 Q`')
+                  (Dsub12Q : rrsub ([x2] Q` x2) N2` Q`')
+               <- sub-permute-es T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofM
+                  DsubN1N2 DsubN2M DsubN1M
+                  (Dsub21M : sub ([x1] M' x1) N1 M`')
+                  (Dsub12M : sub ([x2] M` x2) N2` M`').
+
+%% rr-rr-permute'
+
+-closed     : rr-rr-permute-es' T1 T2
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   : at-ofes (G x1 x2) (R x1) S)
+%%
+                  (DsubN1N2          : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] rrsub/closed : rrsub ([x2] R x1) (N2 x1) (R x1))
+                  ([x2] DsubN1R x2   : rrsub ([x1] R x1) N1 (R` x2))
+%%
+                  (DsubN1R' aca)
+                  DsubN2R`
+%%                  
+               <- rrsub-closed ([x2] DsubN1R x2)
+                  ([x2] Deq x2 : atm-eq (R` x2) R``)
+               <- ({x2}
+                      rrsub-compat ([_] atm-eq/i) tm-eq/i (Deq x2) (DsubN1R x2)
+                      (DsubN1R' x2 : rrsub ([x1] R x1) N1 R``))
+               <- ({x2}
+                      atm-eq-sym (Deq x2)
+                      (Deq' x2 : atm-eq R`` (R` x2)))
+               <- rrsub-compat ([x2] Deq' x2) tm-eq/i atm-eq/i 
+                  (rrsub/closed : rrsub ([x2] R``) N2` R``)
+                  (DsubN2R` : rrsub ([x2] R` x2) N2` R``).
+
+-appclosed  : rr-rr-permute-es' T1 T2  % R = Q M
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   : at-ofes (G x1 x2) (app (Q x2) (M x2)) S)
+%%
+                  (DsubN1N2       : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] rrsub/app
+                      (DsubN2M x1 : sub ([x2] M x2) (N2 x1) (M' x1))
+                      (DsubN2Q x1 : rrsub ([x2] Q x2) (N2 x1) (Q' x1)))
+                  ([x2] rrsub/closed 
+                    : rrsub ([x1] app (Q x2) (M x2)) N1 (app (Q x2) (M x2)))
+%%
+                  (rrsub/app Dsub21M Dsub21Q)
+                  (rrsub/app Dsub12M Dsub12Q)
+%%
+               <- ({x2}
+                      sub-absent (M x2) N1
+                      (DsubN1M x2 : sub ([x1] M x2) N1 (M x2)))
+               <- ({x1} {d1} {x2} {d2}
+                      app-ofes-invert (Dord x1 d1 x2 d2) (DofR x1 x2)
+                      (DofQ x1 x2 : at-ofes (G x1 x2) (Q x2) (arrow S2 S))
+                      (DofM x1 x2 : ofes (G x1 x2) (M x2) S2))
+               <- rr-rr-permute-es' T1 T2
+                  Dord Dlook1 Dlook2 DofN1 DofN2 DofQ 
+                  DsubN1N2 DsubN2Q ([_] rrsub/closed)
+                  (Dsub21Q : rrsub ([x1] Q' x1) N1 Q`')
+                  (Dsub12Q : rrsub ([x2] Q x2) N2` Q`')
+               <- sub-permute-es' T1 T2
+                  Dord Dlook1 Dlook2 DofN1 DofN2 DofM 
+                  DsubN1N2 DsubN2M DsubN1M
+                  (Dsub21M : sub ([x1] M' x1) N1 M`')
+                  (Dsub12M : sub ([x2] M x2) N2` M`').
+
+
+-app        : rr-rr-permute-es' T1 T2  %% R = (app Q M)
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   
+                    : at-ofes (G x1 x2) (app (Q x1 x2) (M x1 x2)) S)
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] 
+                      rrsub/app
+                      (DsubN2M x1 : sub ([x2] M x1 x2) (N2 x1) (M' x1))
+                      (DsubN2Q x1 : rrsub ([x2] Q x1 x2) (N2 x1) (Q' x1))
+                    : rrsub ([x2] app (Q x1 x2) (M x1 x2)) (N2 x1)
+                      (app (Q' x1) (M' x1)))
+                  ([x2]
+                      rrsub/app
+                      (DsubN1M x2 : sub ([x1] M x1 x2) N1 (M` x2))
+                      (DsubN1Q x2 : rrsub ([x1] Q x1 x2) N1 (Q` x2))
+                    : rrsub ([x1] app (Q x1 x2) (M x1 x2)) N1 
+                      (app (Q` x2) (M` x2)))
+%%
+                  (rrsub/app Dsub21M Dsub21Q)
+                  (rrsub/app Dsub12M Dsub12Q)
+%%
+               <- ({x1} {d1} {x2} {d2}
+                      app-ofes-invert (Dord x1 d1 x2 d2) (DofR x1 x2)
+                      (DofQ x1 x2 : at-ofes (G x1 x2) (Q x1 x2) (arrow S2 S))
+                      (DofM x1 x2 : ofes (G x1 x2) (M x1 x2) S2))
+               <- rr-rr-permute-es' T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofQ
+                  DsubN1N2 DsubN2Q DsubN1Q
+                  (Dsub21Q : rrsub ([x1] Q' x1) N1 Q`')
+                  (Dsub12Q : rrsub ([x2] Q` x2) N2` Q`')
+               <- sub-permute-es' T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofM
+                  DsubN1N2 DsubN2M DsubN1M
+                  (Dsub21M : sub ([x1] M' x1) N1 M`')
+                  (Dsub12M : sub ([x2] M` x2) N2` M`').
+
+
+%% rr-rm-permute %%
+
+-closed     : rr-rm-permute-es T1 T2
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   : at-ofes (G x1 x2) (R x1) S)
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1]
+                      rrsub/closed : rrsub ([x2] R x1) (N2 x1) (R x1))
+                  ([x2] DsubN1R x2 : rmsub ([x1] R x1) N1 (MR` x2))
+%%
+                  (DsubN1R' aca)
+                  DsubN2MR`
+%%
+               <- rmsub-closed ([x2] DsubN1R x2)
+                  ([x2] Deq x2 : tm-eq (MR` x2) MR``)
+               <- ({x2}
+                      rmsub-compat ([_] atm-eq/i) tm-eq/i (Deq x2) (DsubN1R x2)
+                      (DsubN1R' x2 : rmsub ([x1] R x1) N1 MR``))
+               <- ({x2}
+                      tm-eq-sym (Deq x2)
+                      (Deq' x2 : tm-eq MR`` (MR` x2)))
+               <- sub-absent MR`` N2`
+                  (DsubN2`MR`` : sub ([_] MR``) N2` MR``)
+               <- sub-compat ([x2] Deq' x2) tm-eq/i tm-eq/i DsubN2`MR``
+                  (DsubN2MR` : sub ([x2] MR` x2) N2` MR``).
+
+-app        : rr-rm-permute-es T1 T2
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   
+                    : at-ofes (G x1 x2) (app (Q x1 x2) (M x1 x2)) S)
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1]
+                      rrsub/app 
+                      (DsubN2M x1 : sub ([x2] M x1 x2) (N2 x1) (M' x1))
+                      (DsubN2Q x1 : rrsub ([x2] Q x1 x2) (N2 x1) (Q' x1))
+                    : rrsub 
+                      ([x2] app (Q x1 x2) (M x1 x2)) 
+                      (N2 x1) 
+                      (app (Q' x1) (M' x1)))
+                  ([x2]
+                      rmsub/app
+                      (DsubM`O x2 : sub ([y] O x2 y) (M` x2) (O` x2))
+                      (DsubN1M x2 : sub ([x1] M x1 x2) N1 (M` x2))
+                      (DsubN1Q x2 : rmsub ([x1] Q x1 x2) N1 (lam [y] O x2 y))
+                    : rmsub ([x1] app (Q x1 x2) (M x1 x2)) N1 (O` x2))
+%%
+                  (rmsub/app (Dsub12O' aca) Dsub21M Dsub21Q)
+                  (Dsub21O'' aca)
+%%
+               <- ({x1} {d1} {x2} {d2}
+                      app-ofes-invert (Dord x1 d1 x2 d2) (DofR x1 x2)
+                      (DofQ x1 x2 : at-ofes (G x1 x2) (Q x1 x2) (arrow S2 S))
+                      (DofM x1 x2 : ofes (G x1 x2) (M x1 x2) S2))
+                  %% IH on Q
+               <- rr-rm-permute-es T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2
+                  DofQ DsubN1N2 DsubN2Q DsubN1Q
+                  (Dsub21Q : rmsub ([x1] Q' x1) N1 (lam [y] O' y))
+                  (sub/lam
+                      ([y] DsubN2`O y : sub ([x2] O x2 y) N2` (O' y))
+                    : sub ([x2] lam [y] O x2 y) N2` (lam [y] O' y))
+                  %% IH on M
+               <- sub-permute-es T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2
+                  DofM DsubN1N2 DsubN2M DsubN1M
+                  (Dsub21M : sub ([x1] M' x1) N1 M`')
+                  (Dsub12M : sub ([x2] M` x2) N2` M`')
+                  %% Weaken a bunch of stuff with the lam-bound var
+               <- ({x1} {d1:isvar x1 I1}
+                    {x2} {d2:isvar x2 I2}
+                      extend-sordered S2 (Dord x1 d1 x2 d2) J
+                      ([y] [e : isvar y J] 
+                          Dord_y x1 d1 x2 d2 y e 
+                        : sordered (scons (G x1 x2) y S2)))
+               <- ({x1} {x2} {y}
+                      weaken-ofes (DofN1 x1 x2) y S2
+                      (DofN1_y x1 x2 y : ofes (scons (G x1 x2) y S2) N1 T1))
+               <- ({x1} {x2} {y}
+                      weaken-ofes (DofN2 x1 x2) y S2
+                      (DofN2_y x1 x2 y : ofes (scons (G x1 x2) y S2) (N2 x1) T2))
+               <- ({x1} {x2} {y}
+                      weaken-ofes (DofM x1 x2) y S2
+                      (DofM_y x1 x2 y : ofes (scons (G x1 x2) y S2) (M x1 x2) S2))
+                  %% Get typing derivations for the substitutions
+               <- ({x2} {d2:isvar x2 I2} {y} {e:isvar y J}
+                      subst-es 
+                      ([x1] [d1] Dord_y x1 d1 x2 d2 y e)
+                      ([x1] slookup/miss (Dlook1 x1 x2))
+                      ([x1] DofN1_y x1 x2 y)
+                      ([x1] DofN2_y x1 x2 y)
+                      DsubN1N2
+                      ([x1] DofN2` x1 x2 y : ofes (scons (G x1 x2) y S2) N2` T2))
+               <- ({x2} {d2:isvar x2 I2} {y} {e:isvar y J}
+                      subst-es
+                      ([x1] [d1] Dord_y x1 d1 x2 d2 y e)
+                      ([x1] slookup/miss (Dlook1 x1 x2))
+                      ([x1] DofN1_y x1 x2 y)
+                      ([x1] DofM_y x1 x2 y)
+                      (DsubN1M x2)
+                      ([x1] DofM` x1 x2 y : ofes (scons (G x1 x2) y S2) (M` x2) S2))
+                 %% Get typing derivation for O
+               <- ({x2} {d2:isvar x2 I2}
+                      rmsubst-es
+                      ([x1] [d1] Dord x1 d1 x2 d2)
+                      ([x1] Dlook1 x1 x2)
+                      ([x1] DofN1 x1 x2)
+                      ([x1] DofQ x1 x2)
+                      (DsubN1Q x2)
+                      ([x1] ofes/lam
+                          ([y] DofO x1 x2 y : ofes (scons (G x1 x2) y S2) (O x2 y) S)))
+                  %% Convince twelf that S2 <= T2
+               <- ({x2}
+                      rmsub-headvar (DsubN1Q x2)
+                      (Dheadvar x2 : headvar ([x1] Q x1 x2)))
+               <- ({x2} {d2:isvar x2 I2}
+                      headvar-stp-size
+                      ([x1] [d1] Dord x1 d1 x2 d2)
+                      ([x1] Dlook1 x1 x2)
+                      ([x1] DofQ x1 x2)
+                      (Dheadvar x2)
+                      (Dleq : stp-leq (arrow S2 S) T1))
+               <- employ-stp-leq (arrow S2 S) T1 Dleq
+                  %% [N2`/x2] [M`/y] O == [[N2`/x2]M`/y] [N2`/x2] O
+               <- ({x1} {d1:isvar x1 I1}
+                      sub-permute-es' T2 S2 
+                      ([x2] [d2] [y] [e] Dord_y x1 d1 x2 d2 y e)
+                      ([x2] [y] slookup/miss (Dlook2 x1 x2))
+                      ([x2] [y] slookup/hit)
+                      ([x2] [y] DofN2` x1 x2 y)
+                      ([x2] [y] DofM` x1 x2 y)
+                      ([x2] [y] DofO x1 x2 y)
+                      Dsub12M DsubM`O DsubN2`O
+                      (Dsub21O x1 : sub ([x2] O` x2) N2` (O`' x1))
+                      (Dsub12O x1 : sub ([y] O' y) M`' (O`' x1)))
+                  %% Clean up the extraneous variable
+               <- sub-closed ([x1] Dsub21O x1)
+                  ([x1] Deq1 x1 : tm-eq (O`' x1) O`'1)
+               <- sub-closed ([x1] Dsub12O x1)
+                  ([x1] Deq2 x1 : tm-eq (O`' x1) O`'2)
+               <- ({x1}
+                      tm-eq-fun (Deq1 x1) (Deq2 x1)
+                      (Deq' x1 : tm-eq O`'1 O`'2))
+               <- ({x1}
+                      sub-compat ([_] tm-eq/i) tm-eq/i (Deq1 x1) (Dsub21O x1)
+                      (Dsub21O' x1 : sub ([x2] O` x2) N2` O`'1))
+               <- ({x1}
+                      sub-compat ([_] tm-eq/i) tm-eq/i (Deq2 x1) (Dsub12O x1)
+                      (Dsub12O' x1 : sub ([y] O' y) M`' O`'2))
+               <- ({x1}
+                      sub-compat ([_] tm-eq/i) tm-eq/i (Deq' x1) (Dsub21O' x1)
+                      (Dsub21O'' x1 : sub ([x2] O` x2) N2` O`'2)).
+
+
+%% rr-rm-permute' %%
+
+-closed     : rr-rm-permute-es' T1 T2
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   : at-ofes (G x1 x2) (R x1) S)
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1]
+                      rrsub/closed : rrsub ([x2] R x1) (N2 x1) (R x1))
+                  ([x2] DsubN1R x2 : rmsub ([x1] R x1) N1 (MR` x2))
+%%
+                  (DsubN1R' aca)
+                  DsubN2MR`
+%%
+               <- rmsub-closed ([x2] DsubN1R x2)
+                  ([x2] Deq x2 : tm-eq (MR` x2) MR``)
+               <- ({x2}
+                      rmsub-compat ([_] atm-eq/i) tm-eq/i (Deq x2) (DsubN1R x2)
+                      (DsubN1R' x2 : rmsub ([x1] R x1) N1 MR``))
+               <- ({x2}
+                      tm-eq-sym (Deq x2)
+                      (Deq' x2 : tm-eq MR`` (MR` x2)))
+               <- sub-absent MR`` N2`
+                  (DsubN2`MR`` : sub ([_] MR``) N2` MR``)
+               <- sub-compat ([x2] Deq' x2) tm-eq/i tm-eq/i DsubN2`MR``
+                  (DsubN2MR` : sub ([x2] MR` x2) N2` MR``).
+
+-app        : rr-rm-permute-es' T1 T2
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   
+                    : at-ofes (G x1 x2) (app (Q x1 x2) (M x1 x2)) S)
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1]
+                      rrsub/app 
+                      (DsubN2M x1 : sub ([x2] M x1 x2) (N2 x1) (M' x1))
+                      (DsubN2Q x1 : rrsub ([x2] Q x1 x2) (N2 x1) (Q' x1))
+                    : rrsub 
+                      ([x2] app (Q x1 x2) (M x1 x2)) 
+                      (N2 x1) 
+                      (app (Q' x1) (M' x1)))
+                  ([x2]
+                      rmsub/app
+                      (DsubM`O x2 : sub ([y] O x2 y) (M` x2) (O` x2))
+                      (DsubN1M x2 : sub ([x1] M x1 x2) N1 (M` x2))
+                      (DsubN1Q x2 : rmsub ([x1] Q x1 x2) N1 (lam [y] O x2 y))
+                    : rmsub ([x1] app (Q x1 x2) (M x1 x2)) N1 (O` x2))
+%%
+                  (rmsub/app (Dsub12O aca) Dsub21M Dsub21Q)
+                  (Dsub21O aca)
+%%
+               <- ({x1} {d1} {x2} {d2}
+                      app-ofes-invert (Dord x1 d1 x2 d2) (DofR x1 x2)
+                      (DofQ x1 x2 : at-ofes (G x1 x2) (Q x1 x2) (arrow S2 S))
+                      (DofM x1 x2 : ofes (G x1 x2) (M x1 x2) S2))
+                  %% IH on Q
+               <- rr-rm-permute-es' T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2
+                  DofQ DsubN1N2 DsubN2Q DsubN1Q
+                  (Dsub21Q : rmsub ([x1] Q' x1) N1 (lam [y] O' y))
+                  (sub/lam
+                      ([y] DsubN2`O y : sub ([x2] O x2 y) N2` (O' y))
+                    : sub ([x2] lam [y] O x2 y) N2` (lam [y] O' y))
+                  %% IH on M
+               <- sub-permute-es' T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2
+                  DofM DsubN1N2 DsubN2M DsubN1M
+                  (Dsub21M : sub ([x1] M' x1) N1 M`')
+                  (Dsub12M : sub ([x2] M` x2) N2` M`')
+                  %% Weaken a bunch of stuff with the lam-bound var
+               <- ({x1} {d1:isvar x1 I1}
+                    {x2} {d2:isvar x2 I2}
+                      extend-sordered S2 (Dord x1 d1 x2 d2) J
+                      ([y] [e : isvar y J] 
+                          Dord_y x1 d1 x2 d2 y e 
+                        : sordered (scons (G x1 x2) y S2)))
+               <- ({x1} {x2} {y}
+                      weaken-ofes (DofN1 x1 x2) y S2
+                      (DofN1_y x1 x2 y : ofes (scons (G x1 x2) y S2) N1 T1))
+               <- ({x1} {x2} {y}
+                      weaken-ofes (DofN2 x1 x2) y S2
+                      (DofN2_y x1 x2 y : ofes (scons (G x1 x2) y S2) (N2 x1) T2))
+               <- ({x1} {x2} {y}
+                      weaken-ofes (DofM x1 x2) y S2
+                      (DofM_y x1 x2 y : ofes (scons (G x1 x2) y S2) (M x1 x2) S2))
+                  %% Get typing derivations for the substitutions
+               <- ({x2} {d2:isvar x2 I2} {y} {e:isvar y J}
+                      subst-es 
+                      ([x1] [d1] Dord_y x1 d1 x2 d2 y e)
+                      ([x1] slookup/miss (Dlook1 x1 x2))
+                      ([x1] DofN1_y x1 x2 y)
+                      ([x1] DofN2_y x1 x2 y)
+                      DsubN1N2
+                      ([x1] DofN2` x1 x2 y : ofes (scons (G x1 x2) y S2) N2` T2))
+               <- ({x2} {d2:isvar x2 I2} {y} {e:isvar y J}
+                      subst-es
+                      ([x1] [d1] Dord_y x1 d1 x2 d2 y e)
+                      ([x1] slookup/miss (Dlook1 x1 x2))
+                      ([x1] DofN1_y x1 x2 y)
+                      ([x1] DofM_y x1 x2 y)
+                      (DsubN1M x2)
+                      ([x1] DofM` x1 x2 y : ofes (scons (G x1 x2) y S2) (M` x2) S2))
+                  %% Get typing derivation for O
+               <- ({x2} {d2:isvar x2 I2}
+                      rmsubst-es
+                      ([x1] [d1] Dord x1 d1 x2 d2)
+                      ([x1] Dlook1 x1 x2)
+                      ([x1] DofN1 x1 x2)
+                      ([x1] DofQ x1 x2)
+                      (DsubN1Q x2)
+                      ([x1] ofes/lam
+                          ([y] DofO x1 x2 y : ofes (scons (G x1 x2) y S2) (O x2 y) S)))
+                 %% Convince twelf that S2 <= T2
+               <- ({x2}
+                      rmsub-headvar (DsubN1Q x2)
+                      (Dheadvar x2 : headvar ([x1] Q x1 x2)))
+               <- ({x2} {d2:isvar x2 I2}
+                      headvar-stp-size
+                      ([x1] [d1] Dord x1 d1 x2 d2)
+                      ([x1] Dlook1 x1 x2)
+                      ([x1] DofQ x1 x2)
+                      (Dheadvar x2)
+                      (Dleq : stp-leq (arrow S2 S) T1))
+               <- employ-stp-leq (arrow S2 S) T1 Dleq
+                  %% [N2`/x2] [M`/y] O == [[N2`/x2]M`/y] [N2`/x2] O
+               <- ({x1} {d1:isvar x1 I1}
+                      sub-permute-es T2 S2 
+                      ([x2] [d2] [y] [e] Dord_y x1 d1 x2 d2 y e)
+                      ([x2] [y] slookup/miss (Dlook2 x1 x2))
+                      ([x2] [y] slookup/hit)
+                      ([x2] [y] DofN2` x1 x2 y)
+                      ([x2] [y] DofM` x1 x2 y)
+                      ([x2] [y] DofO x1 x2 y)
+                      Dsub12M DsubM`O DsubN2`O
+                      (Dsub21O x1 : sub ([x2] O` x2) N2` (O`' x1))
+                      (Dsub12O x1 : sub ([y] O' y) M`' (O`' x1)))
+                  %% Clean up the extraneous variable
+               <- sub-closed ([x1] Dsub21O x1)
+                  ([x1] Deq1 x1 : tm-eq (O`' x1) O`'1)
+               <- sub-closed ([x1] Dsub12O x1)
+                  ([x1] Deq2 x1 : tm-eq (O`' x1) O`'2)
+               <- ({x1}
+                      tm-eq-fun (Deq1 x1) (Deq2 x1)
+                      (Deq' x1 : tm-eq O`'1 O`'2))
+               <- ({x1}
+                      sub-compat ([_] tm-eq/i) tm-eq/i (Deq1 x1) (Dsub21O x1)
+                      (Dsub21O' x1 : sub ([x2] O` x2) N2` O`'1))
+               <- ({x1}
+                      sub-compat ([_] tm-eq/i) tm-eq/i (Deq2 x1) (Dsub12O x1)
+                      (Dsub12O' x1 : sub ([y] O' y) M`' O`'2))
+               <- ({x1}
+                      sub-compat ([_] tm-eq/i) tm-eq/i (Deq' x1) (Dsub21O' x1)
+                      (Dsub21O'' x1 : sub ([x2] O` x2) N2` O`'2)).
+
+%% rm-rr-permute %%
+
+-var        : rm-rr-permute-es T1 T2
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   
+                    : at-ofes (G x1 x2) x2 S)
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] rmsub/var : rmsub ([x2] x2) (N2 x1) (N2 x1))
+                  ([x2] rrsub/closed : rrsub ([x1] x2) N1 x2)
+%%
+                  DsubN1N2
+                  rmsub/var.
+
+-appclosed    : rm-rr-permute-es T1 T2
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   : at-ofes (G x1 x2) (app (Q x1 x2) (M x1 x2)) S)
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] rmsub/app
+                      (DsubM'O x1 : sub ([y] O x1 y) (M' x1) (O' x1))
+                      (DsubN2M x1 : sub ([x2] M x1 x2) (N2 x1) (M' x1))
+                      (DsubN2Q x1 : rmsub ([x2] Q x1 x2) (N2 x1) (lam [y] O x1 y)))
+                  ([x2] DsubN1R x2
+                    : rrsub ([x1] app (Q x1 x2) (M x1 x2)) N1 (app (Q` x2) (M` x2)))
+%%
+                    (Dsub21O'' aca)
+                    (rmsub/app (Dsub12O' aca) DsubN2`M` Dsub12Q)
+%%                    
+                    %% Invert to get typing and substitutions for applicands
+                 <- ({x2}
+                        app-rrsub-invert (DsubN1R x2)
+                        (DsubN1Q x2 : rrsub ([x1] Q x1 x2) N1 (Q` x2))
+                        (DsubN1M x2 : sub ([x1] M x1 x2) N1 (M` x2)))
+                 <- ({x1} {d1} {x2} {d2}
+                        app-ofes-invert (Dord x1 d1 x2 d2) (DofR x1 x2)
+                        (DofQ x1 x2 : at-ofes (G x1 x2) (Q x1 x2) (arrow S2 S))
+                        (DofM x1 x2 : ofes (G x1 x2) (M x1 x2) S2))
+                    %% By IH(3), [N1/x1] \y.O = [N2`/x2] Q` = \y.O`
+                 <- rm-rr-permute-es T1 T2
+                    Dord Dlook1 Dlook2 DofN1 DofN2 DofQ
+                    DsubN1N2 DsubN2Q DsubN1Q
+                    (sub/lam
+                        ([y] DsubN1O y : sub ([x1] O x1 y) N1 (O` y))
+                             : sub ([x1] lam [y] O x1 y) N1 (lam [y] O` y))
+                    (Dsub12Q : rmsub ([x2] Q` x2) N2` (lam [y] O` y))
+                    %% By IH(1), [N1/x1] M' = [N2`/x2] M` = M`'
+                 <- sub-permute-es T1 T2
+                    Dord Dlook1 Dlook2 DofN1 DofN2 DofM
+                    DsubN1N2 DsubN2M DsubN1M
+                    (DsubN1M'   : sub ([x1] M' x1) N1 M`')
+                    (DsubN2`M`  : sub ([x2] M` x2) N2` M`')
+                    %% Weaken everything with y
+                 <- ({x1} {d1}
+                        {x2} {d2}
+                        extend-sordered S2 (Dord x1 d1 x2 d2) J
+                        ([y] [e:isvar y J]
+                            Dord_y x1 d1 x2 d2 y e
+                          : sordered (scons (G x1 x2) y S2)))
+                 <- ({x1} {x2} {y}
+                        weaken-ofes (DofN1 x1 x2) y S2
+                        (DofN1_y x1 x2 y : ofes (scons (G x1 x2) y S2) N1 T1))
+                 <- ({x1} {x2} {y}
+                        weaken-ofes (DofN2 x1 x2) y S2
+                        (DofN2_y x1 x2 y : ofes (scons (G x1 x2) y S2) (N2 x1) T2))
+                 <- ({x1} {x2} {y}
+                        weaken-ofes (DofM x1 x2) y S2
+                        (DofM_y x1 x2 y : ofes (scons (G x1 x2) y S2) (M x1 x2) S2))
+                    %% Get typing derivations for the substitutions
+                 <- ({x1} {d1:isvar x1 I1} {y} {e:isvar y J}
+                        subst-es
+                        ([x2] [d2] Dord_y x1 d1 x2 d2 y e)
+                        ([x2] slookup/miss (Dlook2 x1 x2))
+                        ([x2] DofN2_y x1 x2 y)
+                        ([x2] DofM_y x1 x2 y)
+                        (DsubN2M x1)
+                        ([x2] DofM'_y x1 x2 y : ofes (scons (G x1 x2) y S2) (M' x1) S2))
+                    %% Get typing derivation for O
+                 <- ({x1} {d1:isvar x1 I1}
+                        rmsubst-es
+                        ([x2] [d2] Dord x1 d1 x2 d2)
+                        ([x2] Dlook2 x1 x2)
+                        ([x2] DofN2 x1 x2)
+                        ([x2] DofQ x1 x2)
+                        (DsubN2Q x1)
+                        ([x2] ofes/lam
+                            ([y] DofO x1 x2 y : ofes (scons (G x1 x2) y S2) (O x1 y) S)))
+                    %% Convince twelf that S2 <= T2
+                 <- ({x1}
+                        rmsub-headvar (DsubN2Q x1)
+                        (Dheadvar x1 : headvar ([x2] Q x1 x2)))
+                 <- ({x1} {d1:isvar x1 I1}
+                        headvar-stp-size
+                        ([x2] [d2] Dord x1 d1 x2 d2)
+                        ([x2] Dlook2 x1 x2)
+                        ([x2] DofQ x1 x2)
+                        (Dheadvar x1)
+                        (Dleq : stp-leq (arrow S2 S) T2))
+                 <- employ-stp-leq (arrow S2 S) T2 Dleq
+                    %% By IH(1), [N1/x1]O' = [M`'/y] O` = O`'
+                 <- ({x2} {d2:isvar x2 I2}
+                        sub-permute-es T1 S2
+                        ([x1] [d1] [y] [e] Dord_y x1 d1 x2 d2 y e)
+                        ([x1] [y] slookup/miss (Dlook1 x1 x2))
+                        ([x1] [y] slookup/hit)
+                        ([x1] [y] DofN1_y x1 x2 y)
+                        ([x1] [y] DofM'_y x1 x2 y)
+                        ([x1] [y] DofO x1 x2 y)
+                        DsubN1M' DsubM'O DsubN1O
+                        (Dsub21O x2 : sub ([x1] O' x1) N1 (O`' x2))
+                        (Dsub12O x2 : sub ([y] O` y) M`' (O`' x2)))
+                    %% Clean up extraneous variable
+                 <- sub-closed ([x2] Dsub21O x2)
+                    ([x2] Deq1 x2 : tm-eq (O`' x2) O`'1)
+                 <- sub-closed ([x2] Dsub12O x2)
+                    ([x2] Deq2 x2 : tm-eq (O`' x2) O`'2)
+                 <- ({x2}
+                        tm-eq-fun (Deq1 x2) (Deq2 x2)
+                        (Deq x2 : tm-eq O`'1 O`'2))
+                 <- ({x2}
+                        sub-compat ([_] tm-eq/i) tm-eq/i (Deq1 x2) (Dsub21O x2)
+                        (Dsub21O' x2 : sub ([x1] O' x1) N1 O`'1))
+                 <- ({x2}
+                        sub-compat ([_] tm-eq/i) tm-eq/i (Deq2 x2) (Dsub12O x2)
+                        (Dsub12O' x2 : sub ([y] O` y) M`' O`'2))
+                 <- ({x2}
+                        sub-compat ([_] tm-eq/i) tm-eq/i (Deq x2) (Dsub21O' x2)
+                        (Dsub21O'' x2 : sub ([x1] O' x1) N1 O`'2)).
+
+
+%% rm-rr-permute' %%
+
+-var        : rm-rr-permute-es' T1 T2
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   
+                    : at-ofes (G x1 x2) x2 S)
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] rmsub/var : rmsub ([x2] x2) (N2 x1) (N2 x1))
+                  ([x2] rrsub/closed : rrsub ([x1] x2) N1 x2)
+%%
+                  DsubN1N2
+                  rmsub/var.
+
+-appclosed    : rm-rr-permute-es' T1 T2
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofR x1 x2   : at-ofes (G x1 x2) (app (Q x1 x2) (M x1 x2)) S)
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] rmsub/app
+                      (DsubM'O x1 : sub ([y] O x1 y) (M' x1) (O' x1))
+                      (DsubN2M x1 : sub ([x2] M x1 x2) (N2 x1) (M' x1))
+                      (DsubN2Q x1 : rmsub ([x2] Q x1 x2) (N2 x1) (lam [y] O x1 y)))
+                  ([x2] DsubN1R x2
+                    : rrsub ([x1] app (Q x1 x2) (M x1 x2)) N1 (app (Q` x2) (M` x2)))
+%%
+                    (Dsub21O'' aca)
+                    (rmsub/app (Dsub12O' aca) DsubN2`M` Dsub12Q)
+%%                    
+                    %% Invert to get typing and substitutions for applicands
+                 <- ({x2}
+                        app-rrsub-invert (DsubN1R x2)
+                        (DsubN1Q x2 : rrsub ([x1] Q x1 x2) N1 (Q` x2))
+                        (DsubN1M x2 : sub ([x1] M x1 x2) N1 (M` x2)))
+                 <- ({x1} {d1} {x2} {d2}
+                        app-ofes-invert (Dord x1 d1 x2 d2) (DofR x1 x2)
+                        (DofQ x1 x2 : at-ofes (G x1 x2) (Q x1 x2) (arrow S2 S))
+                        (DofM x1 x2 : ofes (G x1 x2) (M x1 x2) S2))
+                    %% By IH(3), [N1/x1] \y.O = [N2`/x2] Q` = \y.O`
+                 <- rm-rr-permute-es' T1 T2
+                    Dord Dlook1 Dlook2 DofN1 DofN2 DofQ
+                    DsubN1N2 DsubN2Q DsubN1Q
+                    (sub/lam
+                        ([y] DsubN1O y : sub ([x1] O x1 y) N1 (O` y))
+                             : sub ([x1] lam [y] O x1 y) N1 (lam [y] O` y))
+                    (Dsub12Q : rmsub ([x2] Q` x2) N2` (lam [y] O` y))
+                    %% By IH(1), [N1/x1] M' = [N2`/x2] M` = M`'
+                 <- sub-permute-es' T1 T2
+                    Dord Dlook1 Dlook2 DofN1 DofN2 DofM
+                    DsubN1N2 DsubN2M DsubN1M
+                    (DsubN1M'   : sub ([x1] M' x1) N1 M`')
+                    (DsubN2`M`  : sub ([x2] M` x2) N2` M`')
+                    %% Weaken everything with y
+                 <- ({x1} {d1}
+                        {x2} {d2}
+                        extend-sordered S2 (Dord x1 d1 x2 d2) J
+                        ([y] [e:isvar y J]
+                            Dord_y x1 d1 x2 d2 y e
+                          : sordered (scons (G x1 x2) y S2)))
+                 <- ({x1} {x2} {y}
+                        weaken-ofes (DofN1 x1 x2) y S2
+                        (DofN1_y x1 x2 y : ofes (scons (G x1 x2) y S2) N1 T1))
+                 <- ({x1} {x2} {y}
+                        weaken-ofes (DofN2 x1 x2) y S2
+                        (DofN2_y x1 x2 y : ofes (scons (G x1 x2) y S2) (N2 x1) T2))
+                 <- ({x1} {x2} {y}
+                        weaken-ofes (DofM x1 x2) y S2
+                        (DofM_y x1 x2 y : ofes (scons (G x1 x2) y S2) (M x1 x2) S2))
+                    %% Get typing derivations for the substitutions
+                 <- ({x1} {d1:isvar x1 I1} {y} {e:isvar y J}
+                        subst-es
+                        ([x2] [d2] Dord_y x1 d1 x2 d2 y e)
+                        ([x2] slookup/miss (Dlook2 x1 x2))
+                        ([x2] DofN2_y x1 x2 y)
+                        ([x2] DofM_y x1 x2 y)
+                        (DsubN2M x1)
+                        ([x2] DofM'_y x1 x2 y : ofes (scons (G x1 x2) y S2) (M' x1) S2))
+                    %% Get typing derivation for O
+                 <- ({x1} {d1:isvar x1 I1}
+                        rmsubst-es
+                        ([x2] [d2] Dord x1 d1 x2 d2)
+                        ([x2] Dlook2 x1 x2)
+                        ([x2] DofN2 x1 x2)
+                        ([x2] DofQ x1 x2)
+                        (DsubN2Q x1)
+                        ([x2] ofes/lam
+                            ([y] DofO x1 x2 y : ofes (scons (G x1 x2) y S2) (O x1 y) S)))
+                    %% Convince twelf that S2 <= T2
+                 <- ({x1}
+                        rmsub-headvar (DsubN2Q x1)
+                        (Dheadvar x1 : headvar ([x2] Q x1 x2)))
+                 <- ({x1} {d1:isvar x1 I1}
+                        headvar-stp-size
+                        ([x2] [d2] Dord x1 d1 x2 d2)
+                        ([x2] Dlook2 x1 x2)
+                        ([x2] DofQ x1 x2)
+                        (Dheadvar x1)
+                        (Dleq : stp-leq (arrow S2 S) T2))
+                 <- employ-stp-leq (arrow S2 S) T2 Dleq
+                    %% By IH(1), [N1/x1]O' = [M`'/y] O` = O`'
+                 <- ({x2} {d2:isvar x2 I2}
+                        sub-permute-es' T1 S2
+                        ([x1] [d1] [y] [e] Dord_y x1 d1 x2 d2 y e)
+                        ([x1] [y] slookup/miss (Dlook1 x1 x2))
+                        ([x1] [y] slookup/hit)
+                        ([x1] [y] DofN1_y x1 x2 y)
+                        ([x1] [y] DofM'_y x1 x2 y)
+                        ([x1] [y] DofO x1 x2 y)
+                        DsubN1M' DsubM'O DsubN1O
+                        (Dsub21O x2 : sub ([x1] O' x1) N1 (O`' x2))
+                        (Dsub12O x2 : sub ([y] O` y) M`' (O`' x2)))
+                    %% Clean up extraneous variable
+                 <- sub-closed ([x2] Dsub21O x2)
+                    ([x2] Deq1 x2 : tm-eq (O`' x2) O`'1)
+                 <- sub-closed ([x2] Dsub12O x2)
+                    ([x2] Deq2 x2 : tm-eq (O`' x2) O`'2)
+                 <- ({x2}
+                        tm-eq-fun (Deq1 x2) (Deq2 x2)
+                        (Deq x2 : tm-eq O`'1 O`'2))
+                 <- ({x2}
+                        sub-compat ([_] tm-eq/i) tm-eq/i (Deq1 x2) (Dsub21O x2)
+                        (Dsub21O' x2 : sub ([x1] O' x1) N1 O`'1))
+                 <- ({x2}
+                        sub-compat ([_] tm-eq/i) tm-eq/i (Deq2 x2) (Dsub12O x2)
+                        (Dsub12O' x2 : sub ([y] O` y) M`' O`'2))
+                 <- ({x2}
+                        sub-compat ([_] tm-eq/i) tm-eq/i (Deq x2) (Dsub21O' x2)
+                        (Dsub21O'' x2 : sub ([x1] O' x1) N1 O`'2)).
+                 
+
+%worlds (csig | asig | var | bind | ovar | evar) 
+  (sub-permute-es    _ _ _ _ _ _ _ _ _ _ _ _ _)
+  (sub-permute-es'   _ _ _ _ _ _ _ _ _ _ _ _ _)
+  (rr-rr-permute-es  _ _ _ _ _ _ _ _ _ _ _ _ _)
+  (rr-rr-permute-es' _ _ _ _ _ _ _ _ _ _ _ _ _)
+  (rr-rm-permute-es  _ _ _ _ _ _ _ _ _ _ _ _ _)
+  (rr-rm-permute-es' _ _ _ _ _ _ _ _ _ _ _ _ _)
+  (rm-rr-permute-es  _ _ _ _ _ _ _ _ _ _ _ _ _)
+  (rm-rr-permute-es' _ _ _ _ _ _ _ _ _ _ _ _ _).
+%total {(S1 S1' S2 S2' S3 S3' S4 S4') 
+        (T1 T1' T2 T2' T3 T3' T4 T4') 
+        (D1 D1' D2 D2' D3 D3' D4 D4')} 
+  (sub-permute-es    S1   T1  _ _ _ _ _ _ _ D1  _ _ _)
+  (sub-permute-es'   T1'  S1' _ _ _ _ _ _ _ D1' _ _ _)
+  (rr-rr-permute-es  S2   T2  _ _ _ _ _ _ _ D2  _ _ _)
+  (rr-rr-permute-es' T2'  S2' _ _ _ _ _ _ _ D2' _ _ _)
+  (rr-rm-permute-es  S3   T3  _ _ _ _ _ _ _ D3  _ _ _)
+  (rr-rm-permute-es' T3'  S3' _ _ _ _ _ _ _ D3' _ _ _)
+  (rm-rr-permute-es  S4   T4  _ _ _ _ _ _ _ D4  _ _ _)
+  (rm-rr-permute-es' T4'  S4' _ _ _ _ _ _ _ D4' _ _ _).
+
+
+atpsub-permute-es : {T1} {T2}
+                       ({x1} isvar x1 I1 -> {x2} isvar x2 I2 -> sordered (G x1 x2))
+                    -> ({x1} {x2} slookup (G x1 x2) x1 T1)
+                    -> ({x1} {x2} slookup (G x1 x2) x2 T2)
+                    -> ({x1} {x2} ofes (G x1 x2) N1 T1)
+                    -> ({x1} {x2} ofes (G x1 x2) (N2 x1) T2)
+                    -> ({x1} {x2} at-kofes (G x1 x2) (P x1 x2) H)
+%%
+                    -> sub ([x1] N2 x1) N1 N2`
+                    -> ({x1} atpsub ([x2] P x1 x2) (N2 x1) (P' x1))
+                    -> ({x2} atpsub ([x1] P x1 x2) N1 (P` x2))
+%%
+                    -> atpsub ([x1] P' x1) N1 P`'
+                    -> atpsub ([x2] P` x2) N2` P`' -> type.
+%mode atpsub-permute-es +T1 +T2 +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+tpsub-permute-es : {T1} {T2}
+                       ({x1} isvar x1 I1 -> {x2} isvar x2 I2 -> sordered (G x1 x2))
+                    -> ({x1} {x2} slookup (G x1 x2) x1 T1)
+                    -> ({x1} {x2} slookup (G x1 x2) x2 T2)
+                    -> ({x1} {x2} ofes (G x1 x2) N1 T1)
+                    -> ({x1} {x2} ofes (G x1 x2) (N2 x1) T2)
+                    -> ({x1} {x2} kofes (G x1 x2) (B x1 x2) H)
+%%
+                    -> sub ([x1] N2 x1) N1 N2`
+                    -> ({x1} tpsub ([x2] B x1 x2) (N2 x1) (B' x1))
+                    -> ({x2} tpsub ([x1] B x1 x2) N1 (B` x2))
+%%
+                    -> tpsub ([x1] B' x1) N1 B`'
+                    -> tpsub ([x2] B` x2) N2` B`' -> type.
+%mode tpsub-permute-es +T1 +T2 +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+-closed     : atpsub-permute-es T1 T2
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] DofP x1 x2   : at-kofes (G x1 x2) (P x1) H)
+%%
+                  (DsubN1N2           : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] atpsub/closed : atpsub ([x2] P x1) (N2 x1) (P x1))
+                  ([x2] DsubN1P x2    : atpsub ([x1] P x1) N1 (P` x2))
+%%
+                  (DsubN1P' aca)
+                  DsubN2P`
+%%
+               <- atpsub-closed ([x2] DsubN1P x2)
+                  ([x2] Deq x2 : atp-eq (P` x2) P``)
+               <- ({x2}
+                      atpsub-compat ([_] atp-eq/i) tm-eq/i (Deq x2) (DsubN1P x2)
+                      (DsubN1P' x2 : atpsub ([x1] P x1) N1 P``))
+               <- ({x2}
+                      atp-eq-sym (Deq x2)
+                      (Deq' x2 : atp-eq P`` (P` x2)))
+               <- atpsub-compat ([x2] Deq' x2) tm-eq/i atp-eq/i
+                  (atpsub/closed : atpsub ([x2] P``) N2` P``)
+                  (DsubN2P` : atpsub ([x2] P` x2) N2` P``).
+
+-appclosed  : atpsub-permute-es T1 T2  % app P N
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] Datkofes x1 x2   
+                    : at-kofes (G x1 x2) (aapp (P x2) (M x2)) H)
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1]
+                      atpsub/app
+                      (DsubN2M x1 : sub ([x2] M x2) (N2 x1) (M' x1))
+                      (DsubN2P x1 : atpsub ([x2] P x2) (N2 x1) (P' x1)))
+                  ([x2]
+                      atpsub/closed
+                    : atpsub ([x1] aapp (P x2) (M x2)) N1 (aapp (P x2) (M x2)))
+%%
+                  (atpsub/app Dsub21M Dsub21P)
+                  (atpsub/app Dsub12M Dsub12P)
+%%
+               <- ({x2}
+                      sub-absent (M x2) N1
+                      (DsubN1M x2 : sub ([x1] M x2) N1 (M x2)))
+               <- ({x1} {d1} {x2} {d2}
+                      aapp-kofes-invert (Dord x1 d1 x2 d2) (Datkofes x1 x2)
+                      (DofP x1 x2 : at-kofes (G x1 x2) (P x2) (karrow S2 H'))
+                      (DofM x1 x2 : ofes (G x1 x2) (M x2) S2))
+               <- atpsub-permute-es T1 T2
+                  Dord Dlook1 Dlook2 DofN1 DofN2 DofP
+                  DsubN1N2 DsubN2P ([_] atpsub/closed)
+                  (Dsub21P : atpsub ([x1] P' x1) N1 P`')
+                  (Dsub12P : atpsub ([x2] P x2) N2` P`')
+               <- sub-permute-es T1 T2
+                  Dord Dlook1 Dlook2 DofN1 DofN2 DofM
+                  DsubN1N2 DsubN2M DsubN1M
+                  (Dsub21M : sub ([x1] M' x1) N1 M`')
+                  (Dsub12M : sub ([x2] M x2) N2` M`').
+
+-app        : atpsub-permute-es T1 T2  % app P N
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] Datkofes x1 x2   
+                    : at-kofes (G x1 x2) (aapp (P x1 x2) (M x1 x2)) H)
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1]
+                      atpsub/app
+                      (DsubN2M x1 : sub ([x2] M x1 x2) (N2 x1) (M' x1))
+                      (DsubN2P x1 : atpsub ([x2] P x1 x2) (N2 x1) (P' x1))
+                    : atpsub ([x2] aapp (P x1 x2) (M x1 x2)) (N2 x1)
+                      (aapp (P' x1) (M' x1)))
+                  ([x2]
+                      atpsub/app
+                      (DsubN1M x2 : sub ([x1] M x1 x2) N1 (M` x2))
+                      (DsubN1P x2 : atpsub ([x1] P x1 x2) N1 (P` x2))
+                    : atpsub ([x1] aapp (P x1 x2) (M x1 x2)) N1
+                      (aapp (P` x2) (M` x2)))
+%%
+                  (atpsub/app Dsub21M Dsub21P)
+                  (atpsub/app Dsub12M Dsub12P)
+%%
+               <- ({x1} {d1} {x2} {d2}
+                      aapp-kofes-invert (Dord x1 d1 x2 d2) (Datkofes x1 x2)
+                      (DofP x1 x2 : at-kofes (G x1 x2) (P x1 x2) (karrow S2 H'))
+                      (DofM x1 x2 : ofes (G x1 x2) (M x1 x2) S2))
+               <- atpsub-permute-es T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofP
+                  DsubN1N2 DsubN2P DsubN1P
+                  (Dsub21P : atpsub ([x1] P' x1) N1 P`')
+                  (Dsub12P : atpsub ([x2] P` x2) N2` P`')
+               <- sub-permute-es T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofM
+                  DsubN1N2 DsubN2M DsubN1M
+                  (Dsub21M : sub ([x1] M' x1) N1 M`')
+                  (Dsub12M : sub ([x2] M` x2) N2` M`').
+
+-base       : tpsub-permute-es T1 T2
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] kofes/base
+                      (DofP x1 x2   : at-kofes (G x1 x2) (P x1 x2) sktype))
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] tpsub/base 
+                      (DatpsubN2P x1 : atpsub ([x2] P x1 x2) (N2 x1) (P' x1)))
+                  ([x2] tpsub/base
+                      (DatpsubN1P x2 : atpsub ([x1] P x1 x2) N1 (P` x2)))
+%%
+                  (tpsub/base Datpsub21)
+                  (tpsub/base Datpsub12)
+%%
+               <- atpsub-permute-es T1 T2 Dord Dlook1 Dlook2 DofN1 DofN2 DofP
+                  DsubN1N2 DatpsubN2P DatpsubN1P
+                  (Datpsub21 : atpsub ([x1] P' x1) N1 P`')
+                  (Datpsub12 : atpsub ([x2] P` x2) N2` P`').
+
+-pi         : tpsub-permute-es T1 T2  % pi x:A.B
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 
+                    : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] kofes/pi
+                      ([y] DkofesB x1 x2 y 
+                        : kofes (scons (G x1 x2) y S) (B x1 x2 y) sktype)
+                      (DsimpAS x1 x2 : simp (A x1 x2) S)
+                      (DkofesA x1 x2 : kofes (G x1 x2) (A x1 x2) sktype))
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] tpsub/pi
+                      ([y] DsubN2B x1 y
+                        : tpsub ([x2] B x1 x2 y) (N2 x1) (B' x1 y))
+                      (DsubN2A x1
+                        : tpsub ([x2] A x1 x2) (N2 x1) (A' x1)))
+                  ([x2] tpsub/pi
+                      ([y] DsubN1B x2 y
+                        : tpsub ([x1] B x1 x2 y) N1 (B` x2 y))
+                      (DsubN1A x2
+                        : tpsub ([x1] A x1 x2) N1 (A` x2)))
+%%
+                  (tpsub/pi ([y] Dsub21B y) Dsub21A)
+                  (tpsub/pi ([y] Dsub12B y) Dsub12A)
+%%
+               <- tpsub-permute-es T1 T2
+                  Dord Dlook1 Dlook2 DofN1 DofN2 DkofesA
+                  DsubN1N2 DsubN2A DsubN1A
+                  (Dsub21A : tpsub ([x1] A' x1) N1 A`')
+                  (Dsub12A : tpsub ([x2] A` x2) N2` A`')
+               <- ({x1} {d1} {x2} {d2}
+                      extend-sordered S (Dord x1 d1 x2 d2) _
+                      ([y] [e:isvar y _] Dord' x1 d1 x2 d2 y e
+                        : sordered (scons (G x1 x2) y S)))
+               <- ({x1} {x2} {y}
+                      weaken-slookup (Dlook1 x1 x2) y S
+                      (Dlook1' x1 x2 y
+                        : slookup (scons (G x1 x2) y S) x1 T1))
+               <- ({x1} {x2} {y}
+                      weaken-slookup (Dlook2 x1 x2) y S
+                      (Dlook2' x1 x2 y
+                        : slookup (scons (G x1 x2) y S) x2 T2))
+               <- ({x1} {x2} {y}
+                      weaken-ofes (DofN1 x1 x2) y S
+                      (DofN1' x1 x2 y
+                        : ofes (scons (G x1 x2) y S) N1 T1))
+               <- ({x1} {x2} {y}
+                      weaken-ofes (DofN2 x1 x2) y S
+                      (DofN2' x1 x2 y
+                        : ofes (scons (G x1 x2) y S) (N2 x1) T2))
+               <- ({y} {e}
+                      tpsub-permute-es T1 T2
+                      ([x1] [d1] [x2] [d2] Dord' x1 d1 x2 d2 y e)
+                      ([x1] [x2] Dlook1' x1 x2 y)
+                      ([x1] [x2] Dlook2' x1 x2 y)
+                      ([x1] [x2] DofN1' x1 x2 y)
+                      ([x1] [x2] DofN2' x1 x2 y)
+                      ([x1] [x2] DkofesB x1 x2 y)
+                      DsubN1N2 ([x1] DsubN2B x1 y) ([x2] DsubN1B x2 y)
+                      (Dsub21B y : tpsub ([x1] B' x1 y) N1 (B`' y))
+                      (Dsub12B y : tpsub ([x2] B` x2 y) N2` (B`' y))).
+
+-alam   : tpsub-permute-es  T1 T2  %% M = (alam [y] B y) : (S -> H)
+              ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 
+                                      : sordered (G x1 x2))
+              ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+              ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+              ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+              ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+              ([x1] [x2] kofes/lam 
+                  ([y] DofB x1 x2 y
+                    : kofes (scons (G x1 x2) y S) (B x1 x2 y) H))
+%%
+              (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+              ([x1] tpsub/lam
+                  ([y] DsubN2B x1 y
+                    : tpsub ([x2] B x1 x2 y) (N2 x1) (B' x1 y))
+                : tpsub ([x2] alam [y] B x1 x2 y) (N2 x1) 
+                  (alam [y] B' x1 y))
+              ([x2] tpsub/lam 
+                  ([y] DsubN1B x2 y
+                    : tpsub ([x1] B x1 x2 y) N1 (B` x2 y))
+                : tpsub ([x1] alam [y] B x1 x2 y) N1 (alam [y] B` x2 y))
+%%
+              (tpsub/lam Dsub21)
+              (tpsub/lam Dsub12)
+%%              
+           <- ({x1} {d1} 
+                  {x2} {d2}
+                    extend-sordered S (Dord x1 d1 x2 d2) _
+                    ([y] [e:isvar y J] Dord' x1 d1 x2 d2 y e 
+                        : sordered (scons (G x1 x2) y S)))
+           <- ({x1} {x2} {y}
+                  weaken-slookup (Dlook1 x1 x2) y S
+                  (Dlook1' x1 x2 y 
+                    : slookup (scons (G x1 x2) y S) x1 T1))
+           <- ({x1} {x2} {y}
+                  weaken-slookup (Dlook2 x1 x2) y S
+                  (Dlook2' x1 x2 y
+                    : slookup (scons (G x1 x2) y S) x2 T2))
+           <- ({x1} {x2} {y}
+                  weaken-ofes (DofN1 x1 x2) y S
+                  (DofN1' x1 x2 y
+                    : ofes (scons (G x1 x2) y S) N1 T1))
+           <- ({x1} {x2} {y}
+                  weaken-ofes (DofN2 x1 x2) y S
+                  (DofN2' x1 x2 y
+                    : ofes (scons (G x1 x2) y S) (N2 x1) T2))
+           <- ({y} {e}
+                  tpsub-permute-es T1 T2 
+                  ([x1] [d1] [x2] [d2] Dord' x1 d1 x2 d2 y e) 
+                  ([x1] [x2] Dlook1' x1 x2 y)
+                  ([x1] [x2] Dlook2' x1 x2 y)
+                  ([x1] [x2] DofN1' x1 x2 y)
+                  ([x1] [x2] DofN2' x1 x2 y)
+                  ([x1] [x2] DofB x1 x2 y)
+                  DsubN1N2 ([x1] DsubN2B x1 y) ([x2] DsubN1B x2 y)
+                  (Dsub21 y : tpsub ([x1] B' x1 y) N1 (B`' y))
+                  (Dsub12 y : tpsub ([x2] B` x2 y) N2` (B`' y))).
+
+%worlds (csig | asig | var | bind | ovar) 
+  (atpsub-permute-es _ _ _ _ _ _ _ _ _ _ _ _ _)
+  (tpsub-permute-es  _ _ _ _ _ _ _ _ _ _ _ _ _).
+%total {(S1 S2) (T1 T2) (D1 D2)} 
+  (atpsub-permute-es S1 T1 _ _ _ _ _ _ _ D1 _ _ _)
+  (tpsub-permute-es  S2 T2 _ _ _ _ _ _ _ D2 _ _ _).
+
+
+
+ksub-permute-es : {T1} {T2}
+                       ({x1} isvar x1 I1 -> {x2} isvar x2 I2 -> sordered (G x1 x2))
+                    -> ({x1} {x2} slookup (G x1 x2) x1 T1)
+                    -> ({x1} {x2} slookup (G x1 x2) x2 T2)
+                    -> ({x1} {x2} ofes (G x1 x2) N1 T1)
+                    -> ({x1} {x2} ofes (G x1 x2) (N2 x1) T2)
+                    -> ({x1} {x2} wfkindes (G x1 x2) (K x1 x2))
+%%
+                    -> sub ([x1] N2 x1) N1 N2`
+                    -> ({x1} ksub ([x2] K x1 x2) (N2 x1) (K' x1))
+                    -> ({x2} ksub ([x1] K x1 x2) N1 (K` x2))
+%%
+                    -> ksub ([x1] K' x1) N1 K`'
+                    -> ksub ([x2] K` x2) N2` K`' -> type.
+%mode ksub-permute-es +T1 +T2 +X0 +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+-ktype      : ksub-permute-es T1 T2
+                  _ _ _ _ _ ([x1] [x2] wfkindes/type) _
+                  ([x1] ksub/type) ([x2] ksub/type)
+%%
+                  ksub/type
+                  ksub/type.
+
+-kpi        : ksub-permute-es T1 T2  % kpi x:A.K
+                  ([x1] [d1] [x2] [d2] Dord x1 d1 x2 d2 : sordered (G x1 x2))
+                  ([x1] [x2] Dlook1 x1 x2 : slookup (G x1 x2) x1 T1)
+                  ([x1] [x2] Dlook2 x1 x2 : slookup (G x1 x2) x2 T2)
+                  ([x1] [x2] DofN1 x1 x2  : ofes (G x1 x2) N1 T1)
+                  ([x1] [x2] DofN2 x1 x2  : ofes (G x1 x2) (N2 x1) T2)
+                  ([x1] [x2] wfkindes/pi
+                      ([y] DwfkindesK x1 x2 y 
+                        : wfkindes (scons (G x1 x2) y S) (K x1 x2 y))
+                      (DsimpAS x1 x2 : simp (A x1 x2) S)
+                      (DkofesA x1 x2 : kofes (G x1 x2) (A x1 x2) sktype))
+%%
+                  (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+                  ([x1] ksub/pi
+                      ([y] DsubN2K x1 y
+                        : ksub ([x2] K x1 x2 y) (N2 x1) (K' x1 y))
+                      (DsubN2A x1
+                        : tpsub ([x2] A x1 x2) (N2 x1) (A' x1)))
+                  ([x2] ksub/pi
+                      ([y] DsubN1K x2 y
+                        : ksub ([x1] K x1 x2 y) N1 (K` x2 y))
+                      (DsubN1A x2
+                        : tpsub ([x1] A x1 x2) N1 (A` x2)))
+%%
+                  (ksub/pi ([y] Dsub21K y) Dsub21A)
+                  (ksub/pi ([y] Dsub12K y) Dsub12A)
+%%
+               <- tpsub-permute-es T1 T2
+                  Dord Dlook1 Dlook2 DofN1 DofN2 DkofesA
+                  DsubN1N2 DsubN2A DsubN1A
+                  (Dsub21A : tpsub ([x1] A' x1) N1 A`')
+                  (Dsub12A : tpsub ([x2] A` x2) N2` A`')
+               <- ({x1} {d1} {x2} {d2}
+                      extend-sordered S (Dord x1 d1 x2 d2) _
+                      ([y] [e:isvar y _] Dord' x1 d1 x2 d2 y e
+                        : sordered (scons (G x1 x2) y S)))
+               <- ({x1} {x2} {y}
+                      weaken-slookup (Dlook1 x1 x2) y S
+                      (Dlook1' x1 x2 y
+                        : slookup (scons (G x1 x2) y S) x1 T1))
+               <- ({x1} {x2} {y}
+                      weaken-slookup (Dlook2 x1 x2) y S
+                      (Dlook2' x1 x2 y
+                        : slookup (scons (G x1 x2) y S) x2 T2))
+               <- ({x1} {x2} {y}
+                      weaken-ofes (DofN1 x1 x2) y S
+                      (DofN1' x1 x2 y
+                        : ofes (scons (G x1 x2) y S) N1 T1))
+               <- ({x1} {x2} {y}
+                      weaken-ofes (DofN2 x1 x2) y S
+                      (DofN2' x1 x2 y
+                        : ofes (scons (G x1 x2) y S) (N2 x1) T2))
+               <- ({y} {e}
+                      ksub-permute-es T1 T2
+                      ([x1] [d1] [x2] [d2] Dord' x1 d1 x2 d2 y e)
+                      ([x1] [x2] Dlook1' x1 x2 y)
+                      ([x1] [x2] Dlook2' x1 x2 y)
+                      ([x1] [x2] DofN1' x1 x2 y)
+                      ([x1] [x2] DofN2' x1 x2 y)
+                      ([x1] [x2] DwfkindesK x1 x2 y)
+                      DsubN1N2 ([x1] DsubN2K x1 y) ([x2] DsubN1K x2 y)
+                      (Dsub21K y : ksub ([x1] K' x1 y) N1 (K`' y))
+                      (Dsub12K y : ksub ([x2] K` x2 y) N2` (K`' y))).
+
+%worlds (csig | asig | var | bind | ovar) (ksub-permute-es _ _ _ _ _ _ _ _ _ _ _ _ _).
+%total {S1 D1} (ksub-permute-es S1 T1 _ _ _ _ _ _ _ D1 _ _ _).
+
+%% a version of simple subst permutation that looks more like tpsub-permute-e
+tpsub-permute-es' : ({x1} isvar x1 I -> sordered (G x1))
+                   -> ({x1} sappend (scons G1 x1 T1) (G2 x1) (G x1))
+                   -> ofes G1 N1 T1
+                   -> ({x1} ofes (G x1) (N2 x1) T2)
+                   -> ({x1} {x2} kofes (scons (G x1) x2 T2) (B x1 x2) H)
+%%
+                   -> sub ([x1] N2 x1) N1 N2`
+                   -> ({x1} tpsub ([x2] B x1 x2) (N2 x1) (B' x1))
+                   -> ({x2} tpsub ([x1] B x1 x2) N1 (B` x2))
+%%
+                   -> tpsub ([x1] B' x1) N1 B`'
+                   -> tpsub ([x2] B` x2) N2` B`' -> type.
+%mode tpsub-permute-es' +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+-       : tpsub-permute-es'
+              ([x1] [d1 : isvar x1 I1]
+                  Dord x1 d1 : sordered (G x1))
+              ([x1]
+                  Dappend x1 : sappend (scons G1 x1 T1) (G2 x1) (G x1))
+              (DofN1 : ofes G1 N1 T1)
+              ([x1]
+                  DofN2 x1 : ofes (G x1) (N2 x1) T2)
+              ([x1] [x2]
+                  DofB x1 x2 : kofes (scons (G x1) x2 T2) (B x1 x2) H)
+              (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+              ([x1]
+                  DsubN2B x1 : tpsub ([x2] B x1 x2) (N2 x1) (B' x1))
+              ([x2]
+                  DsubN1B x2 : tpsub ([x1] B x1 x2) N1 (B` x2))
+%%
+              DsubB21
+              DsubB12
+%%
+             %% come up with the ordered
+           <- ({x1} {d1}
+                  extend-sordered _ (Dord x1 d1) _
+                  ([x2] [d2] Dord' x1 d1 x2 d2
+                    : sordered (scons (G x1) x2 T2)))
+             %% come up with the lookup
+           <- ({x1} 
+                  sappend-slookup (Dappend x1)
+                  (Dlookup x1 : slookup (G x1) x1 T1))
+             %% weaken DofN1
+           <- ({x1}
+                  weaken-ofes DofN1 _ _
+                  (DofN1' x1 : ofes (scons G1 x1 T1) N1 T1))
+           <- ({x1}
+                  weaken-ofes' (Dappend x1) (DofN1' x1)
+                  (DofN1'' x1 : ofes (G x1) N1 T1))
+           <- ({x1} {x2}
+                  weaken-ofes (DofN1'' x1) _ _
+                  (DofN1''' x1 x2 : ofes (scons (G x1) x2 T2) N1 T1))
+              %% weaken DofN2
+           <- ({x1} {x2}
+                  weaken-ofes (DofN2 x1) _ _
+                  (DofN2' x1 x2 : ofes (scons (G x1) x2 T2) (N2 x1) T2))
+              %% go
+           <- tpsub-permute-es T1 T2
+              ([x1] [d1] [x2] [d2] Dord' x1 d1 x2 d2)
+              ([x1] [x2] slookup/miss (Dlookup x1))
+              ([x1] [x2] slookup/hit)
+              DofN1''' DofN2' DofB
+              DsubN1N2 DsubN2B DsubN1B
+              (DsubB21 : tpsub ([x1] B' x1) N1 B`')
+              (DsubB12 : tpsub ([x2] B` x2) N2` B`').
+
+%worlds (csig | asig | var | bind | ovar) (tpsub-permute-es' _ _ _ _ _ _ _ _ _ _).
+%total {} (tpsub-permute-es' _ _ _ _ _ _ _ _ _ _).
+
+ksub-permute-es'  : ({x1} isvar x1 I -> sordered (G x1))
+                     -> ({x1} sappend (scons G1 x1 T1) (G2 x1) (G x1))
+                     -> ofes G1 N1 T1
+                     -> ({x1} ofes (G x1) (N2 x1) T2)
+                     -> ({x1} {x2} wfkindes (scons (G x1) x2 T2) (K x1 x2))
+%%
+                     -> sub ([x1] N2 x1) N1 N2`
+                     -> ({x1} ksub ([x2] K x1 x2) (N2 x1) (K' x1))
+                     -> ({x2} ksub ([x1] K x1 x2) N1 (K` x2))
+%%
+                     -> ksub ([x1] K' x1) N1 K`'
+                     -> ksub ([x2] K` x2) N2` K`' -> type.
+%mode ksub-permute-es' +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+-       : ksub-permute-es'
+              ([x1] [d1] Dord x1 d1 : sordered (G x1))
+              ([x1] Dappend x1 : sappend (scons G1 x1 T1) (G2 x1) (G x1))
+              (DofN1 : ofes G1 N1 T1)
+              ([x1] DofN2 x1 : ofes (G x1) (N2 x1) T2)
+              ([x1] [x2] DofK x1 x2 : wfkindes (scons (G x1) x2 T2) (K x1 x2))
+              (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+              ([x1] DsubN2K x1 : ksub ([x2] K x1 x2) (N2 x1) (K' x1))
+              ([x2] DsubN1K x2 : ksub ([x1] K x1 x2) N1 (K` x2))
+%%
+              DsubK21
+              DsubK12
+%%
+              %% come up with the ordered
+           <- ({x1} {d1}
+                  extend-sordered _ (Dord x1 d1) _
+                  ([x2] [d2] Dord' x1 d1 x2 d2
+                    : sordered (scons (G x1) x2 T2)))
+              %% come up with the lookup
+           <- ({x1}
+                  sappend-slookup (Dappend x1)
+                  (Dlookup x1 : slookup (G x1) x1 T1))
+              %% weaken DofN1
+           <- ({x1}
+                  weaken-ofes DofN1 _ _
+                  (DofN1' x1 : ofes (scons G1 x1 T1) N1 T1))
+           <- ({x1}
+                  weaken-ofes' (Dappend x1) (DofN1' x1)
+                  (DofN1'' x1 : ofes (G x1) N1 T1))
+           <- ({x1} {x2}
+                  weaken-ofes (DofN1'' x1) _ _
+                  (DofN1''' x1 x2 : ofes (scons (G x1) x2 T2) N1 T1))
+              %% weaken DofN2
+           <- ({x1} {x2}
+                  weaken-ofes (DofN2 x1) _ _
+                  (DofN2' x1 x2 : ofes (scons (G x1) x2 T2) (N2 x1) T2))
+              %% go
+           <- ksub-permute-es T1 T2
+              ([x1] [d1] [x2] [d2] Dord' x1 d1 x2 d2)
+              ([x1] [x2] slookup/miss (Dlookup x1))
+              ([x1] [x2] slookup/hit)
+              DofN1''' DofN2' DofK
+              DsubN1N2 DsubN2K DsubN1K
+              (DsubK21 : ksub ([x1] K' x1) N1 K`')
+              (DsubK12 : ksub ([x2] K` x2) N2` K`').
+              
+
+%worlds (csig | asig | var | bind | ovar) (ksub-permute-es' _ _ _ _ _ _ _ _ _ _).
+%total {} (ksub-permute-es' _ _ _ _ _ _ _ _ _ _).
+
+
+
+%%%%%  substitutiton permutation (explicit contexts)  %%%%%
+
+sub-permute-e : ({x1} isvar x1 I -> ordered (G x1))
+                 -> ({x1} append (cons G1 x1 A1) (G2 x1) (G x1))
+                 -> ofe G1 N1 A1
+                 -> ({x1} ofe (G x1) (N2 x1) (A2 x1))
+                 -> ({x1} {x2} ofe (cons (G x1) x2 (A2 x1)) (M x1 x2) (C x1 x2))
+%%
+                 -> sub ([x1] N2 x1) N1 N2`
+                 -> ({x1} sub ([x2] M x1 x2) (N2 x1) (M' x1))
+                 -> ({x2} sub ([x1] M x1 x2) N1 (M` x2))
+%%
+                 -> sub ([x1] M' x1) N1 M`'
+                 -> sub ([x2] M` x2) N2` M`' -> type.
+%mode sub-permute-e +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+
+-       : sub-permute-e
+              ([x1] [d1:isvar x1 I1] 
+                  Dord x1 d1 : ordered (G x1))
+              ([x1] 
+                  Dappend x1 : append (cons G1 x1 A1) (G2 x1) (G x1))
+              (DofN1 : ofe G1 N1 A1)
+              ([x1] 
+                  DofN2 x1 : ofe (G x1) (N2 x1) (A2 x1))
+              ([x1] [x2] 
+                  DofM x1 x2 : ofe (cons (G x1) x2 (A2 x1)) (M x1 x2) (C x1 x2))
+              (DsubN2x1 : sub ([x1] N2 x1) N1 N2`)
+              ([x1] 
+                  DsubMx2 x1 : sub ([x2] M x1 x2) (N2 x1) (M' x1))
+              ([x2]
+                  DsubMx1 x2 : sub ([x1] M x1 x2) N1 (M` x2))
+%%
+              DsubMx2x1
+              DsubMx1x2
+%%
+              %% get simplifications
+           <- can-simp A1 
+              (DsimpA1           : simp A1 T1)
+           <- ({x1}
+                  can-simp (A2 x1) 
+                  (DsimpA2 x1    : simp (A2 x1) T2))
+           <- ({x1} {x2}
+                  can-simp (C x1 x2)
+                  (DsimpC  x1 x2 : simp (C x1 x2) S))
+           <- context-append-simp-lookup Dappend DsimpA1
+              ([x1] Dsimpctx x1 : simpctx (G x1) (G' x1))
+              ([x1] Dslookup x1 : slookup (G' x1) x1 T1)
+           <- ({x1} {d1 : isvar x1 I1}
+                  extend-ordered _ (Dord x1 d1) _
+                  ([x2] [d2 : isvar x2 I2] 
+                      Dord' x1 d1 x2 d2 : ordered (cons (G x1) x2 (A2 x1))))
+           <- ({x1} {d1 : isvar x1 I1}
+                  {x2} {d2 : isvar x2 I2}
+                    ordered-simpctx (simpctx/cons (DsimpA2 x1) (Dsimpctx x1))
+                      (Dord' x1 d1 x2 d2)
+                    (Dsord x1 d1 x2 d2 : sordered (scons (G' x1) x2 T2)))
+              %% weaken and simplify DofN1
+           <- ({x1}
+                  weaken-ofe DofN1 _ _
+                  (DofN1' x1 : ofe (cons G1 x1 A1) N1 A1))
+           <- ({x1}
+                  weaken-ofe' (Dappend x1) (DofN1' x1)
+                  (DofN1'' x1 : ofe (G x1) N1 A1))
+           <- ({x1} {x2}
+                  weaken-ofe (DofN1'' x1) _ _
+                  (DofN1''' x1 x2 : ofe (cons (G x1) x2 (A2 x1)) N1 A1))
+           <- ({x1} {x2}
+                  ofe-simp (simpctx/cons (DsimpA2 x1) (Dsimpctx x1)) 
+                    DsimpA1 (DofN1''' x1 x2)
+                  (DofN1'''' x1 x2 : ofes (scons (G' x1) x2 T2) N1 T1))
+              %% weaken and simplify DofN2
+           <- ({x1} {x2}
+                  weaken-ofe (DofN2 x1) _ _
+                  (DofN2' x1 x2 : ofe (cons (G x1) x2 (A2 x1)) (N2 x1) (A2 x1)))
+           <- ({x1} {x2}
+                  ofe-simp (simpctx/cons (DsimpA2 x1) (Dsimpctx x1))
+                    (DsimpA2 x1) (DofN2' x1 x2)
+                  (DofN2'' x1 x2 : ofes (scons (G' x1) x2 T2) (N2 x1) T2))
+              %% simplify DofM
+           <- ({x1} {x2}
+                  ofe-simp (simpctx/cons (DsimpA2 x1) (Dsimpctx x1))
+                    (DsimpC x1 x2) (DofM x1 x2)
+                  (DofM' x1 x2 : ofes (scons (G' x1) x2 T2) (M x1 x2) S))
+              %% go
+           <- sub-permute-es T1 T2
+              ([x1] [d1] [x2] [d2] Dsord x1 d1 x2 d2)
+              ([x1] [x2]
+                  slookup/miss (Dslookup x1))
+              ([x1] [x2] slookup/hit)
+              DofN1'''' DofN2'' DofM'
+              DsubN2x1 DsubMx2 DsubMx1
+              (DsubMx2x1 : sub ([x1] M' x1) N1 M`')
+              (DsubMx1x2 : sub ([x2] M` x2) N2` M`').
+
+%worlds (csig | asig | var | bind | ovar) (sub-permute-e _ _ _ _ _ _ _ _ _ _).
+%total {} (sub-permute-e _ _ _ _ _ _ _ _ _ _).
+
+
+%%% type substitution permutation (explicit context) %%%
+
+tpsub-permute-e : ({x1} isvar x1 I -> ordered (G x1))
+                   -> ({x1} append (cons G1 x1 A1) (G2 x1) (G x1))
+                   -> ofe G1 N1 A1
+                   -> ({x1} ofe (G x1) (N2 x1) (A2 x1))
+                   -> ({x1} {x2} 
+                          kofe (cons (G x1) x2 (A2 x1)) (B x1 x2) (K x1 x2))
+%%
+                   -> sub ([x1] N2 x1) N1 N2`
+                   -> ({x1} tpsub ([x2] B x1 x2) (N2 x1) (B' x1))
+                   -> ({x2} tpsub ([x1] B x1 x2) N1 (B` x2))
+%%
+                   -> tpsub ([x1] B' x1) N1 B`'
+                   -> tpsub ([x2] B` x2) N2` B`' -> type.
+%mode tpsub-permute-e +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+-       : tpsub-permute-e
+              ([x1] [d1 : isvar x1 I1]
+                  Dord x1 d1 : ordered (G x1))
+              ([x1]
+                  Dappend x1 : append (cons G1 x1 A1) (G2 x1) (G x1))
+              (DofN1 : ofe G1 N1 A1)
+              ([x1]
+                  DofN2 x1 : ofe (G x1) (N2 x1) (A2 x1))
+              ([x1] [x2]
+                  DofB x1 x2 
+                : kofe (cons (G x1) x2 (A2 x1)) (B x1 x2) (K x1 x2))
+              (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+              ([x1]
+                  DsubN2B x1 : tpsub ([x2] B x1 x2) (N2 x1) (B' x1))
+              ([x2]
+                  DsubN1B x2 : tpsub ([x1] B x1 x2) N1 (B` x2))
+%%
+              DsubB21
+              DsubB12
+%%
+              %% get simplifications
+           <- can-simp A1 (DsimpA1 : simp A1 T1)
+           <- ({x1}
+                  can-simp (A2 x1)
+                  (DsimpA2 x1 : simp (A2 x1) T2))
+           <- ({x1} {x2}
+                  can-ksimp (K x1 x2)
+                  (DsimpK x1 x2 : ksimp (K x1 x2) H))
+           <- context-append-simp-lookup Dappend DsimpA1
+              ([x1] Dsimpctx x1 : simpctx (G x1) (G' x1))
+              ([x1] Dslookup x1 : slookup (G' x1) x1 T1)
+           <- ({x1} {d1:isvar x1 I1}
+                  extend-ordered _ (Dord x1 d1) _
+                  ([x2] [d2:isvar x2 I2]
+                      Dord' x1 d1 x2 d2 : ordered (cons (G x1) x2 (A2 x1))))
+           <- ({x1} {d1} {x2} {d2}
+                  ordered-simpctx (simpctx/cons (DsimpA2 x1) (Dsimpctx x1))
+                  (Dord' x1 d1 x2 d2)
+                  (Dsord x1 d1 x2 d2 : sordered (scons (G' x1) x2 T2)))
+             %% weaken and simplify DofN1
+           <- ({x1}
+                  weaken-ofe DofN1 _ _
+                  (DofN1' x1 : ofe (cons G1 x1 A1) N1 A1))
+           <- ({x1}
+                  weaken-ofe' (Dappend x1) (DofN1' x1)
+                  (DofN1'' x1 : ofe (G x1) N1 A1))
+           <- ({x1} {x2}
+                  weaken-ofe (DofN1'' x1) _ _
+                  (DofN1''' x1 x2 : ofe (cons (G x1) x2 (A2 x1)) N1 A1))
+           <- ({x1} {x2}
+                  ofe-simp (simpctx/cons (DsimpA2 x1) (Dsimpctx x1)) DsimpA1
+                  (DofN1''' x1 x2)
+                  (DofN1'''' x1 x2 : ofes (scons (G' x1) x2 T2) N1 T1))
+              %% weaken and simplify DofN2
+           <- ({x1} {x2}
+                  weaken-ofe (DofN2 x1) _ _
+                  (DofN2' x1 x2 : ofe (cons (G x1) x2 (A2 x1)) (N2 x1) (A2 x1)))
+           <- ({x1} {x2}
+                  ofe-simp (simpctx/cons (DsimpA2 x1) (Dsimpctx x1)) (DsimpA2 x1)
+                  (DofN2' x1 x2)
+                  (DofN2'' x1 x2 : ofes (scons (G' x1) x2 T2) (N2 x1) T2))
+              %% simplify DofB
+           <- ({x1} {x2}
+                  kofe-simp (simpctx/cons (DsimpA2 x1) (Dsimpctx x1))
+                  (DsimpK x1 x2) (DofB x1 x2)
+                  (DofB' x1 x2 : kofes (scons (G' x1) x2 T2) (B x1 x2) H))
+              %% go
+           <- tpsub-permute-es T1 T2 
+              ([x1] [d1] [x2] [d2] Dsord x1 d1 x2 d2)
+              ([x1] [x2] slookup/miss (Dslookup x1))
+              ([x1] [x2] slookup/hit)
+              DofN1'''' DofN2'' DofB'
+              DsubN1N2 DsubN2B DsubN1B
+              (DsubB21 : tpsub ([x1] B' x1) N1 B`')
+              (DsubB12 : tpsub ([x2] B` x2) N2` B`').
+
+%worlds (csig | asig | var | bind | ovar) (tpsub-permute-e _ _ _ _ _ _ _ _ _ _).
+%total {} (tpsub-permute-e _ _ _ _ _ _ _ _ _ _).
+
+%%% kind substitution permutation (explicit context) %%%
+
+ksub-permute-e  : ({x1} isvar x1 I -> ordered (G x1))
+                   -> ({x1} append (cons G1 x1 A1) (G2 x1) (G x1))
+                   -> ofe G1 N1 A1
+                   -> ({x1} ofe (G x1) (N2 x1) (A2 x1))
+                   -> ({x1} {x2} 
+                          wfkinde (cons (G x1) x2 (A2 x1)) (B x1 x2))
+%%
+                   -> sub ([x1] N2 x1) N1 N2`
+                   -> ({x1} ksub ([x2] B x1 x2) (N2 x1) (B' x1))
+                   -> ({x2} ksub ([x1] B x1 x2) N1 (B` x2))
+%%
+                   -> ksub ([x1] B' x1) N1 B`'
+                   -> ksub ([x2] B` x2) N2` B`' -> type.
+%mode ksub-permute-e +X1 +X2 +X3 +X4 +X5 +X6 +X7 +X8 -X9 -X10.
+
+-       : ksub-permute-e
+              ([x1] [d1 : isvar x1 I1]
+                  Dord x1 d1 : ordered (G x1))
+              ([x1]
+                  Dappend x1 : append (cons G1 x1 A1) (G2 x1) (G x1))
+              (DofN1 : ofe G1 N1 A1)
+              ([x1]
+                  DofN2 x1 : ofe (G x1) (N2 x1) (A2 x1))
+              ([x1] [x2]
+                  DofB x1 x2 
+                : wfkinde (cons (G x1) x2 (A2 x1)) (B x1 x2))
+              (DsubN1N2 : sub ([x1] N2 x1) N1 N2`)
+              ([x1]
+                  DsubN2B x1 : ksub ([x2] B x1 x2) (N2 x1) (B' x1))
+              ([x2]
+                  DsubN1B x2 : ksub ([x1] B x1 x2) N1 (B` x2))
+%%
+              DsubB21
+              DsubB12
+%%
+              %% get simplifications
+           <- can-simp A1 (DsimpA1 : simp A1 T1)
+           <- ({x1}
+                  can-simp (A2 x1)
+                  (DsimpA2 x1 : simp (A2 x1) T2))
+           <- context-append-simp-lookup Dappend DsimpA1
+              ([x1] Dsimpctx x1 : simpctx (G x1) (G' x1))
+              ([x1] Dslookup x1 : slookup (G' x1) x1 T1)
+           <- ({x1} {d1:isvar x1 I1}
+                  extend-ordered _ (Dord x1 d1) _
+                  ([x2] [d2:isvar x2 I2]
+                      Dord' x1 d1 x2 d2 : ordered (cons (G x1) x2 (A2 x1))))
+           <- ({x1} {d1} {x2} {d2}
+                  ordered-simpctx (simpctx/cons (DsimpA2 x1) (Dsimpctx x1))
+                  (Dord' x1 d1 x2 d2)
+                  (Dsord x1 d1 x2 d2 : sordered (scons (G' x1) x2 T2)))
+             %% weaken and simplify DofN1
+           <- ({x1}
+                  weaken-ofe DofN1 _ _
+                  (DofN1' x1 : ofe (cons G1 x1 A1) N1 A1))
+           <- ({x1}
+                  weaken-ofe' (Dappend x1) (DofN1' x1)
+                  (DofN1'' x1 : ofe (G x1) N1 A1))
+           <- ({x1} {x2}
+                  weaken-ofe (DofN1'' x1) _ _
+                  (DofN1''' x1 x2 : ofe (cons (G x1) x2 (A2 x1)) N1 A1))
+           <- ({x1} {x2}
+                  ofe-simp (simpctx/cons (DsimpA2 x1) (Dsimpctx x1)) DsimpA1
+                  (DofN1''' x1 x2)
+                  (DofN1'''' x1 x2 : ofes (scons (G' x1) x2 T2) N1 T1))
+              %% weaken and simplify DofN2
+           <- ({x1} {x2}
+                  weaken-ofe (DofN2 x1) _ _
+                  (DofN2' x1 x2 : ofe (cons (G x1) x2 (A2 x1)) (N2 x1) (A2 x1)))
+           <- ({x1} {x2}
+                  ofe-simp (simpctx/cons (DsimpA2 x1) (Dsimpctx x1)) (DsimpA2 x1)
+                  (DofN2' x1 x2)
+                  (DofN2'' x1 x2 : ofes (scons (G' x1) x2 T2) (N2 x1) T2))
+              %% simplify DofB
+           <- ({x1} {x2}
+                  wfkinde-simp (simpctx/cons (DsimpA2 x1) (Dsimpctx x1))
+                  (DofB x1 x2)
+                  (DofB' x1 x2 : wfkindes (scons (G' x1) x2 T2) (B x1 x2)))
+              %% go
+           <- ksub-permute-es T1 T2 
+              ([x1] [d1] [x2] [d2] Dsord x1 d1 x2 d2)
+              ([x1] [x2] slookup/miss (Dslookup x1))
+              ([x1] [x2] slookup/hit)
+              DofN1'''' DofN2'' DofB'
+              DsubN1N2 DsubN2B DsubN1B
+              (DsubB21 : ksub ([x1] B' x1) N1 B`')
+              (DsubB12 : ksub ([x2] B` x2) N2` B`').
+
+%worlds (csig | asig | var | bind | ovar) (ksub-permute-e _ _ _ _ _ _ _ _ _ _).
+%total {} (ksub-permute-e _ _ _ _ _ _ _ _ _ _).
+
+%%%%%  substitution permutation (implicit context)  %%%%%
+
+%% [N1/x1] [N2/x2] M  ==  [[N1/x1]N2/x2] [N1/x1] M %%
+
+sub-permute : of N1 A1
+               -> ({x1} vof x1 A1 -> of (N2 x1) (A2 x1))
+               -> ({x1} vof x1 A1 -> {x2} vof x2 (A2 x1) -> of (M x1 x2) (C x1 x2))
+%%                  
+               -> sub ([x1] N2 x1) N1 N2`
+               -> ({x1} sub ([x2] M x1 x2) (N2 x1) (M' x1))
+               -> ({x2} sub ([x1] M x1 x2) N1 (M` x2))
+%%
+               -> sub ([x1] M' x1) N1 M`'
+               -> sub ([x2] M` x2) N2` M`' -> type.
+%mode sub-permute +X1 +X2 +X3 +X4 +X5 +X6 -X7 -X8.
+
+- : sub-permute DofN1 DofN2 DofM DsubN2x1 DsubMx2 DsubMx1
+        DsubMx2x1 DsubMx1x2
+     <- of-to-ofe DofN1
+        (DofeN1 : ofe nil N1 A1)
+     <- of1-to-ofe DofN2
+        (DofeN2 : {x1} ofe (cons nil x1 A1) (N2 x1) (A2 x1))
+     <- of2-to-ofe DofM
+        (DofeM  : {x1} {x2} 
+            ofe (cons (cons nil x1 A1) x2 (A2 x1)) (M x1 x2) (C x1 x2))
+     <- extend-ordered A1 ordered/nil 
+        I (Dord : {x1} isvar x1 I -> ordered (cons nil x1 A1))
+    <- sub-permute-e ([x1] [d] Dord x1 d) ([_] append/nil)
+        DofeN1 DofeN2 DofeM DsubN2x1 DsubMx2 DsubMx1
+        DsubMx2x1 DsubMx1x2.
+
+%worlds (csig | asig | bind) (sub-permute _ _ _ _ _ _ _ _).
+%total {} (sub-permute _ _ _ _ _ _ _ _).
+
+tpsub-permute : of N1 A1
+               -> ({x1} vof x1 A1 -> of (N2 x1) (A2 x1))
+               -> ({x1} vof x1 A1 -> {x2} vof x2 (A2 x1) -> kof (M x1 x2) (C x1 x2))
+%%                  
+               -> sub ([x1] N2 x1) N1 N2`
+               -> ({x1} tpsub ([x2] M x1 x2) (N2 x1) (M' x1))
+               -> ({x2} tpsub ([x1] M x1 x2) N1 (M` x2))
+%%
+               -> tpsub ([x1] M' x1) N1 M`'
+               -> tpsub ([x2] M` x2) N2` M`' -> type.
+%mode tpsub-permute +X1 +X2 +X3 +X4 +X5 +X6 -X7 -X8.
+
+- : tpsub-permute DofN1 DofN2 DofM DtpsubN2x1 DtpsubMx2 DtpsubMx1
+        DtpsubMx2x1 DtpsubMx1x2
+     <- of-to-ofe DofN1
+        (DofeN1 : ofe nil N1 A1)
+     <- of1-to-ofe DofN2
+        (DofeN2 : {x1} ofe (cons nil x1 A1) (N2 x1) (A2 x1))
+     <- kof2-to-kofe DofM
+        (DofeM  : {x1} {x2} 
+            kofe (cons (cons nil x1 A1) x2 (A2 x1)) (M x1 x2) (C x1 x2))
+     <- extend-ordered A1 ordered/nil 
+        I (Dord : {x1} isvar x1 I -> ordered (cons nil x1 A1))
+    <- tpsub-permute-e ([x1] [d] Dord x1 d) ([_] append/nil)
+        DofeN1 DofeN2 DofeM DtpsubN2x1 DtpsubMx2 DtpsubMx1
+        DtpsubMx2x1 DtpsubMx1x2.
+
+%worlds (csig | asig | bind) (tpsub-permute _ _ _ _ _ _ _ _).
+%total {} (tpsub-permute _ _ _ _ _ _ _ _).
+
+
+%{
+rrsub-permute : of N1 A1
+               -> ({x1} vof x1 A1 -> of (N2 x1) (A2 x1))
+               -> ({x1} vof x1 A1 -> {x2} vof x2 (A2 x1) -> at-of (R x2 x1) (A x2 x1))
+%%                  
+               -> sub ([x1] N2 x1) N1 N2`
+               -> ({x1} rrsub ([x2] R x2 x1) (N2 x1) (R' x1))
+               -> ({x2} rrsub ([x1] R x2 x1) N1 (R` x2))
+%%
+               -> rrsub ([x1] R' x1) N1 R`'
+               -> rrsub ([x2] R` x2) N2` R`' -> type.
+%mode rrsub-permute +X1 +X2 +X3 +X4 +X5 +X6 -X7 -X8.
+
+%worlds (csig | asig | bind) (rrsub-permute _ _ _ _ _ _ _ _).
+%total {} (rrsub-permute _ _ _ _ _ _ _ _).
+
+
+rrsub-rmsub-permute : of N1 A1
+               -> ({x1} vof x1 A1 -> of (N2 x1) (A2 x1))
+               -> ({x1} vof x1 A1 -> {x2} vof x2 (A2 x1) -> at-of (R x2 x1) (A x2 x1))
+%%                  
+               -> sub ([x1] N2 x1) N1 N2`
+               -> ({x1} rrsub ([x2] R x2 x1) (N2 x1) (R' x1))
+               -> ({x2} rmsub ([x1] R x2 x1) N1 (M` x2))
+%%
+               -> rmsub ([x1] R' x1) N1 M`'
+               -> sub ([x2] M` x2) N2` M`' -> type.
+%mode rrsub-rmsub-permute +X1 +X2 +X3 +X4 +X5 +X6 -X7 -X8.
+
+%worlds (csig | asig | bind) (rrsub-rmsub-permute _ _ _ _ _ _ _ _).
+%total {} (rrsub-rmsub-permute _ _ _ _ _ _ _ _).
+
+
+rmsub-rrsub-permute : of N1 A1
+               -> ({x1} vof x1 A1 -> of (N2 x1) (A2 x1))
+               -> ({x1} vof x1 A1 -> {x2} vof x2 (A2 x1) -> at-of (R x2 x1) (A x2 x1))
+%%                  
+               -> sub ([x1] N2 x1) N1 N2`
+               -> ({x1} rrsub ([x2] R x2 x1) (N2 x1) (R' x1))
+               -> ({x2} rmsub ([x1] R x2 x1) N1 (M` x2))
+%%
+               -> rmsub ([x1] R' x1) N1 M`'
+               -> sub ([x2] M` x2) N2` M`' -> type.
+%mode rmsub-rrsub-permute +X1 +X2 +X3 +X4 +X5 +X6 -X7 -X8.
+
+%worlds (csig | asig | bind) (rmsub-rrsub-permute _ _ _ _ _ _ _ _).
+%total {} (rmsub-rrsub-permute _ _ _ _ _ _ _ _).
+
+}%
+
+
+%%%%%  substitution lemma (explicit context)  %%%%%
+
+rrsubst-em  : {T:stp}
+                  simp A T
+%%
+               -> ({x} isvar x I -> ordered (G x))
+               -> ({x} append (cons G1 x A) (G2 x) (G x))
+               -> csub G M G'
+               -> ofe G1 M A
+               -> rrsub R M R'
+               -> ({x} at-ofe (G x) (R x) (B x))
+%%
+               -> tpsub B M B'
+               -> at-ofe G' R' B' -> type.
+%mode rrsubst-em +T +X-1 +X0 +X1 +X2 +X3 +X4 +X5 -X6 -X7.
+
+rmsubst-em  : {T:stp}
+                  simp A T
+%%
+               -> ({x} isvar x I -> ordered (G x))
+               -> ({x} append (cons G1 x A) (G2 x) (G x))
+               -> csub G M G'
+               -> ofe G1 M A
+               -> rmsub R M LR
+               -> ({x} at-ofe (G x) (R x) (B x))
+%%
+               -> tpsub B M B'
+               -> ofe G' LR B' -> type.
+%mode rmsubst-em +T +X-1 +X0 +X1 +X2 +X3 +X4 +X5 -X6 -X7.
+
+subst-em    : {T:stp}
+                  simp A T
+%%
+               -> ({x} isvar x I -> ordered (G x))
+               -> ({x} append (cons G1 x A) (G2 x) (G x))
+               -> csub G M G'
+               -> ofe G1 M A
+               -> sub N M N'
+               -> tpsub B M B'
+               -> ({x} ofe (G x) (N x) (B x))
+%%
+               -> ofe G' N' B' -> type.
+%mode subst-em +T +X-1 +X0 +X1 +X2 +X3 +X4 +X5 +X6 -X7.
+
+atpsubst-em : {T:stp}
+                  simp A T
+%%
+               -> ({x} isvar x I -> ordered (G x))
+               -> ({x} append (cons G1 x A) (G2 x) (G x))
+               -> csub G M G'
+               -> ofe G1 M A
+               -> atpsub P M P'
+               -> ({x} at-kofe (G x) (P x) (K x))
+%%
+               -> ksub K M K'
+               -> at-kofe G' P' K' -> type.
+%mode atpsubst-em +T +X-1 +X0 +X1 +X2 +X3 +X4 +X5 -X6 -X7.
+
+tpsubst-em  : {T:stp}
+                   simp A T
+%%
+               -> ({x} isvar x I -> ordered (G x))
+               -> ({x} append (cons G1 x A) (G2 x) (G x))
+               -> csub G M G'
+               -> ofe G1 M A
+               -> tpsub B M B'
+               -> ({x} kofe (G x) (B x) (K x))
+               -> ksub K M K'
+%%
+               -> kofe G' B' K' -> type.
+%mode tpsubst-em +T +X-1 +X0 +X1 +X2 +X3 +X4 +X5 +X6 -X7.
+
+ksubst-em   : {T:stp}
+                  simp A T
+%%
+               -> ({x} isvar x I -> ordered (G x))
+               -> ({x} append (cons G1 x A) (G2 x) (G x))
+               -> csub G M G'
+               -> ofe G1 M A
+               -> ksub K M K'
+               -> ({x} wfkinde (G x) (K x))
+%%
+               -> wfkinde G' K' -> type.
+%mode ksubst-em +T +X-1 +X0 +X1 +X2 +X3 +X4 +X5 -X6.
+
+-closed   : rrsubst-em _ _
+                ([x] [d] Dord x d : ordered (G x))
+                ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                (Dcsub      : csub G M G')
+                (DofM       : ofe G1 M A)
+                (Dsub       : rrsub ([x] R x) M Rx)
+                ([x] at-ofe/closed (Dof x : at-of (R x) (B x)))
+%%
+                (DsubB)
+                (at-ofe/closed Dof'')
+%%                
+             <- atof-noassm Dof
+                ([x] DeqR x : atm-eq (R x) R')
+                ([x] DeqB x : tp-eq (B x) B')
+             <- ({x} tp-eq-sym (DeqB x) (DeqB' x : tp-eq B' (B x)))
+             <- ({x} atm-eq-sym (DeqR x) (DeqR' x : atm-eq R' (R x)))
+             <- rrsub-absent _ _
+                (DsubR' : rrsub ([_] R') M R')
+             <- rrsub-compat ([x] DeqR' x) tm-eq/i atm-eq/i DsubR'
+                (DsubR : rrsub ([x] R x) M R')
+             <- rrsub-fun DsubR Dsub
+                (DeqR'Rx : atm-eq R' Rx)
+             <- ({x} atof-resp (DeqR x) (DeqB x) (Dof x) (Dof' x : at-of R' B'))
+             <- atof-resp DeqR'Rx tp-eq/i (Dof' aca)
+                (Dof'' : at-of Rx B')
+             <- tpsub-absent _ _
+                (DsubB' : tpsub ([_] B') M B')
+             <- tpsub-compat ([x] DeqB' x) tm-eq/i tp-eq/i DsubB'
+                (DsubB : tpsub ([x] B x) M B').
+
+-closed   : rmsubst-em _ _
+                ([x] [d] Dord x d : ordered (G x))
+                ([x] Dapp x       : append (cons G1 x A) (G2 x) (G x))
+                (Dcsub            : csub G M G')
+                (DofM             : ofe G1 M A)
+                (DsubR            : rmsub ([x] R x) M N)
+                ([x] at-ofe/closed
+                    (DofR x : at-of (R x) (B x)))
+%%
+                Dtpsub
+                Dofe
+%%                
+             <- atof-noassm ([x] DofR x) 
+                ([x] DeqR x : atm-eq (R x) R') _
+             <- rmsub-compat DeqR tm-eq/i tm-eq/i DsubR
+                (DsubR' : rmsub ([_] R') M N)
+             <- rmsub-absent DsubR' Dfalse
+             <- false-implies-tpsub Dfalse Dtpsub
+             <- false-implies-ofe Dfalse Dofe.
+
+
+-const    : rrsubst-em T (Dsimp : simp A T)
+                ([x] [d] Dord x d : ordered (G x))
+                ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                (Dcsub      : csub G M G')
+                (DofM       : ofe G1 M A)
+                (rrsub/closed : rrsub ([_] const C) M (const C))
+                ([x] at-ofe/const
+                    (Dkofe x : kofe (G x) B ktype)
+                    (Dcof : cof C B))
+%%                
+                (DsubB     : tpsub ([x] B) M B)
+                (at-ofe/const DkofB' Dcof : at-ofe G' (const C) B)
+%%
+             <- tpsub-absent _ _
+                (DsubB : tpsub ([_] B) M B)
+             <- tpsubst-em T Dsimp Dord Dapp Dcsub DofM DsubB Dkofe
+                ksub/type
+                (DkofB' : kofe G' B ktype).
+
+
+-var      : rrsubst-em T (Dsimp : simp A T)
+                ([x] [d] Dord x d : ordered (G x))
+                ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                (Dcsub      : csub G M G')
+                (DofM       : ofe G1 M A)
+                rrsub/closed
+                ([x] at-ofe/var
+                    (Dkof x : kofe (G x) (B x) ktype)
+                    (Dlook x : lookup (G x) X (B x)))
+%%                
+                DsubBx
+                (at-ofe/var DkofBx Dlookup')
+%%                
+             <- csub-lookup Dcsub Dlook
+                (DsubBx   : tpsub ([x] B x) M Bx)
+                (Dlookup' : lookup G' X Bx)
+             <- tpsubst-em T Dsimp Dord Dapp Dcsub DofM DsubBx Dkof
+                ksub/type
+                (DkofBx : kofe G' Bx ktype).
+
+-var      : rmsubst-em _ _
+                ([x] [d] Dord x d : ordered (G x))
+                ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                (Dcsub      : csub G M Gx)
+                (DofM       : ofe G1 M A)
+                rmsub/var
+                ([x]
+                    at-ofe/var _ (Dlook x : lookup (G x) x (B x)))
+%%
+                Dtpsub'
+                DofM'
+%%
+             <- ({x}
+                    append-lookup (Dapp x)
+                    (Dlook' x : lookup (G x) x A))
+             <- ({x} {d}
+                    lookup-fun (Dord x d) (Dlook' x) (Dlook x)
+                    (DeqAB x : tp-eq A (B x)))
+             <- tpsub-absent A M (Dtpsub : tpsub ([_] A) M A)
+             <- tpsub-compat DeqAB tm-eq/i tp-eq/i Dtpsub
+                (Dtpsub' : tpsub ([x] B x) M A)
+             <- weaken-ofe-csub Dord Dapp Dcsub DofM (DofM' : ofe Gx M A).
+
+-app      : rrsubst-em T (Dsimp : simp A T)
+                ([x] [d] Dord x d : ordered (G x))
+                ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                (Dcsub      : csub G M Gx)
+                (DofM       : ofe G1 M A)
+                (rrsub/app
+                    (DsubNx : sub ([x] N x) M Nx)
+                    (DsubRx : rrsub ([x] R x) M Rx))
+                ([x] at-ofe/app
+                    (DsubCy x : tpsub ([y] C x y) (N x) (Cy x))
+                    (DofN x : ofe (G x) (N x) (B x))
+                    (DofR x : at-ofe (G x) (R x) (pi (B x) [y] C x y))
+                  : at-ofe (G x) (app (R x) (N x)) (Cy x))
+%%                
+                DsubCyx
+                (at-ofe/app 
+                    DsubCxy
+                    DofNx
+                    DofRx)
+%%
+             <- rrsubst-em T Dsimp Dord Dapp Dcsub DofM DsubRx DofR
+                (tpsub/pi
+                    ([y] DsubCx y : tpsub ([x] C x y) M (Cx y))
+                    (DsubBx : tpsub ([x] B x) M Bx)
+                  : tpsub ([x] pi (B x) [y] C x y) M (pi Bx [y] Cx y))
+                (DofRx : at-ofe Gx Rx (pi Bx [y] Cx y))
+             <- subst-em T Dsimp Dord Dapp Dcsub DofM DsubNx DsubBx DofN
+                (DofNx : ofe Gx Nx Bx)
+                %% simplify context to pass to permutation
+             <- can-simpctx G1 (DsimpG1 : simpctx G1 G1')
+             <- ({x}
+                    can-simpctx (G2 x) (DsimpG2 x : simpctx (G2 x) (G2' x)))
+             <- ({x}
+                    can-simpctx (G x) (DsimpG x : simpctx (G x) (G' x)))
+             <- ({x}
+                    append-simpctx' (Dapp x)
+                    (simpctx/cons Dsimp DsimpG1)
+                    (DsimpG2 x)
+                    (DsimpG x)
+                    (Dsapp x : sappend (scons G1' x T) (G2' x) (G' x)))
+             <- ({x} {d} 
+                    ordered-simpctx (DsimpG x) (Dord x d)
+                    (Dsord x d : sordered (G' x)))
+                %% simplify typing derivations
+             <- ofe-simp DsimpG1 Dsimp DofM
+                (DofesM : ofes G1' M T)
+             <- ({x}
+                    can-simp (B x)
+                    (DsimpB x : simp (B x) S))
+             <- ({x}
+                    ofe-simp (DsimpG x) (DsimpB x) (DofN x)
+                    (DofesN x : ofes (G' x) (N x) S))
+                %% apply simple regularity to get DkofesC
+             <- ({x} {d}
+                    atofe-reg-kofes (Dord x d) (DofR x) (DsimpG x)
+                    (kofes/pi 
+                        ([y] DkofesC x y 
+                          : kofes (scons (G' x) y S') (C x y) sktype)
+                        (DsimpB' x : simp (B x) S') 
+                        (DkofesB x : kofes (G' x) (B x) sktype)))
+             <- ({x}
+                    simp-fun (DsimpB x) (DsimpB' x)
+                    (DeqSS' : stp-eq S S'))
+             <- ({x}
+                    ofes-resp sctx-eq/i tm-eq/i DeqSS' (DofesN x)
+                    (DofesN' x : ofes (G' x) (N x) S'))
+                %% go
+             <- tpsub-permute-es' Dsord Dsapp DofesM DofesN' DkofesC
+                DsubNx DsubCy DsubCx
+                (DsubCyx : tpsub ([x] Cy x) M Cyx)
+                (DsubCxy : tpsub ([y] Cx y) Nx Cyx).
+
+-app      : rmsubst-em T (Dsimp : simp A T)
+                ([x] [d] Dord x d : ordered (G x))
+                ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                (Dcsub      : csub G M Gx)
+                (DofM       : ofe G1 M A)
+                (rmsub/app
+                    (DsubN2 : sub N1 Nx N2)
+                    (DsubNx : sub N M Nx)
+                    (DsubN1 : rmsub R M (lam N1)))
+                ([x] at-ofe/app
+                    (DsubCy x : tpsub ([y] C x y) (N x) (Cy x))
+                    (DofN x : ofe (G x) (N x) (B x))
+                    (DofR x : at-ofe (G x) (R x) (pi (B x) [y] C x y)))
+%%
+                (DsubCyx : tpsub Cy M Cyx)
+                DofN2
+%%
+             <- rmsubst-em T Dsimp Dord Dapp Dcsub DofM DsubN1 DofR
+                (tpsub/pi 
+                    ([y] DsubCx y : tpsub ([x] C x y) M (Cx y))
+                    (DsubBx : tpsub ([x] B x) M Bx))
+                (ofe/lam
+                    (DofBx : kofe Gx Bx ktype)
+                    ([y] DofN1 y : ofe (cons Gx y Bx) (N1 y) (Cx y)))
+             <- subst-em T Dsimp Dord Dapp Dcsub DofM DsubNx DsubBx DofN
+                (DofNx : ofe Gx Nx Bx)
+                %% simplify context to pass to permutation
+             <- can-simpctx G1 (DsimpG1 : simpctx G1 G1')
+             <- ({x}
+                    can-simpctx (G2 x) (DsimpG2 x : simpctx (G2 x) (G2' x)))
+             <- ({x}
+                    can-simpctx (G x) (DsimpG x : simpctx (G x) (G' x)))
+             <- ({x}
+                    append-simpctx' (Dapp x)
+                    (simpctx/cons Dsimp DsimpG1)
+                    (DsimpG2 x)
+                    (DsimpG x)
+                    (Dsapp x : sappend (scons G1' x T) (G2' x) (G' x)))
+             <- ({x} {d} 
+                    ordered-simpctx (DsimpG x) (Dord x d)
+                    (Dsord x d : sordered (G' x)))
+                %% simplify typing derivations
+             <- ofe-simp DsimpG1 Dsimp DofM
+                (DofesM : ofes G1' M T)
+             <- ({x}
+                    can-simp (B x)
+                    (DsimpB x : simp (B x) S))
+             <- ({x}
+                    ofe-simp (DsimpG x) (DsimpB x) (DofN x)
+                    (DofesN x : ofes (G' x) (N x) S))
+                %% apply simple regularity to get DkofesC
+             <- ({x} {d}
+                    atofe-reg-kofes (Dord x d) (DofR x) (DsimpG x)
+                    (kofes/pi 
+                        ([y] DkofesC x y 
+                          : kofes (scons (G' x) y S') (C x y) sktype)
+                        (DsimpB' x : simp (B x) S') 
+                        (DkofesA x : kofes (G' x) (B x) sktype)))
+             <- ({x}
+                    simp-fun (DsimpB x) (DsimpB' x)
+                    (DeqSS' : stp-eq S S'))
+             <- ({x}
+                    ofes-resp sctx-eq/i tm-eq/i DeqSS' (DofesN x)
+                    (DofesN' x : ofes (G' x) (N x) S'))
+                %% permute
+             <- tpsub-permute-es' Dsord Dsapp DofesM DofesN' DkofesC
+                DsubNx DsubCy DsubCx
+                (DsubCyx : tpsub ([x] Cy x) M Cyx)
+                (DsubCxy : tpsub ([y] Cx y) Nx Cyx)
+                %% get DofN2
+             <- csub-ordered Dord Dcsub
+                (Dord' : ordered Gx)
+             <- extend-ordered Bx Dord' _
+                ([x] [d] Dord'' x d : ordered (cons Gx x Bx))
+             <- tpsub-preserves-simp DsubBx DsimpB (DsimpBx : simp Bx S)
+                %% convince twelf that thus S < T
+             <- ({x} {y}
+                    can-simp (C x y)
+                    (DsimpC x y : simp (C x y) T2))
+             <- rmsub-headvar DsubN1 (Dheadvar : headvar R)
+             <- headvar-tp-size Dord Dapp DofR Dsimp Dheadvar 
+                ([x] simp/pi ([y] DsimpC x y) (DsimpB x))
+                (Dleq : stp-leq (arrow S T2) T)
+             <- employ-stp-leq (arrow S T2) T Dleq
+                %% go
+             <- subst-em S DsimpBx Dord'' ([_] append/nil)
+                csub/base DofNx DsubN2 DsubCxy DofN1
+                (DofN2 : ofe Gx N2 Cyx).
+                
+-appclo   : rrsubst-em T (Dsimp : simp A T)
+                ([x] [d] Dord x d : ordered (G x))
+                ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                (Dcsub      : csub G M Gx)
+                (DofM       : ofe G1 M A)
+                rrsub/closed
+                ([x] at-ofe/app
+                    (DsubCy x : tpsub ([y] C x y) N (Cy x))
+                    (DofN x : ofe (G x) N (B x))
+                    (DofR x : at-ofe (G x) R (pi (B x) [y] C x y))
+                  : at-ofe (G x) (app R N) (Cy x))
+%%                
+                DsubCyx
+                (at-ofe/app DsubCxy DofN' DofR')
+%%
+             <- rrsubst-em T Dsimp Dord Dapp Dcsub DofM rrsub/closed DofR
+                (tpsub/pi
+                    ([y] DsubCx y : tpsub ([x] C x y) M (Cx y))
+                    (DsubBx : tpsub ([x] B x) M Bx))
+                (DofR' : at-ofe Gx R (pi Bx ([y] Cx y)))
+             <- sub-absent N M
+                (DsubN : sub ([_] N) M N)
+             <- subst-em T Dsimp Dord Dapp Dcsub DofM DsubN DsubBx DofN
+                (DofN' : ofe Gx N Bx)
+                %% simplify context to pass to permutation
+             <- can-simpctx G1 (DsimpG1 : simpctx G1 G1')
+             <- ({x}
+                    can-simpctx (G2 x) (DsimpG2 x : simpctx (G2 x) (G2' x)))
+             <- ({x}
+                    can-simpctx (G x) (DsimpG x : simpctx (G x) (G' x)))
+             <- ({x}
+                    append-simpctx' (Dapp x)
+                    (simpctx/cons Dsimp DsimpG1)
+                    (DsimpG2 x)
+                    (DsimpG x)
+                    (Dsapp x : sappend (scons G1' x T) (G2' x) (G' x)))
+             <- ({x} {d} 
+                    ordered-simpctx (DsimpG x) (Dord x d)
+                    (Dsord x d : sordered (G' x)))
+                %% simplify typing derivations
+             <- ofe-simp DsimpG1 Dsimp DofM
+                (DofesM : ofes G1' M T)
+             <- ({x}
+                    can-simp (B x)
+                    (DsimpB x : simp (B x) S))
+             <- ({x}
+                    ofe-simp (DsimpG x) (DsimpB x) (DofN x)
+                    (DofesN x : ofes (G' x) N S))
+                %% apply simple regularity to get DkofesC
+             <- ({x} {d}
+                    atofe-reg-kofes (Dord x d) (DofR x) (DsimpG x)
+                    (kofes/pi ([y] DkofesC x y) (DsimpB' x) (DkofesA x)))
+             <- ({x}
+                    simp-fun (DsimpB x) (DsimpB' x)
+                    (DeqSS' : stp-eq S S'))
+             <- ({x}
+                    ofes-resp sctx-eq/i tm-eq/i DeqSS' (DofesN x)
+                    (DofesN' x : ofes (G' x) N S'))
+                %% go
+             <- tpsub-permute-es' Dsord Dsapp DofesM DofesN' DkofesC
+                DsubN DsubCy DsubCx
+                (DsubCyx : tpsub ([x] Cy x) M Cyx)
+                (DsubCxy : tpsub ([y] Cx y) N Cyx).
+
+-appbad     : rrsubst-em _ _ Dord _ _ _ 
+                  (rrsub/app _ _) 
+                  ([x] at-ofe/var _ (Dlookup x))
+%%                      
+                  Dtpsub
+                  Datofe
+%%                      
+               <- ({x} {d} 
+                      lookup-isvar (Dlookup x) (Dord x d) 
+                      (Disvar x : isvar (app _ _) J))
+               <- ({x} isvar-app-contra (Disvar x) Dfalse)
+               <- false-implies-tpsub Dfalse Dtpsub
+               <- false-implies-atofe Dfalse Datofe.
+
+-appbad     : rmsubst-em _ _ Dord _ _ _ 
+                  (rmsub/app _ _ _)
+                  ([x] at-ofe/var _ (Dlookup x))
+%%
+                  Dtpsub
+                  Dofe
+%%
+               <- ({x} {d}
+                      lookup-isvar (Dlookup x) (Dord x d)
+                      (Disvar x : isvar (app _ _) J))
+               <- ({x} isvar-app-contra (Disvar x) Dfalse)
+               <- false-implies-tpsub Dfalse Dtpsub
+               <- false-implies-ofe Dfalse Dofe.
+
+-at-r       : subst-em T (Dsimp : simp A T)
+                  ([x] [d] Dord x d : ordered (G x))
+                  ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                  (Dcsub : csub ([x] G x) M Gx)
+                  (DofM : ofe G1 M A)
+                  (sub/rr (Drrsub : rrsub R M Rx))
+                  (tpsub/base (Datpsub : atpsub ([x] P x) M Px))
+                  ([x] ofe/at (DofR x : at-ofe (G x) (R x) (base (P x))))
+%%
+                  (ofe/at DofRx')
+%%
+               <- rrsubst-em T Dsimp Dord Dapp Dcsub DofM Drrsub DofR
+                  (tpsub/base (Datpsub' : atpsub ([x] P x) M Px'))
+                  (DofRx : at-ofe Gx Rx (base Px'))
+               <- atpsub-fun Datpsub' Datpsub
+                  (DeqPx : atp-eq Px' Px)
+               <- base-compat DeqPx
+                  (DeqBasePx : tp-eq (base Px') (base Px))
+               <- atofe-resp ctx-eq/i atm-eq/i DeqBasePx DofRx
+                  (DofRx' : at-ofe Gx Rx (base Px)).
+
+-at-m       : subst-em T (Dsimp : simp A T)
+                  ([x] [d] Dord x d : ordered (G x))
+                  ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                  (Dcsub : csub ([x] G x) M Gx)
+                  (DofM : ofe G1 M A)
+                  (sub/rm (Drmsub : rmsub ([x] R x) M (at Rx)))
+                  (tpsub/base (Datpsub : atpsub ([x] P x) M Px))
+                  ([x] ofe/at (DofR x : at-ofe (G x) (R x) (base (P x))))
+%%
+                  DofN'
+%%
+               <- rmsubst-em T Dsimp Dord Dapp Dcsub DofM Drmsub DofR
+                  (tpsub/base (Datpsub' : atpsub ([x] P x) M Px'))
+                  (DofN : ofe Gx (at Rx) (base Px'))
+               <- atpsub-fun Datpsub' Datpsub
+                  (DeqPx : atp-eq Px' Px)
+               <- base-compat DeqPx
+                  (DeqBasePx : tp-eq (base Px') (base Px))
+               <- ofe-resp ctx-eq/i tm-eq/i DeqBasePx DofN
+                  (DofN' : ofe Gx (at Rx) (base Px)).
+
+-lam        : subst-em T (Dsimp : simp A T)
+                  ([x] [d] Dord x d : ordered (G x))
+                  ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                  (Dcsub : csub ([x] G x) M Gx)
+                  (DofM : ofe G1 M A)
+                  (sub/lam ([y] DsubN y : sub ([x] N x y) M (Nx y)))
+                  (tpsub/pi
+                      ([y] DsubB2 y : tpsub ([x] B2 x y) M (B2x y))
+                      (DsubB1       : tpsub ([x] B1 x) M B1x))
+                  ([x] ofe/lam
+                      (DofB1 x : kofe (G x) (B1 x) ktype)
+                      ([y] DofN x y 
+                        : ofe (cons (G x) y (B1 x)) (N x y) (B2 x y)))
+%%
+                  (ofe/lam DofB1x ([y] DofNx y))
+%%
+               <- tpsubst-em T Dsimp Dord Dapp Dcsub DofM DsubB1 DofB1
+                  ksub/type
+                  (DofB1x : kofe Gx B1x ktype)
+               <- ({x} {d}
+                      extend-ordered _ (Dord x d) _
+                      ([y] [e] Dord' x d y e 
+                        : ordered (cons (G x) y (B1 x))))
+               <- ({y} {e}
+                      subst-em T Dsimp 
+                      ([x] [d] Dord' x d y e)
+                      ([x] append/cons (Dapp x))
+                      (csub/cons DsubB1 Dcsub)
+                      DofM
+                      (DsubN y)
+                      (DsubB2 y)
+                      ([x] DofN x y)
+                      (DofNx y : ofe (cons Gx y B1x) (Nx y) (B2x y))).
+
+-closed     : atpsubst-em T (Dsimp : simp A T)
+                  ([x] [d] Dord x d : ordered (G x))
+                  ([x] Dappend x : append (cons G1 x A) (G2 x) (G x))
+                  (Dcsub : csub ([x] G x) M Gx)
+                  (DofM : ofe G1 M A)
+                  (Dsub : atpsub ([x] P x) M Px)
+                  ([x] at-kofe/closed (DofP x : at-kof (P x) (K x)))
+%%
+                  DsubK
+                  (at-kofe/closed DofP'')
+%%
+               <- atkof-noassm DofP
+                  ([x] DeqP x : atp-eq (P x) P')
+                  ([x] DeqK x : kind-eq (K x) K')
+               <- ({x} kind-eq-sym (DeqK x) (DeqK' x : kind-eq K' (K x)))
+               <- ({x} atp-eq-sym (DeqP x) (DeqP' x : atp-eq P' (P x)))
+               <- atpsub-absent _ _
+                  (DsubP' : atpsub ([x] P') M P')
+               <- atpsub-compat ([x] DeqP' x) tm-eq/i atp-eq/i DsubP'
+                  (DsubP : atpsub ([x] P x) M P')
+               <- atpsub-fun DsubP Dsub
+                  (DeqP'Px : atp-eq P' Px)
+               <- ({x} atkof-resp (DeqP x) (DeqK x) (DofP x) 
+                    (DofP' x : at-kof P' K'))
+               <- atkof-resp DeqP'Px kind-eq/i (DofP' aca)
+                  (DofP'' : at-kof Px K')
+               <- ksub-absent _ _
+                  (DsubK' : ksub ([_] K') M K')
+               <- ksub-compat ([x] DeqK' x) tm-eq/i kind-eq/i DsubK'
+                  (DsubK : ksub ([x] K x) M K').
+
+-const      : atpsubst-em T (Dsimp : simp A T)
+                  ([x] [d] Dord x d : ordered (G x))
+                  ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                  (Dcsub : csub G M Gx)
+                  (DofM  : ofe G1 M A)
+                  (atpsub/closed : atpsub ([_] aconst C) M (aconst C))
+                  ([x] at-kofe/const
+                      (DwfK x : wfkinde (G x) K)
+                      (Dckof : ckof C K))
+%%
+                  DsubK'
+                  (at-kofe/const DwfK' Dckof : at-kofe Gx (aconst C) K)
+%%
+               <- ksub-absent _ _
+                  (DsubK' : ksub ([_] K) M K)
+               <- ksubst-em T Dsimp Dord Dapp Dcsub DofM DsubK' DwfK
+                  (DwfK' : wfkinde Gx K).
+
+-app        : atpsubst-em T (Dsimp : simp A T)
+                  ([x] [d] Dord x d : ordered (G x))
+                  ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                  (Dcsub : csub G M Gx)
+                  (DofM : ofe G1 M A)
+                  (atpsub/app
+                      (DsubNx : sub ([x] N x) M Nx)
+                      (DsubPx : atpsub ([x] P x) M Px))
+                  ([x] at-kofe/app
+                      (DsubKy x : ksub ([y] K x y) (N x) (Ky x))
+                      (DofN x : ofe (G x) (N x) (B x))
+                      (DofP x : at-kofe (G x) (P x) (kpi (B x) [y] K x y))
+                    : at-kofe (G x) (aapp (P x) (N x)) (Ky x))
+%%
+                  DsubKyx
+                  (at-kofe/app
+                      DsubKxy
+                      DofNx
+                      DofPx)
+%%
+               <- atpsubst-em T Dsimp Dord Dapp Dcsub DofM DsubPx DofP
+                  (ksub/pi
+                      ([y] DsubKx y : ksub ([x] K x y) M (Kx y))
+                      (DsubBx : tpsub ([x] B x) M Bx)
+                    : ksub ([x] kpi (B x) [y] K x y) M (kpi Bx [y] Kx y))
+                  (DofPx : at-kofe Gx Px (kpi Bx [y] Kx y))
+               <- subst-em T Dsimp Dord Dapp Dcsub DofM DsubNx DsubBx DofN
+                  (DofNx : ofe Gx Nx Bx)
+                  %% simplify context to pass to permutation
+               <- can-simpctx G1 (DsimpG1 : simpctx G1 G1')
+               <- ({x}
+                      can-simpctx (G2 x) (DsimpG2 x : simpctx (G2 x) (G2' x)))
+               <- ({x}
+                      can-simpctx (G x) (DsimpG x : simpctx (G x) (G' x)))
+               <- ({x}
+                      append-simpctx' (Dapp x)
+                      (simpctx/cons Dsimp DsimpG1)
+                      (DsimpG2 x)
+                      (DsimpG x)
+                      (Dsapp x : sappend (scons G1' x T) (G2' x) (G' x)))
+               <- ({x} {d}
+                      ordered-simpctx (DsimpG x) (Dord x d)
+                      (Dsord x d : sordered (G' x)))
+                  %% simplify typing derivations
+               <- ofe-simp DsimpG1 Dsimp DofM
+                  (DofesM : ofes G1' M T)
+               <- ({x}
+                      can-simp (B x)
+                      (DsimpB x : simp (B x) S))
+               <- ({x}
+                      ofe-simp (DsimpG x) (DsimpB x) (DofN x)
+                      (DofesN x: ofes (G' x) (N x) S))
+                  %% apply simple regularity to get DwfkindesK
+               <- ({x} {d}
+                      atkofe-reg-wfkindes (Dord x d) (DofP x) (DsimpG x)
+                      (wfkindes/pi
+                          ([y] DwfkindesK x y 
+                            : wfkindes (scons (G' x) y S') (K x y))
+                          (DsimpB' x : simp (B x) S')
+                          (DkofesB x : kofes (G' x) (B x) sktype)))
+               <- ({x}
+                      simp-fun (DsimpB x) (DsimpB' x)
+                      (DeqSS' : stp-eq S S'))
+               <- ({x}
+                      ofes-resp sctx-eq/i tm-eq/i DeqSS' (DofesN x)
+                      (DofesN' x : ofes (G' x) (N x) S'))
+                  %% go
+               <- ksub-permute-es' Dsord Dsapp DofesM DofesN' DwfkindesK
+                  DsubNx DsubKy DsubKx
+                  (DsubKyx : ksub ([x] Ky x) M Kyx)
+                  (DsubKxy : ksub ([y] Kx y) Nx Kyx).
+
+-appclo     : atpsubst-em T (Dsimp : simp A T)
+                  ([x] [d] Dord x d : ordered (G x))
+                  ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                  (Dcsub : csub G M Gx)
+                  (DofM : ofe G1 M A)
+                  atpsub/closed
+                  ([x] at-kofe/app
+                      (DsubKy x : ksub ([y] K x y) N (Ky x))
+                      (DofN x : ofe (G x) N (B x))
+                      (DofP x : at-kofe (G x) P (kpi (B x) [y] K x y))
+                    : at-kofe (G x) (aapp P N) (Ky x))
+%%
+                  DsubKyx
+                  (at-kofe/app DsubKxy DofN' DofP')
+%%
+               <- atpsubst-em T Dsimp Dord Dapp Dcsub DofM atpsub/closed DofP
+                  (ksub/pi
+                      ([y] DsubKx y : ksub ([x] K x y) M (Kx y))
+                      (DsubBx : tpsub ([x] B x) M Bx))
+                  (DofP' : at-kofe Gx P (kpi Bx ([y] Kx y)))
+               <- sub-absent N M
+                  (DsubN : sub ([_] N) M N)
+               <- subst-em T Dsimp Dord Dapp Dcsub DofM DsubN DsubBx DofN
+                  (DofN' : ofe Gx N Bx)
+                  %% simplify context to pass to permutation
+               <- can-simpctx G1 (DsimpG1 : simpctx G1 G1')
+               <- ({x}
+                      can-simpctx (G2 x) (DsimpG2 x : simpctx (G2 x) (G2' x)))
+               <- ({x}
+                      can-simpctx (G x) (DsimpG x : simpctx (G x) (G' x)))
+               <- ({x}
+                      append-simpctx' (Dapp x)
+                      (simpctx/cons Dsimp DsimpG1)
+                      (DsimpG2 x)
+                      (DsimpG x)
+                      (Dsapp x : sappend (scons G1' x T) (G2' x) (G' x)))
+               <- ({x} {d}
+                      ordered-simpctx (DsimpG x) (Dord x d)
+                      (Dsord x d : sordered (G' x)))
+                  %% simplify typing derivations
+               <- ofe-simp DsimpG1 Dsimp DofM
+                  (DofesM : ofes G1' M T)
+               <- ({x}
+                      can-simp (B x)
+                      (DsimpB x : simp (B x) S))
+               <- ({x}
+                      ofe-simp (DsimpG x) (DsimpB x) (DofN x)
+                      (DofesN x : ofes (G' x) N S))
+                  %% apply simple regularity to get DwfkindesK
+               <- ({x} {d}
+                      atkofe-reg-wfkindes (Dord x d) (DofP x) (DsimpG x)
+                      (wfkindes/pi
+                          ([y] DwfkindesK x y 
+                            : wfkindes (scons (G' x) y S') (K x y))
+                          (DsimpB' x : simp (B x) S')
+                          (DkofesB x : kofes (G' x) (B x) sktype)))
+               <- ({x}
+                      simp-fun (DsimpB x) (DsimpB' x)
+                      (DeqSS' : stp-eq S S'))
+               <- ({x}
+                      ofes-resp sctx-eq/i tm-eq/i DeqSS' (DofesN x)
+                      (DofesN' x : ofes (G' x) N S'))
+                  %% go
+               <- ksub-permute-es' Dsord Dsapp DofesM DofesN' DwfkindesK
+                  DsubN DsubKy DsubKx
+                  (DsubKyx : ksub ([x] Ky x) M Kyx)
+                  (DsubKxy : ksub ([y] Kx y) N Kyx).
+
+-base       : tpsubst-em T (Dsimp : simp A T)
+                  ([x] [d] Dord x d : ordered (G x))
+                  ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                  (Dcsub : csub ([x] G x) M Gx)
+                  (DofM : ofe G1 M A)
+                  (tpsub/base (Datpsub : atpsub P M Px))
+                  ([x] kofe/base (DofP x : at-kofe (G x) (P x) ktype))
+                  ksub/type
+%%
+                  (kofe/base DofPx)
+%%
+               <- atpsubst-em T Dsimp Dord Dapp Dcsub DofM Datpsub DofP
+                  ksub/type
+                  (DofPx : at-kofe Gx Px ktype).
+
+-pi         : tpsubst-em T (Dsimp : simp A T)
+                  ([x] [d] Dord x d : ordered (G x))
+                  ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                  (Dcsub : csub ([x] G x) M Gx)
+                  (DofM : ofe G1 M A)
+                  (tpsub/pi
+                      ([y] DsubB2 y : tpsub ([x] B2 x y) M (B2x y))
+                      (DsubB1       : tpsub ([x] B1 x) M B1x))
+                  ([x] kofe/pi
+                      ([y] DofB2 x y 
+                        : kofe (cons (G x) y (B1 x)) (B2 x y) ktype)
+                      (DofB1 x : kofe (G x) (B1 x) ktype))
+                  ksub/type
+%%
+                  (kofe/pi ([y] DofB2x y) DofB1x)
+%%
+               <- tpsubst-em T Dsimp Dord Dapp Dcsub DofM DsubB1 DofB1
+                  ksub/type
+                  (DofB1x : kofe Gx B1x ktype)
+               <- ({x} {d}
+                      extend-ordered _ (Dord x d) _
+                      ([y] [e] Dord' x d y e 
+                        : ordered (cons (G x) y (B1 x))))
+               <- ({y} {e}
+                      tpsubst-em T Dsimp
+                      ([x] [d] Dord' x d y e)
+                      ([x] append/cons (Dapp x))
+                      (csub/cons DsubB1 Dcsub)
+                      DofM
+                      (DsubB2 y)
+                      ([x] DofB2 x y)
+                      ksub/type
+                      (DofB2x y : kofe (cons Gx y B1x) (B2x y) ktype)).
+
+-alam       : tpsubst-em T (Dsimp : simp A T)
+                  ([x] [d] Dord x d : ordered (G x))
+                  ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                  (Dcsub : csub ([x] G x) M Gx)
+                  (DofM : ofe G1 M A)
+                  (tpsub/lam ([y] DsubC y : tpsub ([x] C x y) M (Cx y)))
+                  ([x] kofe/lam
+                      ([y] DofC x y 
+                        : kofe (cons (G x) y (B x)) (C x y) (K x y))
+                      (DofB x : kofe (G x) (B x) ktype))
+                  (ksub/pi
+                      ([y] DsubK y : ksub ([x] K x y) M (Kx y))
+                      (DsubB       : tpsub ([x] B x) M Bx))
+%%
+                  (kofe/lam ([y] DofCx y) DofBx)
+%%
+               <- tpsubst-em T Dsimp Dord Dapp Dcsub DofM DsubB DofB
+                  ksub/type
+                  (DofBx : kofe Gx Bx ktype)
+               <- ({x} {d}
+                      extend-ordered _ (Dord x d) _
+                      ([y] [e] Dord' x d y e 
+                        : ordered (cons (G x) y (B x))))
+               <- ({y} {e}
+                      tpsubst-em T Dsimp 
+                      ([x] [d] Dord' x d y e)
+                      ([x] append/cons (Dapp x))
+                      (csub/cons DsubB Dcsub)
+                      DofM
+                      (DsubC y)
+                      ([x] DofC x y)
+                      (DsubK y)
+                      (DofCx y : kofe (cons Gx y Bx) (Cx y) (Kx y))).
+
+-ktype      : ksubst-em T (Dsimp : simp A T)
+                  ([x] [d] Dord x d : ordered (G x))
+                  ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                  (Dcsub : csub ([x] G x) M Gx)
+                  (DofM : ofe G1 M A)
+                  ksub/type
+                  ([_] wfkinde/tp)
+                  wfkinde/tp.
+
+-kpi        : ksubst-em T (Dsimp : simp A T)
+                  ([x] [d] Dord x d : ordered (G x))
+                  ([x] Dapp x : append (cons G1 x A) (G2 x) (G x))
+                  (Dcsub : csub ([x] G x) M Gx)
+                  (DofM : ofe G1 M A)
+                  (ksub/pi
+                      ([y] DsubK y : ksub ([x] K x y) M (Kx y))
+                      (DsubB : tpsub ([x] B x) M Bx))
+                  ([x] wfkinde/pi
+                      ([y] DofK x y : wfkinde (cons (G x) y (B x)) (K x y))
+                      (DofB x : kofe (G x) (B x) ktype))
+%%
+                  (wfkinde/pi ([y] DofKx y) DofBx)
+%%
+               <- tpsubst-em T Dsimp Dord Dapp Dcsub DofM DsubB DofB
+                  ksub/type
+                  (DofBx : kofe Gx Bx ktype)
+               <- ({x} {d}
+                      extend-ordered _ (Dord x d) _
+                      ([y] [e] Dord' x d y e 
+                        : ordered (cons (G x) y (B x))))
+               <- ({y} {e}
+                      ksubst-em T Dsimp
+                      ([x] [d] Dord' x d y e)
+                      ([x] append/cons (Dapp x))
+                      (csub/cons DsubB Dcsub)
+                      DofM
+                      (DsubK y)
+                      ([x] DofK x y)
+                      (DofKx y : wfkinde (cons Gx y Bx) (Kx y))).
+
+
+%worlds (csig | asig | bind | var | ovar) 
+  (rrsubst-em  _ _ _ _ _ _ _ _ _ _)
+  (rmsubst-em  _ _ _ _ _ _ _ _ _ _)
+  (subst-em    _ _ _ _ _ _ _ _ _ _)
+  (atpsubst-em _ _ _ _ _ _ _ _ _ _)
+  (tpsubst-em  _ _ _ _ _ _ _ _ _ _)
+  (ksubst-em   _ _ _ _ _ _ _ _ _).
+%total {(T1 T2 T3 T4 T5 T6) (D1 D2 D3 D4 D5 D6)}
+  (rrsubst-em  T1 _ _ _ _ _ _ D1 _ _)
+  (rmsubst-em  T2 _ _ _ _ _ _ D2 _ _)
+  (subst-em    T3 _ _ _ _ _ _ _ D3 _)
+  (atpsubst-em T4 _ _ _ _ _ _ D4 _ _)
+  (tpsubst-em  T5 _ _ _ _ _ _ D5 _ _)
+  (ksubst-em   T6 _ _ _ _ _ _ D6 _).
+
+
+
+subst-e   : ({x} isvar x I -> ordered (G x))
+             -> ({x} append (cons G1 x A) (G2 x) (G x))
+             -> csub G M G'
+             -> ofe G1 M A
+             -> sub N M N'
+             -> tpsub B M B'
+             -> ({x} ofe (G x) (N x) (B x))
+%%
+             -> ofe G' N' B' -> type.
+%mode subst-e +X0 +X1 +X2 +X3 +X4 +X5 +X6 -X7.
+
+
+-     : subst-e Dord Dapp Dcsub Dof Dsub Dtpsub Dof' D
+         <- can-simp _ Dsimp
+         <- subst-em _ Dsimp Dord Dapp Dcsub Dof Dsub Dtpsub Dof' D.
+
+
+%worlds (csig | asig | var | bind | ovar) (subst-e _ _ _ _ _ _ _ _).
+%total {} (subst-e _ _ _ _ _ _ _ _).
+
+
+tpsubst-e   : ({x} isvar x I -> ordered (G x))
+             -> ({x} append (cons G1 x A) (G2 x) (G x))
+             -> csub G M G'
+             -> ofe G1 M A
+             -> tpsub B M B'
+             -> ({x} kofe (G x) (B x) (K x))
+             -> ksub K M K'
+%%
+             -> kofe G' B' K' -> type.
+%mode tpsubst-e +X0 +X1 +X2 +X3 +X4 +X5 +X6 -X7.
+
+
+-     : tpsubst-e Dord Dapp Dcsub Dof Dtpsub Dkof Dksub D
+         <- can-simp _ Dsimp
+         <- tpsubst-em _ Dsimp Dord Dapp Dcsub Dof Dtpsub Dkof Dksub D.
+
+
+%worlds (csig | asig | bind | var | ovar) (tpsubst-e _ _ _ _ _ _ _ _).
+%total {} (tpsubst-e _ _ _ _ _ _ _ _).
+
+
+ksubst-e    : ({x} isvar x I -> ordered (G x))
+               -> ({x} append (cons G1 x A) (G2 x) (G x))
+               -> csub G M G'
+               -> ofe G1 M A
+               -> ksub ([x] K x) M K'
+               -> ({x} wfkinde (G x) (K x))
+%%
+               -> wfkinde G' K' -> type.
+%mode ksubst-e +X1 +X2 +X3 +X4 +X5 +X6 -X7.
+
+-     : ksubst-e Dord Dapp Dcsub Dof Dksub Dkof D
+         <- can-simp _ Dsimp
+         <- ksubst-em _ Dsimp Dord Dapp Dcsub Dof Dksub Dkof D.
+
+%worlds (csig | asig | bind | var | ovar) (ksubst-e _ _ _ _ _ _ _).
+%total {} (ksubst-e _ _ _ _ _ _ _).
+
+
+%%%%%  substitution lemma  %%%%%
+
+subst : sub ([x] M x) N Mx
+         -> tpsub ([x] B x) N Bx
+         -> ({x} vof x A -> of (M x) (B x))
+         -> of N A
+%%
+         -> of Mx Bx -> type.
+%mode subst +X1 +X2 +X3 +X4 -X5.
+
+-     : subst
+            (Dsub : sub ([x] M x) N Mx)
+            (Dtpsub : tpsub ([x] B x) N Bx)
+            (DofM : {x} vof x A -> of (M x) (B x))
+            (DofN : of N A)
+%%
+            Dof
+%%
+         <- of1-to-ofe DofM
+            (DofeM : {x} ofe (cons nil x A) (M x) (B x))
+         <- of-to-ofe DofN
+            (DofeN : ofe nil N A)
+         <- extend-ordered _ ordered/nil _
+            ([x] [d] Dord x d : ordered (cons nil x A))
+         <- subst-e Dord
+            ([_] append/nil) csub/base DofeN Dsub Dtpsub DofeM
+            (Dofe : ofe nil Mx Bx)
+         <- ofe-to-of Dofe (Dof : of Mx Bx).
+
+%worlds (csig | asig | var | bind | ovar) (subst _ _ _ _ _).
+%total {} (subst _ _ _ _ _).
+
+
+tpsubst : tpsub ([x] B x) N Bx
+           -> ksub ([x] K x) N Kx
+           -> ({x} vof x A -> kof (B x) (K x))
+           -> of N A
+%%
+           -> kof Bx Kx -> type.
+%mode tpsubst +X0 +X1 +X2 +X3 -X4.
+
+
+-       : tpsubst
+              (Dtpsub : tpsub ([x] B x) N Bx)
+              (Dksub  : ksub ([x] K x) N Kx)
+              (DofB   : {x} vof x A -> kof (B x) (K x))
+              (DofN   : of N A)
+%%
+              DofBx
+%%
+           <- kof1-to-kofe DofB
+              (DofeB : {x} kofe (cons nil x A) (B x) (K x))
+           <- of-to-ofe DofN
+              (DofeN : ofe nil N A)
+           <- extend-ordered _ ordered/nil _
+              ([x] [d] Dord x d : ordered (cons nil x A))
+           <- tpsubst-e Dord ([_] append/nil) csub/base DofeN Dtpsub DofeB
+              Dksub
+              (DofeBx : kofe nil Bx Kx)
+           <- kofe-to-kof DofeBx
+              (DofBx : kof Bx Kx).
+
+%worlds (csig | asig | bind | var | ovar) (tpsubst _ _ _ _ _).
+%total {} (tpsubst _ _ _ _ _).
+
+
+ksubst : ksub ([x] K x) N Kx
+          -> ({x} vof x A -> wfkind (K x))
+          -> of N A
+%%
+          -> wfkind Kx -> type.
+%mode ksubst +X1 +X2 +X3 -X4.
+
+-       : ksubst
+              (Dksub : ksub ([x] K x) N Kx)
+              (DofK  : {x} vof x A -> wfkind (K x))
+              (DofN  : of N A)
+%%
+              DofKx
+%%
+           <- wfkind1-to-wfkinde DofK
+              (DofeK : {x} wfkinde (cons nil x A) (K x))
+           <- of-to-ofe DofN
+              (DofeN : ofe nil N A)
+           <- extend-ordered _ ordered/nil _
+              ([x] [d] Dord x d : ordered (cons nil x A))
+           <- ksubst-e Dord ([_] append/nil) csub/base DofeN Dksub DofeK
+              (DofeKx : wfkinde nil Kx)
+           <- wfkinde-to-wfkind DofeKx
+              (DofKx : wfkind Kx).
+
+%worlds (csig | asig | bind | var | ovar) (ksubst _ _ _ _).
+%total {} (ksubst _ _ _ _).
+

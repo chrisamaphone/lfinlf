@@ -1,0 +1,65 @@
+
+variable : etm -> type.
+
+%block evvar  : block {x:etm} {dv:variable x}.
+%block evbind : some {A:etp} block {x:etm} {d:evof x A} {dv:variable x}.
+
+%%%% Syntactic Reduction %%%%
+
+reduce    : etm -> etm -> type.
+tpreduce  : etp -> etp -> type.
+kreduce   : ekind -> ekind -> type.
+
+reduce/refl     : reduce M M.
+
+reduce/lam      : reduce (elam A M) (elam A' M')
+                   <- tpreduce A A'
+                   <- ({x} variable x -> reduce (M x) (M' x)).
+
+reduce/beta     : reduce (eapp (elam _ [x] M x) N) (M N).
+
+reduce/app      : reduce (eapp M N) (eapp M' N')
+                   <- reduce M M'
+                   <- reduce N N'.
+
+%%
+
+tpreduce/const  : tpreduce (eaconst A) (eaconst A).
+
+tpreduce/pi     : tpreduce (epi A B) (epi A' B')
+                   <- tpreduce A A'
+                   <- ({x} variable x -> tpreduce (B x) (B' x)).
+
+tpreduce/lam    : tpreduce (ealam A B) (ealam A' B')
+                   <- tpreduce A A'
+                   <- ({x} variable x -> tpreduce (B x) (B' x)).
+
+tpreduce/app    : tpreduce (eaapp A M) (eaapp A' M')
+                   <- tpreduce A A'
+                   <- reduce M M'.
+
+kreduce/type  : kreduce ektype ektype.
+
+kreduce/pi    : kreduce (ekpi A K) (ekpi A' K')
+                 <- tpreduce A A'
+                 <- ({x} variable x -> kreduce (K x) (K' x)).
+
+%% Transitive closure %%
+
+reduce* : etm -> etm -> type.
+reduce*/refl  : reduce* M M.
+reduce*/trans : reduce* M N
+                 <- reduce M M'
+                 <- reduce* M' N.
+
+tpreduce* : etp -> etp -> type.
+tpreduce*/refl  : tpreduce* A A.
+tpreduce*/trans : tpreduce* A C
+                   <- tpreduce A B
+                   <- tpreduce* B C.
+
+kreduce* : ekind -> ekind -> type.
+kreduce*/refl  : kreduce* A A.
+kreduce*/trans : kreduce* A C
+                   <- kreduce A B
+                   <- kreduce* B C.

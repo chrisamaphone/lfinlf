@@ -1,0 +1,141 @@
+%%% ordered variables %%%
+
+isvar : atm -> nat -> type.
+%%mode isvar *X1 *X2.
+
+- : (isvar _ _ -> isvar _ _) -> type.
+
+
+precedes : atm -> atm -> type.
+
+precedes/i : precedes X Y
+              <- isvar X I
+              <- isvar Y J
+              <- lt I J.
+
+
+%%% contexts %%%
+
+ctx : type.  %name ctx G.
+
+nil : ctx.
+cons : ctx -> atm -> tp -> ctx.
+
+
+bounded : ctx -> atm -> type.
+
+bounded/nil  : bounded nil X
+                <- isvar X _.
+bounded/cons : bounded (cons G Y _) X
+                <- precedes Y X
+                <- bounded G Y.
+
+
+ordered : ctx -> type.
+
+ordered/nil  : ordered nil.
+ordered/cons : ordered (cons G X _)
+                <- bounded G X.
+
+
+lookup : ctx -> atm -> tp -> type.
+
+lookup/hit  : lookup (cons G X A) X A.
+
+lookup/miss : lookup (cons G Y _) X A
+               <- lookup G X A.
+
+
+csub : (atm -> ctx) -> tm -> ctx -> type.
+
+csub/nil  : csub ([_] nil) _ nil.
+csub/base : csub ([x] cons G x A) M G.
+csub/cons : csub ([x] cons (G x) Y (A x)) M (cons G' Y A')
+             <- csub ([x] G x) M G'
+             <- tpsub ([x] A x) M A'.
+
+
+append : ctx -> ctx -> ctx -> type.
+
+append/nil : append G nil G.
+append/cons : append G1 (cons G2 X A) (cons G X A)
+               <- append G1 G2 G.
+
+
+%%% typing with explicit contexts %%%
+
+ofe     : ctx -> tm -> tp -> type.
+at-ofe  : ctx -> atm -> tp -> type.
+kofe    : ctx -> tp -> kind -> type.
+at-kofe : ctx -> atp -> kind -> type.
+wfkinde : ctx -> kind -> type.
+
+% objects
+
+at-ofe/closed : at-ofe G R A
+                <- at-of R A.
+
+at-ofe/const : at-ofe G (const C) A
+                <- cof C A
+                <- kofe G A ktype
+%                <- tclosed A
+                .
+
+at-ofe/var   : at-ofe G X A
+                <- lookup G X A
+                <- kofe G A ktype.
+
+at-ofe/app   : at-ofe G (app R M) B'
+                <- at-ofe G R (pi A ([x] B x))
+                <- ofe G M A
+                <- tpsub ([x] B x) M B'.
+
+ofe/at       : ofe G (at R) (base P)
+                <- at-ofe G R (base P).
+
+ofe/lam      : ofe G (lam [x] M x) (pi A [x] B x)
+                <- ({x} ofe (cons G x A) (M x) (B x))
+                <- kofe G A ktype.
+
+% families
+
+at-kofe/closed : at-kofe G P K
+                  <- at-kof P K.
+
+at-kofe/const : at-kofe G (aconst A) K
+                 <- ckof A K
+                 <- wfkinde G K
+                    .
+%                 <- kclosed K.
+
+at-kofe/app   : at-kofe G (aapp P M) K'
+                 <- at-kofe G P (kpi B ([x] K x))
+                 <- ofe G M B
+                 <- ksub ([x] K x) M K'.
+
+kofe/pi       : kofe G (pi A ([x] B x)) ktype
+                 <- kofe G A ktype
+                 <- ({x} kofe (cons G x A) (B x) ktype).
+
+kofe/base     : kofe G (base P) ktype
+                 <- at-kofe G P ktype.
+
+kofe/lam      : kofe G (alam ([x] B x)) (kpi A ([x] K x))
+                 <- kofe G A ktype
+                 <- ({x} kofe (cons G x A) (B x) (K x)).
+
+
+% kinds
+
+wfkinde/tp : wfkinde G ktype.
+
+wfkinde/pi : wfkinde G (kpi A ([x] K x))
+              <- kofe G A ktype
+              <- ({x} wfkinde (cons G x A) (K x)).
+
+
+%%% worlds %%%
+
+
+%block ovar  : some {n:nat} block {x:atm} {d:isvar x n}.
+

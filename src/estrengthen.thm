@@ -1,0 +1,876 @@
+%% noassm %%
+
+evof-noassm : ({x:etm} evof Y (B x)) -> ({x:etm} etp-eq (B x) B') -> type.
+%mode evof-noassm +X1 -X2.
+
+- : evof-noassm _ ([_] etp-eq/i).
+
+%worlds (evar | ebind) (evof-noassm _ _).
+%total {} (evof-noassm _ _).
+
+
+eof-noassm  : ({x:etm} eof (M x) (A x))
+               -> ({x} etm-eq M' (M x))
+               -> ({x} etp-eq A' (A x)) -> type.
+%mode eof-noassm +X1 -X2 -X3.
+
+ekof-noassm : ({x:etm} ekof (A x) (K x))
+              -> ({x} etp-eq A' (A x))
+              -> ({x} ekind-eq K' (K x)) -> type.
+%mode ekof-noassm +X1 -X2 -X3.
+
+ewfkind-noassm : ({x:etm} ewfkind (K x))
+                  -> ({x} ekind-eq K' (K x)) -> type.
+%mode ewfkind-noassm +X1 -X2.
+
+eqtm-noassm   : ({x:etm} eqtm (M x) (N x) (A x))
+                 -> ({x} etm-eq M' (M x))
+                 -> ({x} etm-eq N' (N x))
+                 -> ({x} etp-eq A' (A x)) -> type.
+%mode eqtm-noassm +X1 -X2 -X3 -X4.
+
+eqtp-noassm   : ({x:etm} eqtp (A x) (B x) (K x))
+                 -> ({x} etp-eq A' (A x))
+                 -> ({x} etp-eq B' (B x))
+                 -> ({x} ekind-eq K' (K x)) -> type.
+%mode eqtp-noassm +X1 -X2 -X3 -X4.
+
+eqkind-noassm : ({x:etm} eqkind (K x) (L x))
+                 -> ({x} ekind-eq K' (K x))
+                 -> ({x} ekind-eq L' (L x)) -> type.
+%mode eqkind-noassm +X1 -X2 -X3.
+
+-const    : eof-noassm
+                ([x] eof/const
+                    (DofA x : ekof A ektype)
+                    (Dcof : ecof C A))
+                ([_] etm-eq/i)
+                ([_] etp-eq/i).
+
+-var      : eof-noassm
+                ([x] eof/var
+                    (DofA x : ekof A ektype)
+                    (Dvof : evof Y A))
+                ([_] etm-eq/i)
+                ([_] etp-eq/i).
+
+-app      : eof-noassm
+                ([x] eof/app
+                    (DofN x : eof (N x) (B x))
+                    (DofM x : eof (M x) (epi (B x) ([y] A x y))))
+                DeqApp
+                Deq
+             <- eof-noassm DofM
+                ([x] DeqM x : etm-eq M' (M x))
+                ([x] DeqPi x
+                  : etp-eq (epi B' ([y] A' y)) (epi (B x) ([y] A x y)))
+             <- eof-noassm DofN
+                ([x] DeqN x : etm-eq N' (N x))
+                _
+             <- ({x}
+                    epi-inj (DeqPi x)
+                    (DeqB x : etp-eq B' (B x))
+                    ([y] DeqA x y : etp-eq (A' y) (A x y)))
+             <- ({x}
+                    eapp-compat (DeqM x) (DeqN x)
+                    (DeqApp x : etm-eq (eapp M' N') (eapp (M x) (N x))))
+             <- ({x}
+                    etpsubst-compat ([y] DeqA x y) (DeqN x)
+                    (Deq x : etp-eq (A' N') (A x (N x)))).
+
+-lam      : eof-noassm
+                ([x] eof/lam
+                    (DofA x : ekof (A x) ektype)
+                    ([y] [e:evof y (A x)] DofM x y e : eof (M x y) (B x y)))
+                DeqLam
+                DeqPi
+             <- ekof-noassm DofA
+                ([x] DeqA x : etp-eq A' (A x))
+                _
+             <- ({x} etp-eq-sym (DeqA x) (DeqA' x))
+             <- eof-resp-underbind-1 DofM DeqA' 
+                ([_][_] etm-eq/i) ([_][_]etp-eq/i)
+                ([x] [y] [e:evof y A']
+                    DofM' x y e : eof (M x y) (B x y))
+             <- ({y} {e:evof y A'}
+                    eof-noassm ([x] DofM' x y e)
+                    ([x] DeqM x y : etm-eq (M' y) (M x y))
+                    ([x] DeqB x y : etp-eq (B' y) (B x y)))
+                %%
+             <- ({x}
+                    elam-compat (DeqA x) ([y] DeqM x y)
+                    (DeqLam x 
+                      : etm-eq (elam A' ([y] M' y)) (elam (A x) ([y] M x y))))
+             <- ({x}
+                    epi-compat (DeqA x) ([y] DeqB x y)
+                    (DeqPi x : etp-eq (epi A' B') (epi (A x) (B x)))).
+
+-eqtp     : eof-noassm
+                ([x] eof/eqtp
+                    (Deqtp x : eqtp (A x) (B x) ektype)
+                    (Dof x : eof (M x) (A x)))
+                DeqM
+                DeqB
+             <- eof-noassm Dof
+                ([x] DeqM x : etm-eq M' (M x))
+                _
+             <- eqtp-noassm Deqtp
+                _
+                ([x] DeqB x: etp-eq B' (B x))
+                _.
+
+-ext      : eof-noassm
+                ([x] eof/ext
+                    ([y] [e:evof y (B x)]
+                        DofApp x y e : eof (eapp (C x) y) (K x y))
+                    (DofC x : eof (C x) (epi (B x) ([y] K' x y))))
+                ([x] DeqC x)
+                ([x] DeqPi' x)
+             <- eof-noassm DofC
+                ([x] DeqC x : etm-eq C' (C x))
+                ([x] DeqPi x 
+                  : etp-eq (epi B' ([y] K'' y)) (epi (B x) ([y] K' x y)))
+             <- ({x}
+                    epi-inj (DeqPi x)
+                    (DeqB x : etp-eq B' (B x))
+                    _)
+             <- ({x} etp-eq-sym (DeqB x) (DeqB' x : etp-eq (B x) B'))
+             <- eof-resp-underbind-1 DofApp DeqB' 
+                ([_][_] etm-eq/i) ([_][_] etp-eq/i)
+                ([x] [y] [e:evof y B']
+                    DofApp' x y e : eof (eapp (C x) y) (K x y))
+             <- ({y} {e:evof y B'}
+                    eof-noassm ([x] DofApp' x y e)
+                    ([x] Dontcare x y)
+                    ([x] DeqK x y : etp-eq (K* y) (K x y)))
+             <- ({x}
+                    epi-compat (DeqB x) ([y] DeqK x y)
+                    (DeqPi' x
+                      : etp-eq 
+                        (epi B' ([y] K* y)) (epi (B x) ([y] K x y)))).
+%%
+
+-const    : ekof-noassm
+                ([x] ekof/const
+                    (Dwfkind x : ewfkind K)
+                    (Dckof : eckof C K))
+                ([x] etp-eq/i)
+                ([x] ekind-eq/i).
+
+-app      : ekof-noassm
+                ([x] ekof/app
+                    (Dof x : eof (M x) (B x))
+                    (Dkof x : ekof (A x) (ekpi (B x) ([y] K x y))))
+                ([x] DeqApp x)
+                ([x] DeqK' x)
+             <- ekof-noassm Dkof
+                ([x] DeqA x : etp-eq A' (A x))
+                ([x] DeqPi x 
+                  : ekind-eq (ekpi B' ([y] K' y)) (ekpi (B x) ([y] K x y)))
+             <- eof-noassm Dof
+                ([x] DeqM x : etm-eq M' (M x))
+                _
+             <- ({x}
+                    eaapp-compat (DeqA x) (DeqM x)
+                    (DeqApp x : etp-eq (eaapp A' M') (eaapp (A x) (M x))))
+             <- ({x}
+                    ekpi-inj (DeqPi x)
+                    (DeqB x : etp-eq B' (B x))
+                    ([y] DeqK x y : ekind-eq (K' y) (K x y)))
+             <- ({x}
+                    eksubst-compat ([y] DeqK x y) (DeqM x)
+                    (DeqK' x : ekind-eq (K' M') (K x (M x)))).
+
+-pi       : ekof-noassm
+                ([x] ekof/pi
+                    ([y] [e:evof y (A x)] DofM x y e : ekof (M x y) ektype)
+                    (DofA x : ekof (A x) ektype))
+                DeqLam
+                ([_] ekind-eq/i)
+             <- ekof-noassm DofA
+                ([x] DeqA x : etp-eq A' (A x))
+                _
+             <- ({x} etp-eq-sym (DeqA x) (DeqA' x))
+             <- ekof-resp-underbind-1 DofM DeqA' 
+                ([_][_] etp-eq/i) ([_][_]ekind-eq/i)
+                ([x] [y] [e:evof y A']
+                    DofM' x y e : ekof (M x y) ektype)
+             <- ({y} {e:evof y A'}
+                    ekof-noassm ([x] DofM' x y e)
+                    ([x] DeqM x y : etp-eq (M' y) (M x y))
+                    ([x] Dontcare x y))
+                %%
+             <- ({x}
+                    epi-compat (DeqA x) ([y] DeqM x y)
+                    (DeqLam x 
+                      : etp-eq (epi A' ([y] M' y)) (epi (A x) ([y] M x y)))).
+
+
+-lam      : ekof-noassm
+                ([x] ekof/lam
+                    (DofA x : ekof (A x) ektype)
+                    ([y] [e:evof y (A x)] DofM x y e : ekof (M x y) (B x y)))
+                DeqLam
+                DeqPi
+             <- ekof-noassm DofA
+                ([x] DeqA x : etp-eq A' (A x))
+                _
+             <- ({x} etp-eq-sym (DeqA x) (DeqA' x))
+             <- ekof-resp-underbind-1 DofM DeqA' 
+                ([_][_] etp-eq/i) ([_][_]ekind-eq/i)
+                ([x] [y] [e:evof y A']
+                    DofM' x y e : ekof (M x y) (B x y))
+             <- ({y} {e:evof y A'}
+                    ekof-noassm ([x] DofM' x y e)
+                    ([x] DeqM x y : etp-eq (M' y) (M x y))
+                    ([x] DeqB x y : ekind-eq (B' y) (B x y)))
+                %%
+             <- ({x}
+                    ealam-compat (DeqA x) ([y] DeqM x y)
+                    (DeqLam x 
+                      : etp-eq (ealam A' ([y] M' y)) (ealam (A x) ([y] M x y))))
+             <- ({x}
+                    ekpi-compat (DeqA x) ([y] DeqB x y)
+                    (DeqPi x : ekind-eq (ekpi A' B') (ekpi (A x) (B x)))).
+
+
+-eqkind   : ekof-noassm
+                ([x] ekof/eqkind
+                    (Deqkind x : eqkind (K x) (L x))
+                    (Dkof x : ekof (A x) (K x)))
+                DeqA
+                DeqL
+             <- ekof-noassm Dkof
+                ([x] DeqA x : etp-eq A' (A x))
+                _
+             <- eqkind-noassm Deqkind
+                ([x] DeqK x : ekind-eq K' (K x))
+                ([x] DeqL x : ekind-eq L' (L x)).
+
+-ext      : ekof-noassm
+                ([x] ekof/ext
+                    ([y] [e:evof y (B x)]
+                        DofApp x y e : ekof (eaapp (C x) y) (K x y))
+                    (DofC x : ekof (C x) (ekpi (B x) ([y] K' x y))))
+                ([x] DeqC x)
+                ([x] DeqPi' x)
+             <- ekof-noassm DofC
+                ([x] DeqC x : etp-eq C' (C x))
+                ([x] DeqPi x 
+                  : ekind-eq (ekpi B' ([y] K'' y)) (ekpi (B x) ([y] K' x y)))
+             <- ({x}
+                    ekpi-inj (DeqPi x)
+                    (DeqB x : etp-eq B' (B x))
+                    _)
+             <- ({x} etp-eq-sym (DeqB x) (DeqB' x : etp-eq (B x) B'))
+             <- ekof-resp-underbind-1 DofApp DeqB' 
+                ([_][_] etp-eq/i) ([_][_] ekind-eq/i)
+                ([x] [y] [e:evof y B']
+                    DofApp' x y e : ekof (eaapp (C x) y) (K x y))
+             <- ({y} {e:evof y B'}
+                    ekof-noassm ([x] DofApp' x y e)
+                    ([x] Dontcare x y)
+                    ([x] DeqK x y : ekind-eq (K* y) (K x y)))
+             <- ({x}
+                    ekpi-compat (DeqB x) ([y] DeqK x y)
+                    (DeqPi' x
+                      : ekind-eq 
+                        (ekpi B' ([y] K* y)) (ekpi (B x) ([y] K x y)))).
+%%
+
+-type     : ewfkind-noassm ([_] ewfkind/tp) ([_] ekind-eq/i).
+
+-pi       : ewfkind-noassm
+                ([x] ewfkind/pi
+                    ([y] [e:evof y (A x)] DofM x y e : ewfkind (M x y))
+                    (DofA x : ekof (A x) ektype))
+                DeqLam
+             <- ekof-noassm DofA
+                ([x] DeqA x : etp-eq A' (A x))
+                _
+             <- ({x} etp-eq-sym (DeqA x) (DeqA' x))
+             <- ewfkind-resp-underbind-1 DofM DeqA' 
+                ([_][_] ekind-eq/i)
+                ([x] [y] [e:evof y A']
+                    DofM' x y e : ewfkind (M x y))
+             <- ({y} {e:evof y A'}
+                    ewfkind-noassm ([x] DofM' x y e)
+                    ([x] DeqM x y : ekind-eq (M' y) (M x y)))
+                %%
+             <- ({x}
+                    ekpi-compat (DeqA x) ([y] DeqM x y)
+                    (DeqLam x 
+                      : ekind-eq
+                        (ekpi A' ([y] M' y)) (ekpi (A x) ([y] M x y)))).
+
+%%
+
+-app      : eqtm-noassm
+                ([x] eqtm/app
+                    (DeqtmN x : eqtm (N x) (N' x) (B x))
+                    (DeqtmM x : eqtm (M x) (M' x) (epi (B x) ([y] A x y))))
+%%
+                DeqApp
+                DeqApp'
+                DeqAy
+%%
+             <- eqtm-noassm DeqtmM
+                ([x] DeqM x : etm-eq M* (M x))
+                ([x] DeqM' x : etm-eq M'* (M' x))
+                ([x] DeqPi x : etp-eq C (epi (B x) ([y] A x y)))
+             <- eqtm-noassm DeqtmN
+                ([x] DeqN x : etm-eq N* (N x))
+                ([x] DeqN' x : etm-eq N'* (N' x))
+                _
+             <- ({x} eapp-compat (DeqM x) (DeqN x)
+                  (DeqApp x : etm-eq (eapp M* N*) (eapp (M x) (N x))))
+             <- ({x} eapp-compat (DeqM' x) (DeqN' x)
+                  (DeqApp' x : etm-eq (eapp M'* N'*) (eapp (M' x) (N' x))))
+                %%
+             <- etp-eq-pi-strengthen DeqPi
+                ([x] DeqB x : etp-eq B* (B x))
+                ([x] [y] DeqA x y : etp-eq (A* y) (A x y))
+             <- ({x}
+                    etpsubst-compat ([y] DeqA x y) (DeqN x)
+                    (DeqAy x : etp-eq (A* N*) (A x (N x)))).
+
+-lam      : eqtm-noassm
+                ([x] eqtm/lam
+                    ([y] [e:evof y (A x)] 
+                      DeqtmM x y e : eqtm (M x y) (M' x y) (B x y))
+                    (DeqtpA x : eqtp (A x) (A' x) ektype))
+%%
+                DeqLam
+                DeqLam'
+                DeqPi
+%%
+             <- eqtp-noassm DeqtpA
+                ([x] DeqA x : etp-eq A* (A x))
+                ([x] DeqA' x : etp-eq A'* (A' x))
+                _
+             <- ({x} etp-eq-sym (DeqA x) (DeqA* x : etp-eq (A x) A*))
+             <- eqtm-resp-underbind-1 DeqtmM DeqA*
+                ([x][y]etm-eq/i) ([x][y]etm-eq/i) ([x][y]etp-eq/i)
+                ([x] [y] [e:evof y A*]
+                    DeqtmM' x y e : eqtm (M x y) (M' x y) (B x y))
+             <- ({y} {e:evof y A*}
+                    eqtm-noassm ([x] DeqtmM' x y e)
+                    ([x] DeqM x y : etm-eq (M* y) (M x y))
+                    ([x] DeqM' x y : etm-eq (M'* y) (M' x y))
+                    ([x] DeqB x y : etp-eq (B* y) (B x y)))
+             <- ({x}
+                    elam-compat (DeqA x) ([y] DeqM x y)
+                    (DeqLam x 
+                      : etm-eq (elam A* ([y] M* y)) (elam (A x) ([y] M x y))))
+             <- ({x}
+                    elam-compat (DeqA' x) ([y] DeqM' x y)
+                    (DeqLam' x 
+                      : etm-eq (elam A'* ([y] M'* y)) (elam (A' x) ([y] M' x y))))
+             <- ({x}
+                    epi-compat (DeqA x) ([y] DeqB x y)
+                    (DeqPi x 
+                      : etp-eq (epi A* ([y] B* y)) (epi (A x) ([y] B x y)))).
+
+-ext      : eqtm-noassm
+                ([x] eqtm/ext
+                    ([y] [e:evof y (A x)]
+                        DeqtmApp x y e 
+                          : eqtm (eapp (M x) y) (eapp (N x) y) (B x y))
+                    (DofN x : eof (N x) (epi (A x) ([y] B2 x y)))
+                    (DofM x : eof (M x) (epi (A x) ([y] B1 x y))))
+%%                
+                DeqM
+                DeqN
+                DeqPi
+%%
+             <- eof-noassm DofM
+                ([x] DeqM x : etm-eq M' (M x))
+                ([x] DeqPi1 x : etp-eq Pi1 (epi (A x) ([y] B1 x y)))
+             <- eof-noassm DofN
+                ([x] DeqN x : etm-eq N' (N x))
+                _
+             <- etp-eq-pi-strengthen DeqPi1
+                ([x] DeqA x : etp-eq A' (A x))
+                _
+             <- ({x} etp-eq-sym (DeqA x) (DeqA' x : etp-eq (A x) A'))
+             <- eqtm-resp-underbind-1 DeqtmApp DeqA' 
+                ([_][_]etm-eq/i) ([_][_]etm-eq/i) ([_][_]etp-eq/i)
+                ([x] [y] [e:evof y A']
+                    DeqApp' x y e : eqtm (eapp (M x) y) (eapp (N x) y) (B x y))
+             <- ({y} {e:evof y A'}
+                    eqtm-noassm ([x] DeqApp' x y e)
+                    ([x] DeqAppM x y : etm-eq (MApp y) (eapp (M x) y))
+                    ([x] DeqAppN x y : etm-eq (NApp y) (eapp (N x) y))
+                    ([x] DeqB x y : etp-eq (B' y) (B x y)))
+             <- ({x}
+                    epi-compat (DeqA x) ([y] DeqB x y)
+                    (DeqPi x)).
+
+-extw     : eqtm-noassm
+                ([x] eqtm/extw
+                    ([y] [e:evof y (A x)]
+                      DeqtmApp x y e
+                        : eqtm (eapp (M x) y) (eapp (N x) y) (B x y))
+                    (Deqtm x : eqtm (M x) (N x) (epi (A x) ([y] B' x y))))
+%%
+                DeqM
+                DeqN
+                DeqPi
+%%
+             <- eqtm-noassm Deqtm
+                ([x] DeqM x : etm-eq M' (M x))
+                ([x] DeqN x : etm-eq N' (N x))
+                ([x] DeqPi' x : etp-eq Pi (epi (A x) ([y] B' x y)))
+             <- etp-eq-pi-strengthen DeqPi'
+                ([x] DeqA x : etp-eq A' (A x))
+                _
+             <- ({x} etp-eq-sym (DeqA x) (DeqA' x : etp-eq (A x) A'))
+             <- eqtm-resp-underbind-1 DeqtmApp DeqA'
+                ([_][_]etm-eq/i) ([_][_]etm-eq/i) ([_][_]etp-eq/i)
+                ([x] [y] [e:evof y A']
+                    DeqApp' x y e :eqtm (eapp (M x) y) (eapp (N x) y) (B x y))
+             <- ({y} {e:evof y A'}
+                    eqtm-noassm ([x] DeqApp' x y e)
+                    ([x] DeqAppM x y : etm-eq (MApp y) (eapp (M x) y))
+                    ([x] DeqAppN x y : etm-eq (NApp y) (eapp (N x) y))
+                    ([x] DeqB x y : etp-eq (B* y) (B x y)))
+             <- ({x}
+                    epi-compat (DeqA x) ([y] DeqB x y)
+                    (DeqPi x)).
+
+-beta     : eqtm-noassm
+                ([x] eqtm/beta
+                    (DofN x : eof (N x) (A x))
+                    ([y] [e:evof y (A x)] DofM x y e : eof (M x y) (B x y)))
+%%
+                DeqApp
+                DeqMy
+                DeqBy
+%%
+             <- eof-noassm DofN
+                ([x] DeqN x : etm-eq N' (N x))
+                ([x] DeqA x : etp-eq A' (A x))
+             <- ({x} etp-eq-sym (DeqA x) (DeqA' x : etp-eq (A x) A'))
+             <- eof-resp-underbind-1 DofM DeqA' 
+                ([x] [y] etm-eq/i) ([x] [y] etp-eq/i)
+                ([x] [y] [e:evof y A'] DofM' x y e : eof (M x y) (B x y))
+             <- ({y} {e:evof y A'}
+                    eof-noassm ([x] DofM' x y e)
+                    ([x] DeqM x y : etm-eq (M' y) (M x y))
+                    ([x] DeqB x y : etp-eq (B' y) (B x y)))
+             <- ({x}
+                    elam-compat (DeqA x) ([y] DeqM x y)
+                    (DeqLam x 
+                      : etm-eq (elam A' ([y] M' y)) (elam (A x) ([y] M x y))))
+             <- ({x}
+                    eapp-compat (DeqLam x) (DeqN x)
+                    (DeqApp x))
+             <- ({x}
+                    esubst-compat ([y] DeqM x y) (DeqN x)
+                    (DeqMy x : etm-eq (M' N') (M x (N x))))
+             <- ({x}
+                    etpsubst-compat ([y] DeqB x y) (DeqN x)
+                    (DeqBy x : etp-eq (B' N') (B x (N x)))).
+
+-sym      : eqtm-noassm
+                ([x] eqtm/sym
+                    (Deqtm x : eqtm (M x) (N x) (A x)))
+%%
+                DeqN
+                DeqM
+                DeqA
+%%
+             <- eqtm-noassm Deqtm
+                ([x] DeqM x : etm-eq M' (M x))
+                ([x] DeqN x : etm-eq N' (N x))
+                ([x] DeqA x : etp-eq A' (A x)).
+
+-trans    : eqtm-noassm
+                ([x] eqtm/trans
+                    (DeqtmNO x : eqtm (N x) (O x) (A x))
+                    (DeqtmMN x : eqtm (M x) (N x) (A x)))
+%%
+                DeqM
+                DeqO
+                DeqA
+%%
+             <- eqtm-noassm DeqtmMN
+                ([x] DeqM x : etm-eq M' (M x))
+                ([x] DeqN x : etm-eq N' (N x))
+                ([x] DeqA x : etp-eq A' (A x))
+             <- eqtm-noassm DeqtmNO
+                _
+                ([x] DeqO x : etm-eq O' (O x))
+                _.
+
+-refl     : eqtm-noassm
+                ([x] eqtm/refl
+                    (Dof x : eof (M x) (A x)))
+                DeqM
+                DeqM
+                DeqA
+             <- eof-noassm Dof
+                ([x] DeqM x : etm-eq M' (M x))
+                ([x] DeqA x : etp-eq A' (A x)).
+
+-eqtp     : eqtm-noassm
+                ([x] eqtm/typecon
+                    (Deqtp x : eqtp (A x) (B x) ektype)
+                    (Deqtm x : eqtm (M x) (N x) (A x)))
+%%
+                DeqM
+                DeqN
+                DeqB
+%%
+             <- eqtm-noassm Deqtm
+                ([x] DeqM x : etm-eq M' (M x))
+                ([x] DeqN x : etm-eq N' (N x))
+                _
+             <- eqtp-noassm Deqtp
+                _
+                ([x] DeqB x : etp-eq B' (B x))
+                _.
+
+%%
+
+-app      : eqtp-noassm
+                ([x] eqtp/app
+                    (DeqtmN x : eqtm (N x) (N' x) (B x))
+                    (DeqtmM x : eqtp (M x) (M' x) (ekpi (B x) ([y] A x y))))
+%%
+                DeqApp
+                DeqApp'
+                DeqAy
+%%
+             <- eqtp-noassm DeqtmM
+                ([x] DeqM x : etp-eq M* (M x))
+                ([x] DeqM' x : etp-eq M'* (M' x))
+                ([x] DeqPi x : ekind-eq C (ekpi (B x) ([y] A x y)))
+             <- eqtm-noassm DeqtmN
+                ([x] DeqN x : etm-eq N* (N x))
+                ([x] DeqN' x : etm-eq N'* (N' x))
+                _
+             <- ({x} eaapp-compat (DeqM x) (DeqN x)
+                  (DeqApp x : etp-eq (eaapp M* N*) (eaapp (M x) (N x))))
+             <- ({x} eaapp-compat (DeqM' x) (DeqN' x)
+                  (DeqApp' x : etp-eq (eaapp M'* N'*) (eaapp (M' x) (N' x))))
+                %%
+             <- ekind-eq-pi-strengthen DeqPi
+                ([x] DeqB x : etp-eq B* (B x))
+                ([x] [y] DeqA x y : ekind-eq (A* y) (A x y))
+             <- ({x}
+                    eksubst-compat ([y] DeqA x y) (DeqN x)
+                    (DeqAy x : ekind-eq (A* N*) (A x (N x)))).
+
+-pi       : eqtp-noassm
+                ([x] eqtp/pi
+                    ([y] [e:evof y (A x)] 
+                      DeqtmM x y e : eqtp (M x y) (M' x y) ektype)
+                    (DeqtpA x : eqtp (A x) (A' x) ektype))
+%%
+                DeqLam
+                DeqLam'
+                ([_] ekind-eq/i)
+%%
+             <- eqtp-noassm DeqtpA
+                ([x] DeqA x : etp-eq A* (A x))
+                ([x] DeqA' x : etp-eq A'* (A' x))
+                _
+             <- ({x} etp-eq-sym (DeqA x) (DeqA* x : etp-eq (A x) A*))
+             <- eqtp-resp-underbind-1 DeqtmM DeqA*
+                ([x][y]etp-eq/i) ([x][y]etp-eq/i) ([x][y]ekind-eq/i)
+                ([x] [y] [e:evof y A*]
+                    DeqtmM' x y e : eqtp (M x y) (M' x y) ektype)
+             <- ({y} {e:evof y A*}
+                    eqtp-noassm ([x] DeqtmM' x y e)
+                    ([x] DeqM x y : etp-eq (M* y) (M x y))
+                    ([x] DeqM' x y : etp-eq (M'* y) (M' x y))
+                    ([x] Dontcare x y))
+             <- ({x}
+                    epi-compat (DeqA x) ([y] DeqM x y)
+                    (DeqLam x 
+                      : etp-eq 
+                        (epi A* ([y] M* y)) (epi (A x) ([y] M x y))))
+             <- ({x}
+                    epi-compat (DeqA' x) ([y] DeqM' x y)
+                    (DeqLam' x 
+                      : etp-eq 
+                        (epi A'* ([y] M'* y)) (epi (A' x) ([y] M' x y)))).
+
+-lam      : eqtp-noassm
+                ([x] eqtp/lam
+                    ([y] [e:evof y (A x)] 
+                      DeqtmM x y e : eqtp (M x y) (M' x y) (B x y))
+                    (DeqtpA x : eqtp (A x) (A' x) ektype))
+%%
+                DeqLam
+                DeqLam'
+                DeqPi
+%%
+             <- eqtp-noassm DeqtpA
+                ([x] DeqA x : etp-eq A* (A x))
+                ([x] DeqA' x : etp-eq A'* (A' x))
+                _
+             <- ({x} etp-eq-sym (DeqA x) (DeqA* x : etp-eq (A x) A*))
+             <- eqtp-resp-underbind-1 DeqtmM DeqA*
+                ([x][y]etp-eq/i) ([x][y]etp-eq/i) ([x][y]ekind-eq/i)
+                ([x] [y] [e:evof y A*]
+                    DeqtmM' x y e : eqtp (M x y) (M' x y) (B x y))
+             <- ({y} {e:evof y A*}
+                    eqtp-noassm ([x] DeqtmM' x y e)
+                    ([x] DeqM x y : etp-eq (M* y) (M x y))
+                    ([x] DeqM' x y : etp-eq (M'* y) (M' x y))
+                    ([x] DeqB x y : ekind-eq (B* y) (B x y)))
+             <- ({x}
+                    ealam-compat (DeqA x) ([y] DeqM x y)
+                    (DeqLam x 
+                      : etp-eq 
+                        (ealam A* ([y] M* y)) (ealam (A x) ([y] M x y))))
+             <- ({x}
+                    ealam-compat (DeqA' x) ([y] DeqM' x y)
+                    (DeqLam' x 
+                      : etp-eq 
+                        (ealam A'* ([y] M'* y)) (ealam (A' x) ([y] M' x y))))
+             <- ({x}
+                    ekpi-compat (DeqA x) ([y] DeqB x y)
+                    (DeqPi x 
+                      : ekind-eq 
+                        (ekpi A* ([y] B* y)) (ekpi (A x) ([y] B x y)))).
+
+-ext      : eqtp-noassm
+                ([x] eqtp/ext
+                    ([y] [e:evof y (A x)]
+                        DeqtmApp x y e 
+                          : eqtp (eaapp (M x) y) (eaapp (N x) y) (B x y))
+                    (DofN x : ekof (N x) (ekpi (A x) ([y] B2 x y)))
+                    (DofM x : ekof (M x) (ekpi (A x) ([y] B1 x y))))
+%%                
+                DeqM
+                DeqN
+                DeqPi
+%%
+             <- ekof-noassm DofM
+                ([x] DeqM x : etp-eq M' (M x))
+                ([x] DeqPi1 x : ekind-eq Pi1 (ekpi (A x) ([y] B1 x y)))
+             <- ekof-noassm DofN
+                ([x] DeqN x : etp-eq N' (N x))
+                _
+             <- ekind-eq-pi-strengthen DeqPi1
+                ([x] DeqA x : etp-eq A' (A x))
+                _
+             <- ({x} etp-eq-sym (DeqA x) (DeqA' x : etp-eq (A x) A'))
+             <- eqtp-resp-underbind-1 DeqtmApp DeqA' 
+                ([_][_]etp-eq/i) ([_][_]etp-eq/i) ([_][_]ekind-eq/i)
+                ([x] [y] [e:evof y A']
+                    DeqApp' x y e : eqtp (eaapp (M x) y) (eaapp (N x) y) (B x y))
+             <- ({y} {e:evof y A'}
+                    eqtp-noassm ([x] DeqApp' x y e)
+                    ([x] DeqAppM x y : etp-eq (MApp y) (eaapp (M x) y))
+                    ([x] DeqAppN x y : etp-eq (NApp y) (eaapp (N x) y))
+                    ([x] DeqB x y : ekind-eq (B' y) (B x y)))
+             <- ({x}
+                    ekpi-compat (DeqA x) ([y] DeqB x y)
+                    (DeqPi x)).
+
+-ext      : eqtp-noassm
+                ([x] eqtp/extw
+                    ([y] [e:evof y (A x)]
+                        DeqtmApp x y e 
+                          : eqtp (eaapp (M x) y) (eaapp (N x) y) (B x y))
+                    (Deqtm x : eqtp (M x) (N x) (ekpi (A x) ([y] B1 x y))))
+%%                
+                DeqM
+                DeqN
+                DeqPi
+%%
+             <- eqtp-noassm Deqtm
+                ([x] DeqM x : etp-eq M' (M x))
+                ([x] DeqN x : etp-eq N' (N x))
+                ([x] DeqPi1 x : ekind-eq Pi1 (ekpi (A x) ([y] B1 x y)))
+             <- ekind-eq-pi-strengthen DeqPi1
+                ([x] DeqA x : etp-eq A' (A x))
+                _
+             <- ({x} etp-eq-sym (DeqA x) (DeqA' x : etp-eq (A x) A'))
+             <- eqtp-resp-underbind-1 DeqtmApp DeqA' 
+                ([_][_]etp-eq/i) ([_][_]etp-eq/i) ([_][_]ekind-eq/i)
+                ([x] [y] [e:evof y A']
+                    DeqApp' x y e : eqtp (eaapp (M x) y) (eaapp (N x) y) (B x y))
+             <- ({y} {e:evof y A'}
+                    eqtp-noassm ([x] DeqApp' x y e)
+                    ([x] DeqAppM x y : etp-eq (MApp y) (eaapp (M x) y))
+                    ([x] DeqAppN x y : etp-eq (NApp y) (eaapp (N x) y))
+                    ([x] DeqB x y : ekind-eq (B' y) (B x y)))
+             <- ({x}
+                    ekpi-compat (DeqA x) ([y] DeqB x y)
+                    (DeqPi x)).
+
+
+-beta     : eqtp-noassm
+                ([x] eqtp/beta
+                    (DofN x : eof (N x) (A x))
+                    ([y] [e:evof y (A x)] DofM x y e : ekof (M x y) (B x y)))
+%%
+                DeqApp
+                DeqMy
+                DeqBy
+%%
+             <- eof-noassm DofN
+                ([x] DeqN x : etm-eq N' (N x))
+                ([x] DeqA x : etp-eq A' (A x))
+             <- ({x} etp-eq-sym (DeqA x) (DeqA' x : etp-eq (A x) A'))
+             <- ekof-resp-underbind-1 DofM DeqA' 
+                ([x] [y] etp-eq/i) ([x] [y] ekind-eq/i)
+                ([x] [y] [e:evof y A'] DofM' x y e : ekof (M x y) (B x y))
+             <- ({y} {e:evof y A'}
+                    ekof-noassm ([x] DofM' x y e)
+                    ([x] DeqM x y : etp-eq (M' y) (M x y))
+                    ([x] DeqB x y : ekind-eq (B' y) (B x y)))
+             <- ({x}
+                    ealam-compat (DeqA x) ([y] DeqM x y)
+                    (DeqLam x 
+                      : etp-eq (ealam A' ([y] M' y)) (ealam (A x) ([y] M x y))))
+             <- ({x}
+                    eaapp-compat (DeqLam x) (DeqN x)
+                    (DeqApp x))
+             <- ({x}
+                    etpsubst-compat ([y] DeqM x y) (DeqN x)
+                    (DeqMy x : etp-eq (M' N') (M x (N x))))
+             <- ({x}
+                    eksubst-compat ([y] DeqB x y) (DeqN x)
+                    (DeqBy x : ekind-eq (B' N') (B x (N x)))).
+
+-sym      : eqtp-noassm
+                ([x] eqtp/sym
+                    (Deqtp x : eqtp (M x) (N x) (A x)))
+                DeqN
+                DeqM
+                DeqA
+             <- eqtp-noassm Deqtp
+                ([x] DeqM x : etp-eq M' (M x))
+                ([x] DeqN x : etp-eq N' (N x))
+                ([x] DeqA x : ekind-eq A' (A x)).
+
+-trans    : eqtp-noassm
+                ([x] eqtp/trans
+                    (DeqtpNO x : eqtp (N x) (O x) (A x))
+                    (DeqtpMN x : eqtp (M x) (N x) (A x)))
+                DeqM
+                DeqO
+                DeqA
+             <- eqtp-noassm DeqtpMN
+                ([x] DeqM x : etp-eq M' (M x))
+                ([x] DeqN x : etp-eq N' (N x))
+                ([x] DeqA x : ekind-eq A' (A x))
+             <- eqtp-noassm DeqtpNO
+                _
+                ([x] DeqO x : etp-eq O' (O x))
+                _.
+
+-refl     : eqtp-noassm
+                ([x] eqtp/refl
+                    (Dof x : ekof (M x) (A x)))
+                DeqM
+                DeqM
+                DeqA
+             <- ekof-noassm Dof
+                ([x] DeqM x : etp-eq M' (M x))
+                ([x] DeqA x : ekind-eq A' (A x)).
+
+-eqkind   : eqtp-noassm
+                ([x] eqtp/kcon
+                    (Deqkind x : eqkind (K x) (L x))
+                    (Deqtp x : eqtp (A x) (B x) (K x)))
+%%
+                DeqA
+                DeqB
+                DeqL
+%%
+             <- eqtp-noassm Deqtp
+                ([x] DeqA x : etp-eq A' (A x))
+                ([x] DeqB x : etp-eq B' (B x))
+                _
+             <- eqkind-noassm Deqkind
+                ([x] DeqK x : ekind-eq K' (K x))
+                ([x] DeqL x : ekind-eq L' (L x)).
+
+%%
+
+-type     : eqkind-noassm ([_] eqkind/tp) ([_] ekind-eq/i) ([_] ekind-eq/i).
+
+-pi       : eqkind-noassm
+                ([x] eqkind/pi
+                    ([y] [e:evof y (A x)] 
+                      DeqtmM x y e : eqkind (M x y) (M' x y))
+                    (DeqtpA x : eqtp (A x) (A' x) ektype))
+%%
+                DeqPi
+                DeqPi'
+%%
+             <- eqtp-noassm DeqtpA
+                ([x] DeqA x : etp-eq A* (A x))
+                ([x] DeqA' x : etp-eq A'* (A' x))
+                _
+             <- ({x} etp-eq-sym (DeqA x) (DeqA* x : etp-eq (A x) A*))
+             <- eqkind-resp-underbind-1 DeqtmM DeqA*
+                ([x][y]ekind-eq/i) ([x][y]ekind-eq/i)
+                ([x] [y] [e:evof y A*]
+                    DeqtmM' x y e : eqkind (M x y) (M' x y))
+             <- ({y} {e:evof y A*}
+                    eqkind-noassm ([x] DeqtmM' x y e)
+                    ([x] DeqM x y : ekind-eq (M* y) (M x y))
+                    ([x] DeqM' x y : ekind-eq (M'* y) (M' x y)))
+             <- ({x}
+                    ekpi-compat (DeqA x) ([y] DeqM x y)
+                    (DeqPi x 
+                      : ekind-eq 
+                        (ekpi A* ([y] M* y)) (ekpi (A x) ([y] M x y))))
+             <- ({x}
+                    ekpi-compat (DeqA' x) ([y] DeqM' x y)
+                    (DeqPi' x 
+                      : ekind-eq 
+                        (ekpi A'* ([y] M'* y)) (ekpi (A' x) ([y] M' x y)))).
+
+-sym      : eqkind-noassm
+                ([x] eqkind/sym (Deqkind x : eqkind (M x) (N x)))
+                DeqN
+                DeqM
+             <- eqkind-noassm Deqkind
+                ([x] DeqM x : ekind-eq M' (M x))
+                ([x] DeqN x : ekind-eq N' (N x)).
+
+-trans    : eqkind-noassm
+                ([x] eqkind/trans
+                    (DeqkindNO x : eqkind (N x) (O x))
+                    (DeqkindMN x : eqkind (M x) (N x)))
+                DeqM
+                DeqO
+             <- eqkind-noassm DeqkindMN
+                ([x] DeqM x : ekind-eq M' (M x))
+                ([x] DeqN x : ekind-eq N' (N x))
+             <- eqkind-noassm DeqkindNO
+                _
+                ([x] DeqO x : ekind-eq O' (O x)).
+
+-refl     : eqkind-noassm
+                ([x] eqkind/refl
+                    (Dof x : ewfkind (M x)))
+                DeqM
+                DeqM
+             <- ewfkind-noassm Dof
+                ([x] DeqM x : ekind-eq M' (M x)).
+
+%worlds (ecsig | easig | ebind | evar)
+  (eof-noassm     _ _ _)
+  (ekof-noassm    _ _ _)
+  (ewfkind-noassm _ _)
+  (eqtm-noassm    _ _ _ _)
+  (eqtp-noassm    _ _ _ _)
+  (eqkind-noassm  _ _ _).
+%total (D1 D2 D3 D4 D5 D6)
+  (eof-noassm     D1 _ _)
+  (ekof-noassm    D2 _ _)
+  (ewfkind-noassm D3 _)
+  (eqtm-noassm    D4 _ _ _)
+  (eqtp-noassm    D5 _ _ _)
+  (eqkind-noassm  D6 _ _).
+

@@ -1,0 +1,269 @@
+false : type.
+
+%%%% explosion %%%%
+
+false-implies-tm-eq : false -> tm-eq M N -> type.
+%mode +{M:tm} +{N:tm} +{X1:false} -{X2:tm-eq M N} 
+  (false-implies-tm-eq X1 X2).
+%worlds (ecsig | easig | csig | asig | var) (false-implies-tm-eq _ _).
+%total {} (false-implies-tm-eq _ _).
+
+false-implies-sub : false -> sub ([x] M x) N M' -> type.
+%mode +{M:atm -> tm} +{N:tm} -{M':tm} +{X1:false} -{X2:sub ([r:atm] M r) N M'}
+  (false-implies-sub X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind) (false-implies-sub _ _).
+%total {} (false-implies-sub _ _).
+
+false-implies-sub' : false -> sub ([x] M x) N M' -> type.
+%mode +{M:atm -> tm} +{N:tm} +{M':tm} +{X1:false} -{X2:sub ([r:atm] M r) N M'}
+  (false-implies-sub' X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind) (false-implies-sub' _ _).
+%total {} (false-implies-sub' _ _).
+
+false-implies-rmsub : false -> rmsub ([x] R x) M N -> type.
+%mode +{R:atm -> atm} +{M:tm} +{N:tm} +{X1:false} -{X2:rmsub ([r:atm] R r) M N}
+  (false-implies-rmsub X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind) (false-implies-rmsub _ _).
+%total {} (false-implies-rmsub _ _).
+
+false-implies-rrsub : false -> rrsub ([x] R x) M Rx -> type.
+%mode +{R:atm -> atm} +{M:tm} +{Rx:atm} +{X1:false} -{X2:rrsub ([r:atm] R r) M Rx}
+  (false-implies-rrsub X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind) (false-implies-rrsub _ _).
+%total {} (false-implies-rrsub _ _).
+
+false-implies-tpsub : false -> tpsub ([x] M x) N M' -> type.
+%mode +{M:atm -> tp} +{N:tm} -{M':tp} +{X1:false} -{X2:tpsub ([r:atm] M r) N M'}
+  (false-implies-tpsub X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind) (false-implies-tpsub _ _).
+%total {} (false-implies-tpsub _ _).
+
+false-implies-stp-leq : false -> stp-leq S T -> type.
+%mode +{S:stp} +{T:stp} +{X1:false} -{X2:stp-leq S T}
+  (false-implies-stp-leq X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind | evar) (false-implies-stp-leq _ _).
+%total {} (false-implies-stp-leq _ _).
+
+false-implies-tp-eq : false -> tp-eq S T -> type.
+%mode +{S:tp} +{T:tp} +{X1:false} -{X2:tp-eq S T}
+  (false-implies-tp-eq X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind) (false-implies-tp-eq _ _).
+%total {} (false-implies-tp-eq _ _).
+
+false-implies-stp-eq : false -> stp-eq S T -> type.
+%mode +{S:stp} +{T:stp} +{X1:false} -{X2:stp-eq S T}
+  (false-implies-stp-eq X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind | evar | tvar) (false-implies-stp-eq _ _).
+%total {} (false-implies-stp-eq _ _).
+
+false-implies-stp-eq' : false -> stp-eq S T -> type.
+%mode +{S:stp} -{T:stp} +{X1:false} -{X2:stp-eq S T}
+  (false-implies-stp-eq' X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind | evar) (false-implies-stp-eq' _ _).
+%total {} (false-implies-stp-eq' _ _).
+
+
+
+false-implies-ofe : false -> ofe G R T -> type.
+%mode +{G:ctx} +{R:tm} +{T:tp} +{X1:false} -{X2:ofe G R T}
+  (false-implies-ofe X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind | ovar) (false-implies-ofe _ _).
+%total {} (false-implies-ofe _ _).
+
+false-implies-atofe : false -> at-ofe G R T -> type.
+%mode +{G:ctx} +{R:atm} +{T:tp} +{X1:false} -{X2:at-ofe G R T}
+  (false-implies-atofe X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind | ovar) (false-implies-atofe _ _).
+%total {} (false-implies-atofe _ _).
+
+false-implies-atofes : false -> at-ofes G R T -> type.
+%mode +{G:sctx} +{R:atm} +{T:stp} +{X1:false} -{X2:at-ofes G R T}
+  (false-implies-atofes X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind | ovar | evar) (false-implies-atofes _ _).
+%total {} (false-implies-atofes _ _).
+
+false-implies-ofes : false -> ofes G M T -> type.
+%mode +{G:sctx} +{M:tm} +{T:stp} +{X1:false} -{X2:ofes G M T}
+  (false-implies-ofes X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind | ovar | evar) (false-implies-ofes _ _). 
+%total {} (false-implies-ofes _ _).
+
+false-implies-expand : false -> expand R T M -> type.
+%mode +{R:atm} +{T:stp} +{M:tm} +{X1:false} -{X2:expand R T M}
+  (false-implies-expand X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind | ovar | evar) (false-implies-expand _ _).
+%total {} (false-implies-expand _ _).
+
+false-implies-tptrans : false -> tptrans EA A K -> type.
+%mode +{EA:etp} -{A:tp} -{K:kind} +{X1:false} -{X2:tptrans EA A K}
+  (false-implies-tptrans X1 X2).
+%worlds (ecsig | easig | csig | asig | bind) (false-implies-tptrans _ _).
+%total {} (false-implies-tptrans _ _).
+
+false-implies-kof : false -> kof A K -> type.
+%mode +{A:tp} +{K:kind} +{X1:false} -{X2:kof A K}
+  (false-implies-kof X1 X2).
+%worlds (ecsig | easig | csig | asig | bind) (false-implies-kof _ _).
+%total {} (false-implies-kof _ _).
+
+false-implies-etp-eq : false -> etp-eq A B -> type.
+%mode +{A:etp} +{B:etp} +{X1:false} -{X2:etp-eq A B}
+  (false-implies-etp-eq X1 X2).
+%worlds (ecsig | easig | csig | asig | evar | eovar) (false-implies-etp-eq _ _).
+%total {} (false-implies-etp-eq _ _).
+
+false-implies-cof : false -> cof C A -> type.
+%mode +{C:ctm} -{A:tp} +{X1:false} -{X2:cof C A}
+  (false-implies-cof X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind | ovar) (false-implies-cof _ _).
+%total {} (false-implies-cof _ _).
+
+
+
+false-implies-ecof : false -> ecof C A -> type.
+%mode +{C:ctm} +{A:etp} +{X1:false} -{X2:ecof C A}
+  (false-implies-ecof X1 X2).
+%worlds (ecsig | easig | csig | asig | evar) (false-implies-ecof _ _).
+%total {} (false-implies-ecof _ _).
+
+false-implies-ecof' : false -> ecof C A -> type.
+%mode +{C:ctm} -{A:etp} +{X1:false} -{X2:ecof C A}
+  (false-implies-ecof' X1 X2).
+%worlds (ecsig | easig | csig | asig | evar) (false-implies-ecof' _ _).
+%total {} (false-implies-ecof' _ _).
+
+
+false-implies-kofes : false -> kofes G A K -> type.
+%mode +{G} +{A} +{K} +{X1:false} -{X2:kofes G A K}
+  (false-implies-kofes X1 X2).
+%worlds (ecsig | easig | csig | asig | bind | var | ovar) (false-implies-kofes _ _).
+%total {} (false-implies-kofes _ _).
+
+
+
+%{
+false-implies-ekofes : false -> ekofes G A K -> type.
+%mode +{G} +{A} +{K} +{X1:false} -{X2:ekofes G A K}
+  (false-implies-ekofes X1 X2).
+%worlds (ecsig | easig | csig | asig | evar | ebind) (false-implies-ekofes _ _).
+%total {} (false-implies-ekofes _ _).
+
+false-implies-eofes : false -> eofes G M A -> type.
+%mode +{G} +{M} +{A} +{X1:false} -{X2:eofes G M A}
+  (false-implies-eofes X1 X2).
+%worlds (ecsig | easig | csig | asig | evar | ebind) (false-implies-eofes _ _).
+%total {} (false-implies-eofes _ _).
+
+false-implies-eofes' : false -> eofes G M A -> type.
+%mode +{G} +{M} -{A} +{X1:false} -{X2:eofes G M A}
+  (false-implies-eofes' X1 X2).
+%worlds (ecsig | easig | csig | asig | evar | ebind) (false-implies-eofes' _ _).
+%total {} (false-implies-eofes' _ _).
+}%
+
+false-implies-simp : false -> simp A T -> type.
+%mode +{A} +{T} +{X1:false} -{X2:simp A T}
+  (false-implies-simp X1 X2).
+%worlds (ecsig | easig | csig | asig | var) (false-implies-simp _ _).
+%total {} (false-implies-simp _ _).
+
+
+%{
+false-implies-esimp : false -> esimp A T -> type.
+%mode +{A} +{T} +{X1:false} -{X2:esimp A T}
+  (false-implies-esimp X1 X2).
+%worlds (ecsig | easig | csig | asig | evar) (false-implies-esimp _ _).
+%total {} (false-implies-esimp _ _).
+
+false-implies-esimp' : false -> esimp A T -> type.
+%mode +{A} -{T} +{X1:false} -{X2:esimp A T}
+  (false-implies-esimp' X1 X2).
+%worlds (ecsig | easig | csig | asig | evar) (false-implies-esimp' _ _).
+%total {} (false-implies-esimp' _ _).
+}%
+
+false-implies-eofe : false -> eofe G M A -> type.
+%mode false-implies-eofe +X1 -X2.
+%mode +{G:ectx} +{M:etm} +{A:etp} +{X1:false} -{X2:eofe G M A}
+   (false-implies-eofe X1 X2).
+%worlds (ecsig | easig | csig | asig | evar | ebind | eovar) (false-implies-eofe _ _).
+%total D (false-implies-eofe D _).
+
+false-implies-eqtme : false -> eqtme G M N A -> type.
+%mode +{G:ectx} +{M:etm} +{N:etm} +{A:etp} +{X1:false} -{X2:eqtme G M N A}
+   (false-implies-eqtme X1 X2).
+%worlds (ecsig | easig | csig | asig | evar | ebind | eovar) (false-implies-eqtme _ _).
+%total {} (false-implies-eqtme _ _).
+
+false-implies-drop    : false -> drop ([x] G x) G' -> type.
+%mode +{G:atm -> sctx} -{G':sctx} +{X1:false} -{X2:drop ([x] G x) G'}
+  (false-implies-drop X1 X2).
+%worlds (ecsig | easig | csig | asig | ovar | var) (false-implies-drop _ _).
+%total {} (false-implies-drop _ _).
+
+false-implies-append  : false -> append G1 G2 G -> type.
+%mode +{G1:ctx} -{G2:ctx} +{G:ctx} +{X1:false} -{X2:append G1 G2 G}
+   (false-implies-append X1 X2).
+%worlds (ecsig | easig | csig | asig | var | ovar) (false-implies-append _ _).
+%total {} (false-implies-append _ _).
+
+false-implies-transe : false -> transe G EM M A -> type.
+%mode +{G:ctx} +{EM:etm} +{M:tm} +{A:tp} +{X1:false} -{X2:transe G EM M A}
+   (false-implies-transe X1 X2).
+%worlds (ecsig | easig | csig | asig | bind | tvar | tbind) (false-implies-transe _ _).
+%total {} (false-implies-transe _ _).
+
+%{
+false-implies-transes : false -> transes G EM M -> type.
+%mode +{G:sctx} +{EM:etm} +{M:tm} +{X1:false} -{X2:transes G EM M}
+   (false-implies-transes X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind | tevar | tbind) (false-implies-transes _ _).
+%total {} (false-implies-transes _ _).
+
+false-implies-transes' : false -> transes G EM M -> type.
+%mode +{G:sctx} +{EM:etm} -{M:tm} +{X1:false} -{X2:transes G EM M}
+   (false-implies-transes' X1 X2).
+%worlds (ecsig | easig | csig | asig | var | bind | tevar | tbind) (false-implies-transes' _ _).
+%total {} (false-implies-transes' _ _).
+}%
+
+false-implies-ekind-eq : false -> ekind-eq K L -> type.
+%mode false-implies-ekind-eq +X1 -X2.
+%mode +{K:ekind} +{L:ekind} +{X1:false} -{X2:ekind-eq K L}
+   (false-implies-ekind-eq X1 X2).
+%worlds (ecsig | easig | csig | asig | ebind) (false-implies-ekind-eq _ _).
+%total {} (false-implies-ekind-eq _ _).
+
+false-implies-etp-eq : false -> etp-eq K L -> type.
+%mode false-implies-etp-eq +X1 -X2.
+%mode +{K:etp} +{L:etp} +{X1:false} -{X2:etp-eq K L}
+   (false-implies-etp-eq X1 X2).
+%worlds (ecsig | easig | csig | asig | ebind | evar | eovar) (false-implies-etp-eq _ _).
+%total {} (false-implies-etp-eq _ _).
+
+false-implies-etm-eq : false -> etm-eq K L -> type.
+%mode false-implies-etm-eq +X1 -X2.
+%mode +{K:etm} +{L:etm} +{X1:false} -{X2:etm-eq K L}
+   (false-implies-etm-eq X1 X2).
+%worlds (ecsig | easig | csig | asig | ebind | evar | eovar) (false-implies-etm-eq _ _).
+%total {} (false-implies-etm-eq _ _).
+
+false-implies-vtrans : false -> vtrans EX X -> type.
+%mode -{EX:etm} +{X:atm} +{X1:false} -{X2:vtrans EX X}
+  (false-implies-vtrans X1 X2).
+%worlds (ecsig | easig | csig | asig | tvar | tbind) (false-implies-vtrans _ _).
+%total {} (false-implies-vtrans _ _).
+
+false-implies-tpconvert : false -> tpconvert A K EA -> type.
+%mode +{A:tp} +{K:kind} -{EA:etp} +{X1:false} -{X2:tpconvert A K EA}
+  (false-implies-tpconvert X1 X2).
+%worlds (ecsig | easig | csig | asig | tvar | tbind | eofblock) (false-implies-tpconvert _ _).
+%total {} (false-implies-tpconvert _ _).
+
+false-implies-evof : false -> evof EX EA -> type.
+%mode +{EX:etm} +{EA:etp} +{X1:false} -{X2:evof EX EA}
+  (false-implies-evof X1 X2).
+%worlds (ecsig | easig | csig | asig | tvar | tbind | eofblock) (false-implies-evof _ _).
+%total {} (false-implies-evof _ _).
+
+

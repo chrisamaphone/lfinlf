@@ -1,0 +1,1154 @@
+%%%%
+
+kofe-lam-type-contra : kofe G (alam _) ktype -> false -> type.
+%mode kofe-lam-type-contra +X2 -X3.
+
+%worlds (csig | asig | bind | ovar | var) (kofe-lam-type-contra _ _).
+%total D (kofe-lam-type-contra D _).
+
+kof-lam-type-contra : kof (alam _) ktype -> false -> type.
+%mode kof-lam-type-contra +X2 -X3.
+
+%worlds (csig | asig | bind | ovar | var) (kof-lam-type-contra _ _).
+%total D (kof-lam-type-contra D _).
+
+atof-lam-contra : at-of R (alam _) -> false -> type.
+%mode atof-lam-contra +X1 -X2.
+
+-app    : atof-lam-contra
+              (at-of/app
+                  (Dsub : tpsub ([x] B x) M (alam ([y] C y)))
+                  (DofM : of M A)
+                  (DofR : at-of R (pi A ([x] B x)))
+                : at-of (app R M) (alam ([y] C y)))
+%%              
+              D
+%%
+           <- atof-reg DofR
+              (kof/pi
+                  ([x] [d] DofB x d : kof (B x) ktype) _)
+           <- tpsubst Dsub ksub/type DofB DofM 
+              (Doflam : kof (alam [y] C y) ktype)
+           <- kof-lam-type-contra Doflam D.
+
+%worlds (csig | asig | bind | ovar | var) (atof-lam-contra _ _).
+%total D (atof-lam-contra D _).
+
+atofe-lam-contra : ordered G -> at-ofe G R (alam _) -> false -> type.
+%mode atofe-lam-contra +X0 +X1 -X2.
+
+-closed : atofe-lam-contra _ (at-ofe/closed D) Dfalse
+           <- atof-lam-contra D Dfalse.
+
+-app    : atofe-lam-contra
+              (Dord : ordered G)
+              (at-ofe/app
+                  (Dsub : tpsub ([x] B x) M (alam ([y] C y)))
+                  (DofM : ofe G M A)
+                  (DofR : at-ofe G R (pi A ([x] B x))))
+%%              
+              Dfalse
+%%
+           <- atofe-reg Dord DofR
+              (kofe/pi
+                  ([x] DofB x : kofe (cons G x A) (B x) ktype)
+                  (DofA : kofe G A ktype))
+           <- extend-ordered _ Dord _
+              ([x] [d] Dord' x d : ordered (cons G x A))
+           <- tpsubst-e ([x] [d] Dord' x d) ([_] append/nil) csub/base
+              DofM Dsub DofB ksub/type
+              (Dofalam : kofe G (alam ([y] C y)) ktype)
+           <- kofe-lam-type-contra Dofalam Dfalse.
+
+%worlds (csig | asig | bind | ovar | var) (atofe-lam-contra _ _ _).
+%total D (atofe-lam-contra _ D _).
+
+
+%%%% expansion effectiveness/functionality %%%%
+
+can-expand : {R} {T} expand R T M -> type.
+%mode can-expand +R +T -Dexpand.
+
+- : can-expand _ o expand/o.
+
+- : can-expand _ (arrow S T) (expand/arr DexpandT DexpandS)
+     <- ({x} can-expand _ S (DexpandS x : expand _ S (M1 x)))
+     <- ({x} can-expand _ T (DexpandT x : expand _ T (M2 x))).
+
+%worlds (csig | asig | var | bind) (can-expand _ _ _).
+%total A (can-expand _ A _).
+
+
+can-tpexpand : {P} {H} tpexpand P H A -> type.
+%mode can-tpexpand +P +M -Dexpand.
+
+- : can-tpexpand _ sktype tpexpand/type.
+
+- : can-tpexpand _ (karrow T H) (tpexpand/arr DexpandH DexpandT)
+     <- ({x} can-expand _ T (DexpandT x : expand _ T (M x)))
+     <- ({x} can-tpexpand _ H (DexpandH x : tpexpand _ H (A x))).
+
+%worlds (csig | asig | var | bind) (can-tpexpand _ _ _).
+%total H (can-tpexpand _ H _).
+
+
+expand-fun : expand R T M -> expand R T M' -> tm-eq M M' -> type.
+%mode expand-fun +X1 +X2 -X3.
+
+- : expand-fun expand/o expand/o Deq
+     <- at-compat atm-eq/i Deq.
+
+- : expand-fun 
+        (expand/arr
+            ([x] DexT x : expand (app R (M x)) T (N x)) 
+            ([x] DexS x : expand x S (M x)))
+        (expand/arr
+            ([x] DexT' x : expand (app R (M' x)) T (N' x)) 
+            ([x] DexS' x : expand x S (M' x)))
+        Deq
+     <- ({x} 
+            expand-fun (DexS x) (DexS' x) 
+            (DeqMM' x : tm-eq (M x) (M' x)))
+     <- ({x} 
+            app-compat atm-eq/i (DeqMM' x)
+            (DeqApp x : atm-eq (app R (M x)) (app R (M' x))))
+     <- ({x}
+            expand-resp (DeqApp x) stp-eq/i tm-eq/i (DexT x)
+            (DexT'' x : expand (app R (M' x)) T (N x)))
+     <- ({x}
+            expand-fun (DexT'' x) (DexT' x)
+            (DeqNN' x : tm-eq (N x) (N' x)))
+     <- lam-compat ([x] DeqNN' x) Deq.
+
+%worlds (csig | asig | var | bind | evar) (expand-fun _ _ _).
+%total D (expand-fun _ D _).
+
+
+tpexpand-fun : tpexpand P H A -> tpexpand P H A' -> tp-eq A A' -> type.
+%mode tpexpand-fun +X1 +X2 -X3.
+
+- : tpexpand-fun tpexpand/type tpexpand/type Deq
+     <- base-compat atp-eq/i Deq.
+
+- : tpexpand-fun
+        (tpexpand/arr
+            ([x] DexApp x : tpexpand (aapp P (M x)) H (A x))
+            ([x] DexX x   : expand x T (M x)))
+        (tpexpand/arr
+            ([x] DexApp' x : tpexpand (aapp P (M' x)) H (A' x))
+            ([x] DexX' x   : expand x T (M' x)))
+        Deq
+     <- ({x}
+            expand-fun (DexX x) (DexX' x)
+            (DeqMM' x : tm-eq (M x) (M' x)))
+     <- ({x}
+            aapp-compat atp-eq/i (DeqMM' x)
+            (DeqApp x : atp-eq (aapp P (M x)) (aapp P (M' x))))
+     <- ({x}
+            tpexpand-resp (DeqApp x) skind-eq/i tp-eq/i (DexApp x)
+            (DexApp'' x : tpexpand (aapp P (M' x)) H (A x)))
+     <- ({x}
+            tpexpand-fun (DexApp'' x) (DexApp' x)
+            (DeqAA' x : tp-eq (A x) (A' x)))
+     <- alam-compat ([x] DeqAA' x) Deq.
+
+%worlds (csig | asig | var | bind | evar) (tpexpand-fun _ _ _).
+%total D (tpexpand-fun _ D _).
+
+%% expansion preserves freevars %%
+expand-freevar : ({x:atm} expand R T (M x))
+                  -> expand R T M' -> ({x} tm-eq (M x) M') -> type.
+%mode expand-freevar +X1 -X2 -X3.
+
+- : expand-freevar ([_] expand/o) expand/o ([_] tm-eq/i).
+
+- : expand-freevar 
+        ([x] expand/arr 
+            ([y] DexpApp x y : expand (app R (M x y)) T (N x y))
+            ([y] DexpY x y : expand y S (M x y)))
+        (expand/arr ([y] DexpApp'' y) ([y] DexpY' y))
+        ([x] DeqLam x)
+     <- ({y}
+            expand-freevar 
+            ([x] DexpY x y)
+            (DexpY' y : expand y S (M' y))
+            ([x] DeqMM' x y : tm-eq (M x y) (M' y)))
+     <- ({x} {y}
+            app-compat atm-eq/i (DeqMM' x y)
+            (DeqApp x y : atm-eq (app R (M x y)) (app R (M' y))))
+     <- expand-resp-2 
+        ([x] [y] DeqApp x y) stp-eq/i ([_] [_] tm-eq/i) ([x] [y] DexpApp x y)
+        ([x] [y] DexpApp' x y : expand (app R (M' y)) T (N x y))
+     <- ({y}
+            expand-freevar
+            ([x] DexpApp' x y)
+            (DexpApp'' y : expand (app R (M' y)) T (N' y))
+            ([x] DeqNN' x y : tm-eq (N x y) (N' y)))
+     <- ({x}
+            lam-compat ([y] DeqNN' x y)
+            (DeqLam x : tm-eq (lam [y] N x y) (lam [y] N' y))).
+
+
+%worlds (csig | asig | bind | var) (expand-freevar _ _ _).
+%total D (expand-freevar D _ _).
+
+expand-arr-invert : expand R (arrow T1 T2) (lam [y] L y)
+%%                        
+                     -> ({y} expand (app R (Y y)) T2 (L y))
+                     -> ({y} expand y T1 (Y y)) -> type.
+%mode expand-arr-invert +X1 -X2 -X3.
+
+- : expand-arr-invert (expand/arr DexpApp DexpY)
+        DexpApp
+        DexpY.
+
+%worlds (csig | asig | bind | var | ovar) (expand-arr-invert _ _ _).
+%total D (expand-arr-invert D _ _).
+
+ 
+%%%% more headvar definitions %%%%
+
+notheadvar : (atm -> atm) -> type.
+
+notheadvar/closed : notheadvar ([x] R).
+notheadvar/app    : notheadvar ([x] app (R x) (M x))
+                     <- notheadvar ([x] R x).
+
+headvar-notheadvar-contra : headvar ([x] R x) -> notheadvar ([x] R x)
+                           -> false -> type.
+%mode headvar-notheadvar-contra +X1 +X2 -X3.
+
+- : headvar-notheadvar-contra Dheadvar notheadvar/closed
+        Dfalse
+     <- headvar-closed-contra Dheadvar Dfalse.
+
+- : headvar-notheadvar-contra (headvar/app Dheadvar) (notheadvar/app Dnot)
+        Dfalse
+     <- headvar-notheadvar-contra Dheadvar Dnot Dfalse.
+
+%worlds (csig | asig | bind | var | ovar) (headvar-notheadvar-contra _ _ _).
+%total D (headvar-notheadvar-contra D _ _).
+
+
+%%%% expansion commutes with substitution %%%%
+
+expand-rrsub : {T}
+                      ({x} expand (R x) T (N x))
+                   -> sub ([x] N x) M Nx
+                   -> notheadvar ([x] R x)
+%%
+                   -> rrsub ([x] R x) M Rx
+                   -> expand Rx T Nx -> type.
+%mode expand-rrsub +T +X1 +X2 +X3 -X4 -X5.
+
+expand-rmsub : {T}
+                      ({x} expand (R x) T (N x))
+                   -> sub ([x] N x) M N' 
+                   -> headvar ([x] R x)
+%%
+                   -> rmsub ([x] R x) M N' -> type.
+%mode expand-rmsub +T +X0 +X1 +X2 -X3.
+
+rrsub-expand : {T}
+                      expand R T XR
+                   -> rrsub ([x] Q x) XR Qx
+%%
+                   -> atm-eq Qx (Q R) -> type.
+%mode rrsub-expand +T +X1 +X2 -X3.
+
+rmsub-expand : {T}
+                      expand R T XR
+                   -> rmsub ([x] Q x) XR LQx
+%%
+                   -> {S} expand (Q R) S LQx -> type.
+%mode rmsub-expand +T +X1 +X2 -S -X3.
+
+sub-expand : {T}
+                    expand R T XR
+                 -> sub ([x] M x) XR Mx
+%%
+                 -> tm-eq Mx (M R) -> type.
+%mode sub-expand +T +X1 +X2 -X3.
+
+%{
+sub-expand-var     : {T}
+                            ({x} expand x T (X x))
+                         -> ({x} sub ([x] M x) (X x) (M' x))
+%%
+                         -> ({x} tm-eq (M x) (M' x)) -> type.
+%mode sub-expand-var +T +X1 +X2 -X3.
+}%
+
+%% expand-rrsub
+
+-o        : expand-rrsub o
+                ([x] expand/o : expand (R x) o (at (R x)))
+                (sub/rr (Drrsub : rrsub ([x] R x) M Rx))
+                _
+%%
+                Drrsub
+                expand/o.
+
+-obad     : expand-rrsub o
+                ([x] expand/o : expand (R x) o (at (R x)))
+                (sub/rm (Drmsub : rmsub ([x] R x) M (at Rx)))
+                (Dnotheadvar : notheadvar ([x] R x))
+%%
+                Drrsub
+                Dexpand
+%%
+             <- rmsub-headvar Drmsub Dheadvar
+             <- headvar-notheadvar-contra Dheadvar Dnotheadvar Dfalse
+             <- false-implies-rrsub Dfalse 
+                (Drrsub : rrsub ([x] R x) M aca)
+             <- false-implies-expand Dfalse 
+                (Dexpand : expand aca o (at Rx)).
+
+-arr      : expand-rrsub (arrow S T)
+                ([x] expand/arr
+                    ([y] DexpApp x y : expand (app (R x) (Y x y)) T (O x y))
+                    ([y] DexpY x y : expand y S (Y x y))
+                  : expand (R x) (arrow S T) (lam [y] O x y))
+                (sub/lam
+                    ([y] DsubO y : sub ([x] O x y) M (Ox y))
+                  : sub ([x] lam [y] O x y) M (lam [y] Ox y))
+                (Dnotheadvar : notheadvar ([x] R x))
+%%
+                (DsubR' aca)
+                (expand/arr (DexpApp' aca) DexpY')
+%%
+             <- ({y}
+                    expand-rrsub T ([x] DexpApp x y) (DsubO y)
+                    (notheadvar/app Dnotheadvar)
+                    (DsubApp y 
+                      : rrsub ([x] app (R x) (Y x y)) M (app (Rx y) (Yx y)))
+                    (DexpAppx y 
+                      : expand (app (Rx y) (Yx y)) T (Ox y)))
+             <- ({y} 
+                    app-rrsub-invert (DsubApp y)
+                    (DsubR y : rrsub ([x] R x) M (Rx y))
+                    (DsubY y : sub ([x] Y x y) M (Yx y)))
+             <- rrsub-closed ([y] DsubR y)
+                ([y] DeqRxR' y : atm-eq (Rx y) R')
+             <- ({y}
+                    rrsub-compat ([_] atm-eq/i) tm-eq/i (DeqRxR' y) (DsubR y)
+                    (DsubR' y : rrsub ([x] R x) M R'))
+                %% come up with expanding Y doesn't mention extra vars
+             <- ({y}
+                    expand-freevar ([x] DexpY x y)
+                    (DexpY' y : expand y S (Y' y))
+                    ([x] DeqYY' x y : tm-eq (Y x y) (Y' y)))
+             <- ({x} {y}
+                    tm-eq-sym (DeqYY' x y) (DeqY'Y x y))
+             <- ({y}
+                    sub-absent _ _
+                    (DsubY' y : sub ([_] Y' y) M (Y' y)))
+             <- ({y}
+                    sub-compat ([x] DeqY'Y x y) tm-eq/i tm-eq/i (DsubY' y)
+                    (DsubYClosed y : sub ([x] Y x y) M (Y' y)))
+             <- ({y}
+                    sub-fun (DsubY y) (DsubYClosed y)
+                    (DeqYxY' y : tm-eq (Yx y) (Y' y)))
+                %% finish
+             <- ({y}
+                    app-compat (DeqRxR' y) (DeqYxY' y)
+                    (DeqApp y : atm-eq (app (Rx y) (Yx y)) (app R' (Y' y))))
+             <- expand-resp-2 ([_] [y] DeqApp y) stp-eq/i ([_] [_] tm-eq/i)
+                ([_] [y] DexpAppx y)
+                ([x] [y] DexpApp' x y).
+
+%{ XXX proof for obsoleted definition
+
+-base     : expand-rrsub o
+                ([x] 
+                    expand/o : expand (R x) o (at (R x)))
+                (DsubR : rrsub ([x] R x) M Rx)
+                expand/o
+%%
+                (sub/rr DsubR).
+
+-arr      : expand-rrsub (arrow T1 T2)
+                ([x]
+                    expand/arr
+                    ([y] DexpR x y 
+                      : expand (app (R x) (N x y)) T2 (N' x y))
+                    ([y] Dexpy x y
+                      : expand y T1 (N x y)))
+                (DsubR : rrsub ([x] R x) M Rx)
+                (expand/arr
+                    ([y] DexpRx y
+                      : expand (app Rx (Nx y)) T2 (N'x y))
+                    ([y] Dexpy' y
+                      : expand y T1 (Nx y)))
+%%                
+                (sub/lam ([y] DsubN' y))
+%%
+                %% come up with Dsuby : rrsub ([y] x) M x
+             <- ({y}
+                    rrsub-absent y M (Dsuby y : rrsub ([x] y) M y))
+                %% induct
+             <- ({y} 
+                    expand-rrsub _ 
+                    ([x] Dexpy x y) (Dsuby y) (Dexpy' y)
+                    (DsubN y : sub ([x] N x y) M (Nx y)))
+                %% induct
+             <- ({y}
+                    expand-rrsub T2
+                    ([x] DexpR x y)
+                    (rrsub/app (DsubN y) DsubR)
+                    (DexpRx y)
+                    (DsubN' y : sub ([x] N' x y) M (N'x y))).
+}%
+
+%% expand-rmsub
+
+-o        : expand-rmsub o 
+                ([x] expand/o : expand (R x) o (at (R x)))
+                (sub/rm (Drmsub : rmsub ([x] R x) M (at Rx)))
+                _
+%%
+                Drmsub.
+
+-obad     : expand-rmsub o
+                ([x] expand/o)
+                (sub/rr (Drrsub : rrsub ([x] R x) M R'))
+                (Dheadvar : headvar ([x] R x))
+%%
+                Drmsub
+%%
+             <- headvar-rrsub-contra Dheadvar Drrsub Dfalse
+             <- false-implies-rmsub Dfalse Drmsub.
+
+-arrow    : expand-rmsub (arrow S T) 
+                ([x] expand/arr
+                    ([y] DexpApp x y : expand (app (R x) (Y x y)) T (O x y))
+                    ([y] DexpY x y : expand y S (Y x y))
+                    : expand (R x) (arrow S T) (lam [y] O x y))
+                (sub/lam
+                    ([y] DsubO y : sub ([x] O x y) M (Ox y))
+                    : sub ([x] lam [y] O x y) M (lam [y] Ox y))
+                (Dheadvar : headvar ([x] R x))
+%%                
+                (Dsub aca)
+%%
+                %% induct to get a bunch of stuff
+             <- ({y}
+                    expand-freevar ([x] DexpY x y)
+                    (DexpY' y : expand y S (Y' y))
+                    ([x] DeqYY' x y : tm-eq (Y x y) (Y' y)))
+             <- ({x} {y}
+                    app-compat atm-eq/i (DeqYY' x y)
+                    (DeqApp x y : atm-eq (app (R x) (Y x y)) (app (R x) (Y' y))))
+             <- expand-resp-2 ([x] [y] DeqApp x y) stp-eq/i ([_] [_] tm-eq/i)
+                ([x] [y] DexpApp x y)
+                ([x] [y] DexpApp' x y : expand (app (R x) (Y' y)) T (O x y)) 
+             <- ({y}
+                    expand-rmsub T
+                    ([x] DexpApp' x y)
+                    (DsubO y)
+                    (headvar/app Dheadvar)
+                    (rmsub/app
+                        (DsubO' y : sub ([z] O' y z) (Yx y) (Ox y))
+                        (DsubY' y : sub ([x] Y' y) M (Yx y))
+                        (DsubR y : rmsub ([x] R x) M (lam [z] O' y z))
+                      : rmsub ([x] app (R x) (Y' y)) M (Ox y)))
+                %% Yx turns out to be Y'
+             <- ({y}
+                    sub-absent _ _
+                    (DsubY'Y' y : sub ([x] Y' y) M (Y' y)))
+             <- ({y}
+                    sub-fun (DsubY' y) (DsubY'Y' y)
+                    (DeqYxY' y : tm-eq (Yx y) (Y' y)))
+                %% O' can't mention y
+             <- rmsub-closed ([y] DsubR y)
+                ([y] DeqLam y : tm-eq (lam [z] O' y z) (lam [z] O'' z))
+             <- ({y}
+                    lam-inj (DeqLam y)
+                    ([z] DeqO'O'' y z : tm-eq (O' y z) (O'' z)))
+                %% congruence to get new substitution
+             <- sub-compat1 ([y] [z] DeqO'O'' y z) ([y] DeqYxY' y) ([_] tm-eq/i)
+                ([y] DsubO' y)
+                ([y] DsubO''Y' y : sub ([z] O'' z) (Y' y) (Ox y))
+            %{
+             <- sub-expand-var _ ([y] DexpY' y) ([y] DsubO''Y' y)
+                ([y] DeqO''Ox y : tm-eq (O'' y) (Ox y))
+                %{ ([y] DsubO''O'' y : sub ([z] O'' z) (Y' y) (O'' y))}%
+                %{
+                %% O'' = Ox
+             <- ({y}
+                    sub-fun (DsubO''O'' y) (DsubO''Y' y)
+                    (DeqO''Ox y : tm-eq (O'' y) (Ox y)))
+                }%
+            }%
+             <- ({y}
+                    sub-expand _ (DexpY' y) (DsubO''Y' y)
+                    (DeqOxO'' y : tm-eq (Ox y) (O'' y)))
+             <- ({y} tm-eq-sym (DeqOxO'' y)
+                    (DeqO''Ox y : tm-eq (O'' y) (Ox y)))
+                %% O' = Ox
+             <- ({y} {z}
+                    tm-eq-trans (DeqO'O'' y z) (DeqO''Ox z)
+                    (DeqO'Ox y z : tm-eq (O' y z) (Ox z)))
+                %% wrap in lam
+             <- ({y}
+                    lam-compat ([z] DeqO'Ox y z)
+                    (DeqLam' y : tm-eq (lam [z] O' y z) (lam [z] Ox z)))
+                %% eq into DsubR
+             <- ({y}
+                    rmsub-compat ([_] atm-eq/i) tm-eq/i (DeqLam' y)
+                    (DsubR y)
+                    (Dsub y : rmsub ([x] R x) M (lam [z] Ox z))).
+
+%% rrsub-expand
+
+-closed     : rrsub-expand _ _ rrsub/closed
+                  atm-eq/i.
+
+-app        : rrsub-expand T
+                  (Dexpand : expand R T XR)
+                  (rrsub/app
+                      (DsubM : sub ([x] M x) XR Mx)
+                      (DsubQ : rrsub ([x] Q x) XR Qx))
+%%
+                  Deq
+%%
+               <- sub-expand T Dexpand DsubM
+                  (DeqM : tm-eq Mx (M R))
+               <- rrsub-expand T Dexpand DsubQ
+                  (DeqQ : atm-eq Qx (Q R))
+               <- app-compat DeqQ DeqM
+                  (Deq : atm-eq (app Qx Mx) (app (Q R) (M R))).
+
+%% sub-expand
+
+-rr         : sub-expand T
+                  (Dexpand : expand R T XR)
+                  (sub/rr
+                      (DsubQ : rrsub ([x] Q x) XR Qx))
+%%
+                  Deq
+%%
+               <- rrsub-expand T Dexpand DsubQ
+                  (DeqQ : atm-eq Qx (Q R))
+               <- at-compat DeqQ
+                  (Deq : tm-eq (at Qx) (at (Q R))).
+
+-rm         : sub-expand T
+                  (Dexpand : expand R T XR)
+                  (sub/rm
+                      (DsubQ : rmsub ([x] Q x) XR (at Qx)))
+%%
+                  Deq 
+%%
+               <- rmsub-expand T Dexpand DsubQ
+                  _ (DexpQR : expand (Q R) o (at Qx))
+               <- expand-fun DexpQR expand/o
+                  Deq.
+
+-lam        : sub-expand T
+                  (Dexpand : expand R T XR)
+                  (sub/lam
+                      ([y] DsubM y : sub ([x] M x y) XR (Mx y)))
+%%
+                  Deq
+%%
+               <- ({y}
+                      sub-expand T Dexpand (DsubM y)
+                      (DeqM y : tm-eq (Mx y) (M R y)))
+               <- lam-compat DeqM
+                  (Deq : tm-eq (lam [y] Mx y) (lam [y] M R y)).
+
+
+%% rmsub-expand
+
+-var        : rmsub-expand T
+                  (Dexpand : expand R T XR)
+                  rmsub/var
+                  T
+                  Dexpand.
+
+-app        : rmsub-expand T
+                  (Dexpand : expand R T XR)
+                  (rmsub/app
+                      (DsubL : sub ([y] L y) Mx Ly)
+                      (DsubM : sub ([x] M x) XR Mx)
+                      (DsubQ : rmsub ([x] Q x) XR (lam [y] L y))
+                    : rmsub ([x] app (Q x) (M x)) XR Ly)
+%%                  
+                  T2
+                  Dexp
+%%
+               <- rmsub-expand T Dexpand DsubQ
+                  (arrow T1 T2)
+                  (DexpQR : expand (Q R) (arrow T1 T2) (lam [y] L y))
+                  %{
+                  (expand/arr
+                      ([y] DexpApp y : expand (app (Q R) (Y y)) T2 (L y))
+                      ([y] DexpY y : expand y T1 (Y y))
+                    : expand (Q R) (arrow T1 T2) (lam [y] L y))
+                  }%
+               <- expand-arr-invert DexpQR
+                  ([y] DexpApp y : expand (app (Q R) (Y y)) T2 (L y))
+                  ([y] DexpY y : expand y T1 (Y y))
+               <- sub-expand T Dexpand DsubM
+                  (DeqM : tm-eq Mx (M R))
+               <- expand-rrsub T2 ([y] DexpApp y) DsubL 
+                  (notheadvar/app notheadvar/closed)
+                  (DsubApp : rrsub ([y] app (Q R) (Y y)) Mx (app QRy Yy))
+                  %{
+                  (rrsub/app
+                      (DsubY : sub ([y] Y y) Mx Yy)
+                      (DsubQR : rrsub ([y] Q R) Mx QRy)
+                    : rrsub ([y] app (Q R) (Y y)) Mx (app QRy Yy))
+                  }%
+                  (DexpQRy : expand (app QRy Yy) T2 Ly)
+               <- app-rrsub-invert DsubApp
+                  (DsubQR : rrsub ([y] Q R) Mx QRy)
+                  (DsubY : sub ([y] Y y) Mx Yy)
+               <- rrsub-fun DsubQR rrsub/closed
+                  (DeqQRy : atm-eq QRy (Q R))
+                  %% come up with DeqYM : tm-eq Yy (M R) %%
+               <- expand-rmsub T1 ([y] DexpY y) DsubY headvar/var
+                  (Dsuby : rmsub ([y] y) Mx Yy)
+               <- rmsub-fun Dsuby rmsub/var
+                  (DeqYyMx : tm-eq Yy Mx)
+               <- tm-eq-trans DeqYyMx DeqM
+                  (DeqYM : tm-eq Yy (M R))
+                  %% push the equalities through
+               <- app-compat DeqQRy DeqYM
+                  (DeqApp : atm-eq (app QRy Yy) (app (Q R) (M R)))
+               <- expand-resp DeqApp stp-eq/i tm-eq/i DexpQRy
+                  (Dexp : expand (app (Q R) (M R)) T2 Ly).
+
+
+                  %{
+                  %%% come up with DsubYy : [M/y] eta(Y) = M  %%%
+                  %% come up with DsubQxy
+               <- expand-rrsub _ 
+                  ([y] DexpApp y)
+                  (rrsub/app DsubYy DsubQxy
+                    : rrsub ([y] app (Q R) (Y y)) (M R) (app (Q R) (M R)))
+                  DexpQM
+                  (DsubL' : sub ([y] L y) (M R) XQM)
+               <- sub-compat ([_] tm-eq/i) DeqM tm-eq/i DsubL
+                  (DsubL'' : sub ([y] L y) (M R) Ly)
+               <- sub-fun DsubL' DsubL''
+                  (DeqL : tm-eq XQM Ly)
+               <- expand-resp atm-eq/i stp-eq/i DeqL DexpQM
+                  (DexpQM' : expand (app (Q R) (M R)) T2 Ly).
+              }%
+
+%% sub-expand-var
+%{
+-         : sub-expand-var T
+                ([x] Dexpand x : expand x T (X x))
+                ([x] DsubM x : sub ([x] M x) (X x) (M' x))
+%%
+                Deq'
+%%
+             <- ({x}
+                    sub-expand T (Dexpand x) (DsubM x)
+                    (Deq x))
+             <- ({x} tm-eq-sym (Deq x) (Deq' x)).
+}%
+
+%worlds (csig | asig | bind | ovar | var)
+(expand-rrsub _ _ _ _ _ _)
+(expand-rmsub _ _ _ _ _)
+(rrsub-expand _ _ _ _)
+(rmsub-expand _ _ _ _ _)
+(sub-expand   _ _ _ _).
+% (sub-expand-var _ _ _ _).
+%reduces S <= T (rmsub-expand T _ _ S _).
+%total {(T1 T2 T3 T4 T5) (D1 D2 D3 D4 D5)} 
+(expand-rrsub T1 _ _ D1 _ _)
+(expand-rmsub T2 _ D2 _ _)
+(rrsub-expand T3 _ D3 _)
+(rmsub-expand T4 _ D4 _ _)
+(sub-expand   T5 _ D5 _).
+
+
+%%%% more lemmas - atp %%%%
+
+atpsub-expand : {T}
+                       expand R T XR
+                    -> atpsub ([x] P x) XR Px
+%%
+                    -> atp-eq Px (P R) -> type.
+%mode atpsub-expand +T +X1 +X2 -X3.
+
+-closed   : atpsub-expand _ _
+                (atpsub/closed : atpsub ([x] P) M P)
+                atp-eq/i.
+
+-aapp     : atpsub-expand T
+                (Dexpand : expand R T XR)
+                (atpsub/app
+                    (DsubM : sub ([x] M x) XR Mx)
+                    (DsubP : atpsub ([x] P x) XR Px))
+%%                
+                Deq
+%%
+             <- atpsub-expand T Dexpand DsubP
+                (DeqP : atp-eq Px (P R))
+             <- sub-expand T Dexpand DsubM
+                (DeqM : tm-eq Mx (M R))
+             <- aapp-compat DeqP DeqM
+                (Deq : atp-eq (aapp Px Mx) (aapp (P R) (M R))).
+
+%worlds (csig | asig | var | bind | ovar) (atpsub-expand _ _ _ _).
+%total {T D} (atpsub-expand T _ D _).
+
+
+%%%% more lemmas - tp %%%%
+
+tpsub-expand : {T}
+                      expand R T XR
+                   -> tpsub ([x] B x) XR Bx
+%%
+                   -> tp-eq Bx (B R) -> type.
+%mode tpsub-expand +T +X1 +X2 -X3.
+
+-base     : tpsub-expand T
+                (Dexpand : expand R T XR)
+                (tpsub/base (DsubP : atpsub ([x] P x) XR Px)
+                  : tpsub ([x] base (P x)) XR (base Px))
+%%
+                Deq
+%%
+             <- atpsub-expand T Dexpand DsubP
+                (DeqP : atp-eq Px (P R))
+             <- base-compat DeqP
+                (Deq : tp-eq (base Px) (base (P R))).
+
+-pi       : tpsub-expand T
+                (Dexpand : expand R T XR)
+                (tpsub/pi
+                    ([y] DsubB y : tpsub ([x] B x y) XR (Bx y))
+                    (DsubA : tpsub ([x] A x) XR Ax))
+%%                
+                Deq
+%%
+             <- tpsub-expand T Dexpand DsubA
+                (DeqA : tp-eq Ax (A R))
+             <- ({y}
+                    tpsub-expand T Dexpand (DsubB y)
+                    (DeqB y : tp-eq (Bx y) (B R y)))
+             <- pi-compat DeqA ([y] DeqB y)
+                (Deq : tp-eq (pi Ax ([y] Bx y)) (pi (A R) ([y] B R y))).
+
+-alam     : tpsub-expand T
+                (Dexpand : expand R T XR)
+                (tpsub/lam
+                    ([y] DsubB y : tpsub ([x] B x y) XR (Bx y)))
+%%
+                Deq
+%%
+             <- ({y}
+                    tpsub-expand T Dexpand (DsubB y)
+                    (DeqB y : tp-eq (Bx y) (B R y)))
+             <- alam-compat ([x] DeqB x) 
+                (Deq : tp-eq (alam ([x] Bx x)) (alam ([x] B R x))).
+                
+
+%worlds (csig | asig | var | bind | ovar) (tpsub-expand _ _ _ _).
+%total {T D} (tpsub-expand T _ D _).
+
+
+ksub-expand : {T}
+                      expand R T XR
+                   -> ksub ([x] K x) XR Kx
+%%
+                   -> kind-eq Kx (K R) -> type.
+%mode ksub-expand +T +X1 +X2 -X3.
+
+-type     : ksub-expand T _ ksub/type kind-eq/i.
+
+-pi       : ksub-expand T
+                (Dexpand : expand R T XR)
+                (ksub/pi
+                    ([y] DsubK y : ksub ([x] K x y) XR (Kx y))
+                    (DsubA : tpsub ([x] A x) XR Ax))
+%%                
+                Deq
+%%
+             <- tpsub-expand T Dexpand DsubA
+                (DeqA : tp-eq Ax (A R))
+             <- ({y}
+                    ksub-expand T Dexpand (DsubK y)
+                    (DeqK y : kind-eq (Kx y) (K R y)))
+             <- kpi-compat DeqA ([y] DeqK y)
+                (Deq 
+                  : kind-eq (kpi Ax ([y] Kx y)) (kpi (A R) ([y] K R y))).
+
+%worlds (csig | asig | var | bind | ovar) (ksub-expand _ _ _ _).
+%total {T D} (ksub-expand T _ D _).
+
+
+%% XXX not needed
+%{
+tpsub-expand-var   : {T} {B}
+                            ({x} expand x T (X x))
+%%
+                         -> ({x} tpsub ([x] B x) (X x) (B x)) -> type.
+%mode tpsub-expand-var +T +B +X2 -X3.
+
+
+%worlds (csig | asig | var | bind | ovar) (tpsub-expand-var _ _ _ _).
+%total {T D} (tpsub-expand-var T _ D _).
+}%
+
+
+%%% expansion (explicit contexts) %%%
+
+expand-reg-em : {T}
+                    simp A T
+                 -> ordered G
+                 -> at-ofe G R A
+                 -> expand R T M
+%%
+                 -> ofe G M A -> type.
+%mode expand-reg-em +T +X0 +X1 +X2 +X3 -X4.
+
+-base : expand-reg-em _ _ _ Datof expand/o (ofe/at Datof).
+
+-pi   : expand-reg-em _
+            (simp/pi
+                ([x] DsimpB x : simp (B x) T)
+                (DsimpA : simp A S))
+            (Dord : ordered G)
+            (DofR : at-ofe G R (pi A [x] B x))
+            (expand/arr
+                ([x] Dexpand2 x : expand (app R (M x)) T (N x))
+                ([x] Dexpand1 x : expand x S (M x)))
+%%            
+            (ofe/lam DkofA ([x] DofN x))
+%%
+         <- atofe-reg Dord DofR
+            (kofe/pi
+                ([x] DkofB x : kofe (cons G x A) (B x) ktype)
+                (DkofA : kofe G A ktype))
+            % weaken the context with the pi-bound variable
+         <- extend-ordered _ Dord _
+            ([x] [d] Dord' x d : ordered (cons G x A))
+         <- ({x}
+                weaken-kofe DkofA A x
+                (DkofA' x : kofe (cons G x A) A ktype))
+            % induct to get typing for expansion of the variable
+         <- ({x} {d}
+                expand-reg-em S DsimpA (Dord' x d)
+                (at-ofe/var (DkofA' x) lookup/hit) (Dexpand1 x)
+                (DofM x : ofe (cons G x A) (M x) A))
+            % weaken some more stuff
+         <- ({x}
+                weaken-atofe DofR A x
+                (DofR' x : at-ofe (cons G x A) R (pi A [y] B y)))
+         <- weaken-kofe-insert1 Dord ([x] DkofB x) _
+            ([x] [y] DkofB' x y : kofe (cons (cons G x A) y A) (B y) ktype)
+            % NTS: substing [expansion of x] for x in B is B
+            % (for the app typing rule in the inductive call)
+         <- can-tpsub-context-e Dord ([x] DofM x) ([x] DkofB x)
+            ([x] Dtpsub x : tpsub ([y] B y) (M x) (B' x))
+         <- ({x}
+                tpsub-expand _ (Dexpand1 x) (Dtpsub x)
+                (Deq x : tp-eq (B' x) (B x)))
+         <- ({x}
+                tpsub-compat ([_] tp-eq/i) tm-eq/i (Deq x) (Dtpsub x)
+                (Dtpsub' x : tpsub ([x] B x) (M x) (B x)))
+            % induct on the expansion of the application of R 
+            % to the expansion of x
+         <- ({x} {d}
+                expand-reg-em T (DsimpB x) (Dord' x d)
+                (at-ofe/app (Dtpsub' x) (DofM x) (DofR' x)) 
+                (Dexpand2 x)
+                (DofN x : ofe (cons G x A) (N x) (B x))).
+
+-alam : expand-reg-em _
+            (simp/lam ([x] DsimpB x : simp (B x) T) : simp (alam B) T)
+            (Dord : ordered G)
+            (DofR : at-ofe G R (alam ([x] B x)))
+            (Dexpand : expand R T M)
+%%
+            D
+%%
+         <- atofe-lam-contra Dord DofR Dfalse
+         <- false-implies-ofe Dfalse D.
+
+%worlds (bind | ovar | var | csig | asig) (expand-reg-em _  _ _ _ _ _).
+%total {T D} (expand-reg-em T _ _ _ D _).
+
+tpexpand-reg-em : {H}
+                      ksimp K H
+                   -> ordered G
+                   -> at-kofe G P K
+                   -> tpexpand P H A
+%%
+                   -> kofe G A K -> type.
+%mode tpexpand-reg-em +H +X0 +X1 +X2 +X3 -X4.
+
+-type : tpexpand-reg-em _
+            ksimp/type
+            (Dord : ordered G)
+            (DofP : at-kofe G P ktype)
+            tpexpand/type
+            (kofe/base DofP).
+
+-arr  : tpexpand-reg-em _
+            (ksimp/pi
+                ([x] DsimpK x : ksimp (K x) H)
+                (DsimpA : simp A T)
+              : ksimp (kpi A [x] K x) (karrow T H))
+            (Dord : ordered G)
+            (DofP : at-kofe G P (kpi A [x] K x))
+            (tpexpand/arr
+                ([x] DexpandApp x : tpexpand (aapp P (X x)) H (B x))
+                ([x] DexpandX x : expand x T (X x)))
+%%
+            (kofe/lam
+                ([x] DofB x)
+                DofA)
+%%
+         <- atkofe-reg Dord DofP
+            (wfkinde/pi
+                ([x] DofK x : wfkinde (cons G x A) (K x))
+                (DofA : kofe G A ktype))
+            % weaken
+         <- extend-ordered _ Dord _
+            ([x] [d] Dord' x d : ordered (cons G x A))
+         <- ({x}
+                weaken-kofe DofA A x
+                (DofA' x : kofe (cons G x A) A ktype))
+         <- ({x} {d}
+                expand-reg-em T DsimpA (Dord' x d)
+                (at-ofe/var (DofA' x) lookup/hit) (DexpandX x)
+                (DofX x : ofe (cons G x A) (X x) A))
+         <- ({x}
+                weaken-atkofe DofP A x
+                (DofP' x : at-kofe (cons G x A) P (kpi A [y] K y)))
+            % get substitution into K
+         <- can-ksub-context-e Dord ([x] DofX x) ([x] DofK x)
+            ([x] DsubK x : ksub ([y] K y) (X x) (K' x))
+         <- ({x}
+                ksub-expand _ (DexpandX x) (DsubK x)
+                (DeqK'K x : kind-eq (K' x) (K x)))
+         <- ({x}
+                ksub-compat ([_] kind-eq/i) tm-eq/i (DeqK'K x) (DsubK x)
+                (DsubK' x : ksub ([y] K y) (X x) (K x)))
+            % induct on the DexpandApp
+         <- ({x} {d}
+                tpexpand-reg-em H (DsimpK x) (Dord' x d)
+                (at-kofe/app (DsubK' x) (DofX x) (DofP' x)) (DexpandApp x)
+                (DofB x : kofe (cons G x A) (B x) (K x))).
+
+%worlds (bind | ovar | var | csig | asig) (tpexpand-reg-em _  _ _ _ _ _).
+%total {H D} (tpexpand-reg-em H _ _ _ D _).
+
+
+expand-reg-e : ordered G
+                -> at-ofe G R A
+                -> simp A T
+                -> expand R T M
+%%
+                -> ofe G M A -> type.
+%mode expand-reg-e +X0 +X1 +X2 +X3 -X4.
+
+- : expand-reg-e Dord Datof Dsimp Dexpand Dof
+     <- expand-reg-em _ Dsimp Dord Datof Dexpand Dof.
+
+%worlds (bind | ovar | var | csig | asig) (expand-reg-e _ _ _ _ _).
+%total {} (expand-reg-e _ _ _ _ _).
+
+tpexpand-reg-e : ordered G
+                  -> at-kofe G P K
+                  -> ksimp K H
+                  -> tpexpand P H A
+%%
+                  -> kofe G A K -> type.
+%mode tpexpand-reg-e +X0 +X2 +X2 +X3 -X4.
+
+- : tpexpand-reg-e Dord Datof Dsimp Dexpand Dof
+     <- tpexpand-reg-em _ Dsimp Dord Datof Dexpand Dof.
+
+%worlds (bind | ovar | var | csig | asig) (tpexpand-reg-e _ _ _ _ _).
+%total {} (tpexpand-reg-e _ _ _ _ _).
+
+
+%%%% expansion (implicit context) %%%%
+
+expand-reg : at-of R A
+              -> simp A T
+              -> expand R T M
+%%
+              -> of M A -> type.
+%mode expand-reg +X0 +X1 +X2 -X3.
+
+- : expand-reg Datof Dsimp Dexpand Dof
+     <- atof-to-atofe Datof Datofe
+     <- expand-reg-e ordered/nil Datofe Dsimp Dexpand Dofe
+     <- ofe-to-of Dofe Dof.
+
+%worlds (bind | var | ovar | csig | asig) (expand-reg _ _ _ _).
+%total {} (expand-reg _ _ _ _).
+
+
+tpexpand-reg : at-kof P K
+                -> ksimp K H
+                -> tpexpand P H A
+%%
+                -> kof A K -> type.
+%mode tpexpand-reg +X0 +X1 +X2 -X3.
+
+- : tpexpand-reg Datof Dsimp Dexpand Dof
+     <- atkof-to-atkofe Datof Datofe
+     <- tpexpand-reg-e ordered/nil Datofe Dsimp Dexpand Dofe
+     <- kofe-to-kof Dofe Dof.
+
+%worlds (csig | asig | bind | var | ovar) (tpexpand-reg _ _ _ _).
+%total {} (tpexpand-reg _ _ _ _).
+
+%% misc %%
+
+strengthen-expand : ({x:atm} expand R T (M x))
+                     -> ({x} tm-eq (M x) M') -> type.
+%mode strengthen-expand +X1 -X2.
+
+- : strengthen-expand Dexpand Deq
+     <- can-expand R T Dexpand'
+     <- ({x}
+            expand-fun (Dexpand x) Dexpand' (Deq x)).
+
+%worlds (csig | asig | var) (strengthen-expand _ _).
+%total {} (strengthen-expand _ _).
+
+strengthen-tpexpand : ({x:atm} tpexpand P K (A x))
+                       -> ({x} tp-eq (A x) A') -> type.
+%mode strengthen-tpexpand +X1 -X2.
+
+- : strengthen-tpexpand Dexpand Deq
+     <- can-tpexpand P K Dexpand'
+     <- ({x} tpexpand-fun (Dexpand x) Dexpand' (Deq x)).
+
+%worlds (csig | asig | var) (strengthen-tpexpand _ _).
+%total {} (strengthen-tpexpand _ _).
+
+
+%% simple types version %%
+
+expand-reg-es : sordered G
+                 -> at-ofes G R T 
+                 -> expand R T M 
+%%                    
+                 -> ofes G M T -> type.
+%mode expand-reg-es +X1 +X2 +X3 -X4.
+
+-o        : expand-reg-es _ (Datofes : at-ofes G R o) expand/o
+                (ofes/at Datofes).
+
+-arr      : expand-reg-es
+                (Dord : sordered G)
+                (DofR : at-ofes G R (arrow S T))
+                (expand/arr
+                    ([x] Dexp2 x : expand (app R (M x)) T (N x))
+                    ([x] Dexp1 x : expand x S (M x)))
+%%
+                (ofes/lam ([x] DofN x))
+%%
+             <- extend-sordered _ Dord _
+                ([x] [d] Dord' x d : sordered (scons G x S))
+             <- ({x}
+                    weaken-atofes DofR x S
+                    (DofR' x : at-ofes (scons G x S) R (arrow S T)))
+             <- ({x} {d}
+                    expand-reg-es (Dord' x d)
+                    (at-ofes/var slookup/hit) (Dexp1 x)
+                    (DofM x : ofes (scons G x S) (M x) S))
+             <- ({x} {d}
+                    expand-reg-es (Dord' x d)
+                    (at-ofes/app (DofM x) (DofR' x))
+                    (Dexp2 x)
+                    (DofN x : ofes (scons G x S) (N x) T)).
+
+%worlds (csig | asig | var | ovar | bind) (expand-reg-es _ _ _ _). 
+%total D (expand-reg-es _ _ D _).
+
+tpexpand-reg-es : sordered G
+                   -> at-kofes G P K
+                   -> tpexpand P K A
+%%
+                   -> kofes G A K -> type.
+%mode tpexpand-reg-es +X1 +X2 +X3 -X4.
+
+-tp       : tpexpand-reg-es _ (Datkofes : at-kofes G P sktype) tpexpand/type
+                (kofes/base (Datkofes)).
+
+-arr      : tpexpand-reg-es
+                (Dord : sordered G)
+                (DofP : at-kofes G P (karrow T H))
+                (tpexpand/arr
+                    ([x] Dtpexpand x : tpexpand (aapp P (M x)) H (A x))
+                    ([x] Dexpand x : expand x T (M x)))
+%%
+                (kofes/lam ([x] DofA x))
+%%
+             <- extend-sordered _ Dord _
+                ([x] [d] Dord' x d : sordered (scons G x T))
+             <- ({x}
+                    weaken-atkofes DofP x T
+                    (DofP' x : at-kofes (scons G x T) P (karrow T H)))
+             <- ({x} {d}
+                    expand-reg-es (Dord' x d)
+                    (at-ofes/var slookup/hit) (Dexpand x)
+                    (DofM x : ofes (scons G x T) (M x) T))
+             <- ({x} {d}
+                    tpexpand-reg-es (Dord' x d)
+                    (at-kofes/app (DofM x) (DofP' x))
+                    (Dtpexpand x)
+                    (DofA x : kofes (scons G x T) (A x) H)).
+
+%worlds (csig | asig | var | ovar | bind) (tpexpand-reg-es _ _ _ _). 
+%total D (tpexpand-reg-es _ _ D _).
+
+
+expand-simp : tpexpand P K A -> simp A o -> type.
+%mode expand-simp +X1 -X2.
+
+-tp     : expand-simp tpexpand/type simp/base.
+
+-arr    : expand-simp
+              (tpexpand/arr
+                  ([x] Dtpexpand x : tpexpand (aapp P (M x)) H (A x)) 
+                  _)  
+              (simp/lam ([x] DsimpA x)) 
+           <- ({x}
+                  expand-simp (Dtpexpand x)
+                  (DsimpA x : simp (A x) o)).
+
+%worlds (csig | asig | var | bind) (expand-simp _ _). 
+%total D (expand-simp D _). 
+
+expand-rmsub' : ({x} expand (R x) T (N x))
+                 -> rmsub ([x] R x) M N'
+                 -> headvar ([x] R x)
+                 -> ({x} {d:vof x A} of (N x) (B x))
+                 -> of M A
+%%
+                 -> sub ([x] N x) M N' -> type.
+%mode expand-rmsub' +X1 +X2 +X3 +X4 +X5 -X6.
+
+- : expand-rmsub' 
+        ([x] Dexpand x : expand (R x) T (N x))
+        (Drmsub : rmsub ([x] R x) M N') 
+        (Dheadvar : headvar ([x] R x))
+        ([x] [d] DofN x d : of (N x) (B x))
+        (DofM : of M A)
+        Dsub'
+     <- can-sub DofN DofM (Dsub : sub ([x] N x) M N'')
+     <- expand-rmsub T Dexpand Dsub Dheadvar
+        (Drmsub' : rmsub ([x] R x) M N'')
+     <- rmsub-fun Drmsub' Drmsub
+        (DeqN'' : tm-eq N'' N')
+     <- sub-compat ([x] tm-eq/i) tm-eq/i DeqN'' Dsub
+        (Dsub' : sub ([x] N x) M N').
+
+%worlds (csig | asig | bind | var) (expand-rmsub' _ _ _ _ _ _).
+%total {} (expand-rmsub' _ _ _ _ _ _).

@@ -1,0 +1,547 @@
+%{
+eqtme-extpi : eqtme G M N (epi A B') 
+               -> ({x} eqtme (econs G x A) (eapp M x) (eapp N x) (B x))
+%%
+               -> eqtme G M N (epi A B) -> type.
+%mode eqtme-extpi +X1 +X2 -X3.
+
+%worlds (evar | eovar) (eqtme-extpi _ _ _).
+%total D (eqtme-extpi D _ _).
+}%
+
+%% Functionality of EL substitution (substing equiv terms yields equiv terms) %%
+
+eqtm-sub-e    : ({x} eisvar x I -> eordered (G x))
+                 -> ({x} eappend (econs G1 x A) (G2 x) (G x))
+                 -> eqtme G1 M N A
+                 -> eofe G1 M A
+                 -> eofe G1 N A
+                 -> ({x} eofe (G x) (P x) (B x))
+                 -> ecsub ([x] G x) M G'
+%%                  
+                 -> eqtme G' (P M) (P N) (B M) -> type.
+%mode eqtm-sub-e +X0 +X1 +X2 +X3 +X4 +X5 +X6 -X7.
+
+eqtm-tpsub-e : ({x} eisvar x I -> eordered (G x))
+                -> ({x} eappend (econs G1 x A) (G2 x) (G x))
+                -> eqtme G1 M N A
+                -> eofe G1 M A
+                -> eofe G1 N A
+                -> ({x} ekofe (G x) (B x) (K x))
+                -> ecsub ([x] G x) M G'
+%%
+                -> eqtpe G' (B M) (B N) (K M) -> type.
+%mode eqtm-tpsub-e +X0 +X1 +X2 +X3 +X4 +X5 +X6 -X7.
+
+eqtm-ksub-e : ({x} eisvar x I -> eordered (G x))
+                -> ({x} eappend (econs G1 x A) (G2 x) (G x))
+                -> eqtme G1 M N A
+                -> eofe G1 M A
+                -> eofe G1 N A
+                -> ({x} ewfkinde (G x) (K x))
+                -> ecsub ([x] G x) M G'
+%%
+                -> eqkinde G' (K M) (K N) -> type.
+%mode eqtm-ksub-e +X0 +X1 +X2 +X3 +X4 +X5 +X6 -X7.
+
+-vari     : eqtm-sub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x] eofe/vari
+                    (DofB x : ekofe (G x) B ektype)
+                    (Dvof : evof Y B))
+                (Dcsub : ecsub ([x] G x) M Gx)
+%%
+                (eqtme/refl (eofe/vari DofBx Dvof))
+%%
+             <- ekofe-sub Dord Dappend DofB DofM Dcsub
+                (DofBx : ekofe Gx B ektype).
+
+-const    : eqtm-sub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    eofe/const
+                    (DofB x : ekofe (G x) B ektype)
+                    (Dcof : ecof C B))
+                (Dcsub : ecsub ([x] G x) M Gx)
+%%
+                (eqtme/refl (eofe/const DofBx Dcof))
+%%
+             <- ekofe-sub Dord Dappend DofB DofM Dcsub DofBx.
+
+-varsam   : eqtm-sub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    eofe/var
+                    (DofA' x : ekofe (G x) (A' x) ektype)
+                    (Dlook' x : elookup (G x) x (A' x)))
+                (Dcsub : ecsub ([x] G x) M Gx)
+%%
+                Deqtme*
+%%
+             <- ({x}
+                    eappend-lookup (Dappend x)
+                    (Dlook x : elookup (G x) x A))
+             <- ({x} {d}
+                    elookup-fun (Dord x d) (Dlook x) (Dlook' x)
+                    (DeqAA' x : etp-eq A (A' x)))
+             <- ({x}
+                    weaken-eqtme Deqtme x A
+                    (Deqtme' x : eqtme (econs G1 x A) M N A))
+             <- ({x}
+                    weaken-eqtme' (Dappend x) (Deqtme' x)
+                    (Deqtme'' x : eqtme (G x) M N A))
+             <- ({x}
+                    eqtme-resp ectx-eq/i etm-eq/i etm-eq/i (DeqAA' x) 
+                    (Deqtme'' x)
+                    (Deqtme''' x : eqtme (G x) M N (A' x)))
+             <- eqtme-sub Dord Dappend Deqtme''' DofM Dcsub
+                (Deqtme* : eqtme Gx M N (A' M)).
+
+-varoth   : eqtm-sub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    eofe/var
+                    (DofB x : ekofe (G x) (B x) ektype)
+                    (Dlook x : elookup (G x) Y (B x)))
+                (Dcsub : ecsub ([x] G x) M Gx)
+%%
+                (eqtme/refl (eofe/var DofBx Dlookx))
+%%                
+             <- ekofe-sub Dord Dappend DofB DofM Dcsub
+                (DofBx : ekofe Gx (B M) ektype)
+             <- ecsub-lookup Dcsub Dlook
+                (Dlookx : elookup Gx Y (B M)).
+
+-app      : eqtm-sub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    eofe/app
+                    (DofP x : eofe (G x) (P x) (B x))
+                    (DofO x : eofe (G x) (O x) (epi (B x) ([y] C x y))))
+                (Dcsub : ecsub ([x] G x) M Gx)
+%%
+                (eqtme/app DeqP DeqO)
+%%
+             <- eqtm-sub-e Dord Dappend Deqtme DofM DofN DofP Dcsub
+                (DeqP : eqtme Gx (P M) (P N) (B M))
+             <- eqtm-sub-e Dord Dappend Deqtme DofM DofN DofO Dcsub
+                (DeqO : eqtme Gx (O M) (O N) (epi (B M) ([y] C M y))).
+
+-appbad   : eqtm-sub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    eofe/var
+                    (DofB x : ekofe (G x) (B x) ektype)
+                    (Dlook x : elookup (G x) (eapp (O x) (P x)) (B x)))
+                _
+%%
+                Deq
+%%
+             <- ({x} {d}
+                    elookup-isvar (Dord x d) (Dlook x)
+                    (Disvar x : eisvar (eapp (O x) (P x)) I))
+             <- ({x} eisvar-app-contra (Disvar x) Dfalse)
+             <- false-implies-eqtme Dfalse Deq.
+
+-lam      : eqtm-sub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    eofe/lam
+                    (DofB x : ekofe (G x) (B x) ektype)
+                    ([y] DofP x y : eofe (econs (G x) y (B x)) (P x y) (C x y)))
+                (Dcsub : ecsub ([x] G x) M Gx)
+%%
+                (eqtme/lam DeqP DeqB)
+%%
+             <- eqtm-tpsub-e Dord Dappend Deqtme DofM DofN DofB Dcsub
+                (DeqB : eqtpe Gx (B M) (B N) ektype)
+             <- ({x} {d}
+                    extend-eordered _ (Dord x d) _
+                    ([y] [e] Dord' x d y e : eordered (econs (G x) y (B x))))
+             <- ({y} {e}
+                    eqtm-sub-e 
+                    ([x] [d] Dord' x d y e) 
+                    ([x] eappend/cons (Dappend x))
+                    Deqtme DofM DofN ([x] DofP x y)
+                    (ecsub/cons Dcsub)
+                    (DeqP y 
+                      : eqtme (econs Gx y (B M)) (P M y) (P N y) (C M y))).
+
+-lambad   : eqtm-sub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    eofe/var
+                    (DofB x : ekofe (G x) (B x) ektype)
+                    (Dlook x : elookup (G x) (elam (D x) ([z] O x z)) (B x)))
+                _
+%%
+                Deq
+%%
+             <- ({x} {d}
+                    elookup-isvar (Dord x d) (Dlook x)
+                    (Disvar x : eisvar (elam (D x) ([z] O x z)) I))
+             <- ({x}
+                    eisvar-lam-contra (Disvar x) Dfalse)
+             <- false-implies-eqtme Dfalse Deq.
+
+-ext      : eqtm-sub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x] eofe/ext
+                    ([y] DofApp x y 
+                      : eofe (econs (G x) y (B x)) (eapp (O x) y) (C x y))
+                    (DofO x : eofe (G x) (O x) (epi (B x) ([y] C' x y))))
+                (Dcsub : ecsub ([x] G x) M Gx)
+%%
+                (eqtme/extw DeqApp DeqOx)
+%%
+             <- eqtm-sub-e Dord Dappend Deqtme DofM DofN DofO Dcsub
+                (DeqOx : eqtme Gx (O M) (O N) (epi (B M) ([y] C' M y)))
+             <- ({x} {d}
+                    extend-eordered _ (Dord x d) J
+                    ([y] [e] Dord' x d y e : eordered (econs (G x) y (B x))))
+             <- ({y} {e}
+                    eqtm-sub-e 
+                    ([x] [d] Dord' x d y e) ([x] eappend/cons (Dappend x)) 
+                    Deqtme DofM DofN ([x] DofApp x y)
+                    (ecsub/cons Dcsub)
+                    (DeqApp y 
+                      : eqtme (econs Gx y (B M)) 
+                        (eapp (O M) y) (eapp (O N) y) (C M y))).
+
+-eqtp     : eqtm-sub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    eofe/eqtp
+                    (DeqBC x : eqtpe (G x) (B x) (C x) ektype)
+                    (DofPB x : eofe (G x) (P x) (B x)))
+                Dcsub
+%%
+                (eqtme/tcon DeqBx DeqPx)
+%%
+             <- eqtm-sub-e Dord Dappend Deqtme DofM DofN DofPB Dcsub
+                (DeqPx : eqtme Gx (P M) (P N) (B M))
+             <- eqtpe-sub Dord Dappend DeqBC DofM Dcsub
+                (DeqBx : eqtpe Gx (B M) (C M) ektype).
+
+%%%%
+
+-const    : eqtm-tpsub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    ekofe/const
+                    (Dwfkind x : ewfkinde (G x) K)
+                    (Dckof : eckof C K))
+                Dcsub
+%%
+                (eqtpe/refl (ekofe/const DofKx Dckof))
+%%
+             <- ewfkinde-sub Dord Dappend Dwfkind DofM Dcsub DofKx.
+
+-app      : eqtm-tpsub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    ekofe/app
+                    (DofP x : eofe (G x) (P x) (B x))
+                    (DofC x : ekofe (G x) (C x) (ekpi (B x) ([y] D x y))))
+                (Dcsub : ecsub ([x] G x) M Gx)
+%%
+                (eqtpe/app DeqP DeqC)
+%%
+             <- eqtm-sub-e Dord Dappend Deqtme DofM DofN DofP Dcsub
+                (DeqP : eqtme Gx (P M) (P N) (B M))
+             <- eqtm-tpsub-e Dord Dappend Deqtme DofM DofN DofC Dcsub
+                (DeqC : eqtpe Gx (C M) (C N) (ekpi (B M) ([y] D M y))).
+
+-pi       : eqtm-tpsub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    ekofe/pi
+                    (DofB x : ekofe (G x) (B x) ektype)
+                    ([y] DofC x y 
+                      : ekofe (econs (G x) y (B x)) (C x y) ektype))
+                Dcsub
+%%
+                (eqtpe/pi DeqC DeqB)
+%%
+             <- eqtm-tpsub-e Dord Dappend Deqtme DofM DofN DofB Dcsub
+                (DeqB : eqtpe Gx (B M) (B N) ektype)
+             <- ({x} {d}
+                    extend-eordered _ (Dord x d) _
+                    ([y] [e] Dord' x d y e : eordered (econs (G x) y (B x))))
+             <- ({y} {e}
+                    eqtm-tpsub-e 
+                    ([x] [d] Dord' x d y e) ([x] eappend/cons (Dappend x))
+                    Deqtme DofM DofN ([x] DofC x y) (ecsub/cons Dcsub)
+                    (DeqC y
+                      : eqtpe (econs Gx y (B M)) (C M y) (C N y) ektype)).
+
+-lam      : eqtm-tpsub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    ekofe/lam
+                    (DofB x : ekofe (G x) (B x) ektype)
+                    ([y] DofD x y : ekofe (econs (G x) y (B x)) (D x y) (C x y)))
+                Dcsub
+%%
+                (eqtpe/lam DeqD DeqB)
+%%
+             <- eqtm-tpsub-e Dord Dappend Deqtme DofM DofN DofB Dcsub
+                (DeqB : eqtpe Gx (B M) (B N) ektype)
+             <- ({x} {d}
+                    extend-eordered _ (Dord x d) _
+                    ([y] [e] Dord' x d y e : eordered (econs (G x) y (B x))))
+             <- ({y} {e}
+                    eqtm-tpsub-e 
+                    ([x] [d] Dord' x d y e) 
+                    ([x] eappend/cons (Dappend x))
+                    Deqtme DofM DofN ([x] DofD x y) (ecsub/cons Dcsub)
+                    (DeqD y 
+                      : eqtpe (econs Gx y (B M)) (D M y) (D N y) (C M y))).
+
+-ext        : eqtm-tpsub-e
+                  ([x] [d] Dord x d : eordered (G x))
+                  ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                  (Deqtme : eqtme G1 M N A)
+                  (DofM : eofe G1 M A)
+                  (DofN : eofe G1 N A)
+                  ([x] ekofe/ext
+                      ([y] DofApp x y
+                        : ekofe (econs (G x) y (B x)) (eaapp (C x) y) (K x y))
+                      (DofC x : ekofe (G x) (C x) (ekpi (B x) ([y] K' x y))))
+                  Dcsub
+%%
+                  (eqtpe/extw DeqApp DeqCx)
+%%
+               <- eqtm-tpsub-e Dord Dappend Deqtme DofM DofN DofC Dcsub
+                  (DeqCx : eqtpe Gx (C M) (C N) (ekpi (B M) ([y] K' M y)))
+               <- ({x} {d}
+                      extend-eordered _ (Dord x d) J
+                      ([y] [e] Dord' x d y e : eordered (econs (G x) y (B x))))
+               <- ({y} {e}
+                      eqtm-tpsub-e
+                      ([x] [d] Dord' x d y e) ([x] eappend/cons (Dappend x))
+                      Deqtme DofM DofN ([x] DofApp x y) (ecsub/cons Dcsub)
+                      (DeqApp y
+                        : eqtpe (econs Gx y (B M))
+                          (eaapp (C M) y) (eaapp (C N) y) (K M y))).
+
+-eqkind     : eqtm-tpsub-e
+                  ([x] [d] Dord x d : eordered (G x))
+                  ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                  (Deqtme : eqtme G1 M N A)
+                  (DofM : eofe G1 M A)
+                  (DofN : eofe G1 N A)
+                  ([x]
+                      ekofe/eqkind
+                      (Deqkind x : eqkinde (G x) (K x) (K' x))
+                      (DofBK x : ekofe (G x) (B x) (K x)))
+                  Dcsub
+%%
+                  (eqtpe/kcon DeqKx DeqBx) % DeqBx DeqKx)
+%%
+               <- eqtm-tpsub-e Dord Dappend Deqtme DofM DofN DofBK Dcsub
+                  (DeqBx : eqtpe Gx (B M) (B N) (K M))
+               <- eqkinde-sub Dord Dappend Deqkind DofM Dcsub
+                  (DeqKx : eqkinde Gx (K M) (K' M)).
+
+%%%%
+
+-tp       : eqtm-ksub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x] ewfkinde/tp)
+                _
+%%
+                eqkinde/tp.
+
+-pi       : eqtm-ksub-e
+                ([x] [d] Dord x d : eordered (G x))
+                ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+                (Deqtme : eqtme G1 M N A)
+                (DofM : eofe G1 M A)
+                (DofN : eofe G1 N A)
+                ([x]
+                    ewfkinde/pi
+                    (DofB x : ekofe (G x) (B x) ektype)
+                    ([y] DofK x y : ewfkinde (econs (G x) y (B x)) (K x y)))
+                (Dcsub : ecsub ([x] G x) M Gx)
+%%
+                (eqkinde/pi DeqK DeqB)
+%%
+             <- eqtm-tpsub-e Dord Dappend Deqtme DofM DofN DofB Dcsub
+                (DeqB : eqtpe Gx (B M) (B N) ektype)
+             <- ({x} {d}
+                    extend-eordered _ (Dord x d) _
+                    ([y] [e] Dord' x d y e : eordered (econs (G x) y (B x))))
+             <- ({y} {e}
+                    eqtm-ksub-e 
+                    ([x] [d] Dord' x d y e) ([x] eappend/cons (Dappend x))
+                    Deqtme DofM DofN ([x] DofK x y) (ecsub/cons Dcsub)
+                    (DeqK y
+                      : eqkinde (econs Gx y (B M)) (K M y) (K N y))).
+
+%worlds (ecsig | easig | evar | ebind | eovar) 
+  (eqtm-sub-e   _ _ _ _ _ _ _ _)
+  (eqtm-tpsub-e _ _ _ _ _ _ _ _)
+  (eqtm-ksub-e  _ _ _ _ _ _ _ _).
+%total (D1 D2 D3)
+  (eqtm-sub-e _ _ _ _ _ D1 _ _)
+  (eqtm-tpsub-e _ _ _ _ _ D2 _ _)
+  (eqtm-ksub-e _ _ _ _ _ D3 _ _).
+
+%{
+%block nbind : some {a:tp} {ea:etp}
+     block {x:atm} {d:vof x a} {ex:etm} {xt:vtrans ex x} {ed:evof ex ea}.
+}%
+
+eqtm-sub    : ({x} evof x A -> eof (O x) (B x))
+               -> eqtm M N A
+               -> eof M A
+               -> eof N A
+%%
+               -> eqtm (O M) (O N) (B M) -> type.
+%mode eqtm-sub +X1 +X2 +X3 +X4 -X5.
+
+- : eqtm-sub
+        ([x] [d:evof x A] DofO x d : eof (O x) (B x))
+        (DeqMN : eqtm M N A)
+        (DofM : eof M A)
+        (DofN : eof N A)
+        Deqtm
+     <- eqtm-to-eqtme DeqMN (DeqeMN : eqtme enil M N A)
+     <- eof-to-eofe DofM DofeM
+     <- eof-to-eofe DofN DofeN
+     <- eof1-to-eofe DofO 
+        ([x] DofeO x : eofe (econs enil x A) (O x) (B x))
+     <- extend-eordered _ eordered/nil _
+        ([x] [d] Dord x d : eordered (econs enil x A))
+     <- eqtm-sub-e Dord ([x] eappend/nil) 
+        DeqeMN DofeM DofeN DofeO ecsub/base
+        (Deqtme : eqtme enil (O M) (O N) (B M))
+     <- eqtme-to-eqtm Deqtme 
+        (Deqtm : eqtm (O M) (O N) (B M)).
+
+%worlds (ecsig | easig | ebind) (eqtm-sub _ _ _ _ _).
+%total {} (eqtm-sub _ _ _ _ _).
+
+
+eqtm-tpsub  : ({x} evof x A -> ekof (B x) (K x)) 
+               -> eqtm M N A 
+               -> eof M A
+               -> eof N A
+               -> eqtp (B M) (B N) (K M) -> type.
+%mode eqtm-tpsub +X0 +X1 +X2 +X3 -X4.
+
+- : eqtm-tpsub
+        ([x] [d:evof x A] DofO x d : ekof (O x) (B x))
+        (DeqMN : eqtm M N A)
+        (DofM : eof M A)
+        (DofN : eof N A)
+        Deqtp
+     <- eqtm-to-eqtme DeqMN (DeqeMN : eqtme enil M N A)
+     <- eof-to-eofe DofM DofeM
+     <- eof-to-eofe DofN DofeN
+     <- ekof1-to-ekofe DofO 
+        ([x] DofeO x : ekofe (econs enil x A) (O x) (B x))
+     <- extend-eordered _ eordered/nil _
+        ([x] [d] Dord x d : eordered (econs enil x A))
+     <- eqtm-tpsub-e Dord ([x] eappend/nil) 
+        DeqeMN DofeM DofeN DofeO ecsub/base
+        (Deqtpe : eqtpe enil (O M) (O N) (B M))
+     <- eqtpe-to-eqtp Deqtpe 
+        (Deqtp : eqtp (O M) (O N) (B M)).
+
+%worlds (ecsig | easig | evar | ebind | tbind) (eqtm-tpsub _ _ _ _ _). 
+%total {} (eqtm-tpsub _ _ _ _ _).
+
+
+eqtm-ksub : ({x} evof x A -> ewfkind (K x)) 
+             -> eqtm M N A
+             -> eof M A
+             -> eof N A
+%%                
+             -> eqkind (K M) (K N) -> type.
+%mode eqtm-ksub +K +X1 +X2 +X3 -X4.
+
+- : eqtm-ksub
+        ([x] [d:evof x A] DofK x d : ewfkind (K x))
+        (DeqMN : eqtm M N A)
+        (DofM : eof M A)
+        (DofN : eof N A)
+        Deqkind
+     <- eqtm-to-eqtme DeqMN (DeqeMN : eqtme enil M N A)
+     <- eof-to-eofe DofM DofeM
+     <- eof-to-eofe DofN DofeN
+     <- ewfkind1-to-ewfkinde DofK 
+        ([x] DofeK x : ewfkinde (econs enil x A) (K x))
+     <- extend-eordered _ eordered/nil _
+        ([x] [d] Dord x d : eordered (econs enil x A))
+     <- eqtm-ksub-e Dord ([x] eappend/nil) 
+        DeqeMN DofeM DofeN DofeK ecsub/base
+        (Deqkinde : eqkinde enil (K M) (K N))
+     <- eqkinde-to-eqkind Deqkinde
+        (Deqkind : eqkind (K M) (K N)).
+
+
+%worlds (ecsig | easig | evar | ebind | tbind) (eqtm-ksub _ _ _ _ _). 
+%total {} (eqtm-ksub _ _ _ _ _). 
+

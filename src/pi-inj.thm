@@ -1,0 +1,2251 @@
+%% First: direct proof of alam-invert %%
+
+eqkind-pi-invert : eqkind K* (ekpi A K)
+                    -> ekind-eq K* (ekpi A' K')
+                    -> eqtp A A' ektype
+                    -> ({x} evof x A -> eqkind (K x) (K' x)) -> type.
+%mode eqkind-pi-invert +X1 -X2 -X3 -X4.
+
+eqkind-pi-invert' : eqkind (ekpi A K) K*
+                    -> ekind-eq K* (ekpi A' K')
+                    -> eqtp A A' ektype
+                    -> ({x} evof x A -> eqkind (K x) (K' x)) -> type.
+%mode eqkind-pi-invert' +X1 -X2 -X3 -X4.
+
+- : eqkind-pi-invert
+        (eqkind/pi
+            ([x] [d:evof x A] DeqK x d : eqkind (K x) (K' x))
+            (DeqA : eqtp A A' ektype))
+        ekind-eq/i
+        (eqtp/sym DeqA)
+        DeqK'
+     <- eqtp-reg DeqA _ DofA' _
+     <- ({x} {d:evof x A'}
+            esubst-eqkind
+            ([x] [d:evof x A] eqkind/sym (DeqK x d))
+            (eof/eqtp (eqtp/sym DeqA) (eof/var DofA' d))
+            (DeqK' x d : eqkind (K' x) (K x))).
+
+- : eqkind-pi-invert (eqkind/sym DeqK')
+        Deq
+        DeqAA'
+        DeqKK'
+     <- eqkind-pi-invert' DeqK'
+        (Deq : ekind-eq K* (ekpi A' K'))
+        (DeqAA' : eqtp A A' ektype)
+        ([x] [d:evof x A] DeqKK' x d : eqkind (K x) (K' x)).
+
+- : eqkind-pi-invert
+        (eqkind/refl (ewfkind/pi ([x] [d:evof x A] DofK x d) DofA))
+        ekind-eq/i
+        (eqtp/refl DofA)
+        ([x] [d] eqkind/refl (DofK x d)).
+
+- : eqkind-pi-invert
+        (eqkind/trans
+            (DequivK** : eqkind K** (ekpi A K))
+            (DequivK* : eqkind K* K**))
+        DeqK*
+        (eqtp/trans DequivA' DequivA)
+        ([x] [d] eqkind/trans (DequivK'_ x d) (DequivK x d))
+     <- eqkind-pi-invert DequivK**
+        (DeqK** : ekind-eq K** (ekpi A' K'))
+        (DequivA : eqtp A A' ektype)
+        ([x] [d:evof x A] DequivK x d : eqkind (K x) (K' x))
+     <- eqkind-resp DequivK* ekind-eq/i DeqK**
+        (DequivK*Pi : eqkind K* (ekpi A' K'))
+     <- eqkind-pi-invert DequivK*Pi
+        (DeqK* : ekind-eq K* (ekpi A'' K''))
+        (DequivA' : eqtp A' A'' ektype)
+        ([x] [d:evof x A'] DequivK' x d : eqkind (K' x) (K'' x))
+        %% get DequivK' under the right binder
+     <- eqtp-reg DequivA
+        DofA _ _
+     <- ({x} {d:evof x A}
+            esubst-eqkind ([x] [d:evof x A'] DequivK' x d)
+            (eof/eqtp DequivA (eof/var DofA d))
+            (DequivK'_ x d : eqkind (K' x) (K'' x))).
+
+%%
+
+- : eqkind-pi-invert' (eqkind/pi DeqK DeqA) ekind-eq/i DeqA DeqK.
+
+- : eqkind-pi-invert' (eqkind/sym (DequivK* : eqkind K* (ekpi A K)))
+        DeqK*
+        DeqA
+        DeqK
+     <- eqkind-pi-invert DequivK*
+        (DeqK* : ekind-eq K* (ekpi A' K'))
+        DeqA
+        DeqK.
+
+- : eqkind-pi-invert'
+        (eqkind/refl (ewfkind/pi ([x] [d:evof x A] DofK x d) DofA))
+        ekind-eq/i
+        (eqtp/refl DofA)
+        ([x] [d] eqkind/refl (DofK x d)).
+
+- : eqkind-pi-invert'
+        (eqkind/trans
+            (DequivK* : eqkind K* K**)
+            (DequivPiK* : eqkind (ekpi A K) K*))
+        DeqK**
+        (eqtp/trans DequivA' DequivA)
+        ([x] [d] eqkind/trans (DequivK'_ x d) (DequivK x d))
+     <- eqkind-pi-invert' DequivPiK*
+        (DeqK* : ekind-eq K* (ekpi A' K'))
+        (DequivA : eqtp A A' ektype)
+        ([x] [d:evof x A] DequivK x d : eqkind (K x) (K' x))
+     <- eqkind-resp DequivK* DeqK* ekind-eq/i
+        (DequivPiK** : eqkind (ekpi A' K') K**)
+     <- eqkind-pi-invert' DequivPiK**
+        (DeqK** : ekind-eq K** (ekpi A'' K''))
+        (DequivA' : eqtp A' A'' ektype)
+        ([x] [d:evof x A'] DequivK' x d : eqkind (K' x) (K'' x))
+        %% get DequivK' under the right binder
+     <- eqtp-reg DequivA
+        DofA _ _
+     <- ({x} {d:evof x A}
+            esubst-eqkind ([x] [d:evof x A'] DequivK' x d)
+            (eof/eqtp DequivA (eof/var DofA d))
+            (DequivK'_ x d : eqkind (K' x) (K'' x))).
+
+%worlds (ecsig | easig | ebind | evar)
+  (eqkind-pi-invert  _ _ _ _)
+  (eqkind-pi-invert' _ _ _ _).
+%total (D1 D2)
+  (eqkind-pi-invert D1 _ _ _)
+  (eqkind-pi-invert' D2 _ _ _).
+
+%% more useful lemma related to the above %%
+
+eqkind-pi-pi-invert : eqkind (ekpi A K) (ekpi A' K')
+                       -> eqtp A A' ektype
+                       -> ({x} {d:evof x A} eqkind (K x) (K' x)) -> type.
+%mode eqkind-pi-pi-invert +X1 -X2 -X3.
+
+- : eqkind-pi-pi-invert
+        (Deq : eqkind (ekpi A K) (ekpi A' K'))
+        DequivAA'
+        DequivKK'
+     <- eqkind-pi-invert' Deq
+        (DeqA'K' : ekind-eq (ekpi A' K') (ekpi A'* K'*))
+        (DequivA : eqtp A A'* ektype)
+        ([x] [d:evof x A] DequivK x d : eqkind (K x) (K'* x))
+        %%
+     <- ekpi-inj DeqA'K'
+        (DeqA'A'* : etp-eq A' A'*) 
+        ([x] DeqK'K'* x : ekind-eq (K' x) (K'* x))
+     <- etp-eq-sym DeqA'A'* DeqA'*A'
+     <- eqtp-resp DequivA etp-eq/i DeqA'*A' ekind-eq/i
+        (DequivAA' : eqtp A A' ektype)
+        %%
+     <- ({x} ekind-eq-sym (DeqK'K'* x) (DeqK'*K' x))
+     <- ({x} {d:evof x A}
+            eqkind-resp (DequivK x d) ekind-eq/i (DeqK'*K' x)
+            (DequivKK' x d : eqkind (K x) (K' x))).
+
+%worlds (ecsig | easig | ebind) (eqkind-pi-pi-invert _ _ _).
+%total D (eqkind-pi-pi-invert D _ _).
+
+%% Explicit contexts version
+
+eqkinde-pi-invert : eordered G
+                     -> eqkinde G K* (ekpi A K)
+                     -> ekind-eq K* (ekpi A' K')
+                     -> eqtpe G A A' ektype
+                     -> ({x} eqkinde (econs G x A) (K x) (K' x)) -> type.
+%mode eqkinde-pi-invert +X0 +X1 -X2 -X3 -X4.
+
+eqkinde-pi-invert' : eordered G
+                      -> eqkinde G (ekpi A K) K*
+                      -> ekind-eq K* (ekpi A' K')
+                      -> eqtpe G A A' ektype
+                      -> ({x} eqkinde (econs G x A) (K x) (K' x)) -> type.
+%mode eqkinde-pi-invert' +X0 +X1 -X2 -X3 -X4.
+
+- : eqkinde-pi-invert
+        (Dord : eordered G)
+        (eqkinde/pi
+            ([x] DeqK x : eqkinde (econs G x A) (K x) (K' x))
+            (DeqA : eqtpe G A A' ektype))
+        ekind-eq/i
+        (eqtpe/sym DeqA)
+        ([x] eqkinde/sym (DeqK' x))
+     <- extend-eordered _ Dord _
+        ([x] [d] Dord' x d : eordered (econs G x A))
+     <- eqkinde-tcon-bind Dord' DeqA DeqK
+        ([x] DeqK' x : eqkinde (econs G x A') (K x) (K' x)).
+
+- : eqkinde-pi-invert Dord (eqkinde/sym DeqK')
+        Deq
+        DeqAA'
+        DeqKK'
+     <- eqkinde-pi-invert' Dord DeqK' Deq DeqAA' DeqKK'.
+
+- : eqkinde-pi-invert Dord (eqkinde/refl (ewfkinde/pi DofB DofK))
+        ekind-eq/i
+        (eqtpe/refl DofB)
+        ([x] eqkinde/refl (DofK x)).
+
+- : eqkinde-pi-invert Dord
+        (eqkinde/trans
+            (DequivK** : eqkinde G K** (ekpi A K))
+            (DequivK* : eqkinde G K* K**))
+        DeqK*
+        (eqtpe/trans DequivA' DequivA)
+        ([x] eqkinde/trans (DequivK'' x) (DequivK x))
+     <- eqkinde-pi-invert Dord DequivK**
+        (DeqK** : ekind-eq K** (ekpi A' K'))
+        (DequivA : eqtpe G A A' ektype)
+        ([x] DequivK x : eqkinde (econs G x A) (K x) (K' x))
+     <- eqkinde-resp ectx-eq/i ekind-eq/i DeqK** DequivK*
+        (DequivK*Pi : eqkinde G K* (ekpi A' K'))
+     <- eqkinde-pi-invert Dord DequivK*Pi
+        (DeqK* : ekind-eq K* (ekpi A'' K''))
+        (DequivA' : eqtpe G A' A'' ektype)
+        ([x] DequivK' x : eqkinde (econs G x A') (K' x) (K'' x))
+        %% Get K' = K'' under A instead of A'
+     <- extend-eordered _ Dord _ Dord'
+     <- eqkinde-tcon-bind Dord' (eqtpe/sym DequivA) DequivK'
+        ([x] DequivK'' x : eqkinde (econs G x A) (K' x) (K'' x)).
+
+%%
+
+- : eqkinde-pi-invert' _ (eqkinde/pi DeqK DeqA) ekind-eq/i DeqA DeqK.
+
+- : eqkinde-pi-invert' Dord (eqkinde/sym DequivK)
+        DeqK
+        DequivA
+        DequivK'
+     <- eqkinde-pi-invert Dord DequivK
+        DeqK
+        DequivA
+        DequivK'.
+
+- : eqkinde-pi-invert' Dord
+        (eqkinde/refl (ewfkinde/pi DofA DofK))
+        ekind-eq/i
+        (eqtpe/refl DofA)
+        ([x] eqkinde/refl (DofK x)).
+
+- : eqkinde-pi-invert' Dord
+        (eqkinde/trans
+            (DequivK* : eqkinde G K* K**)
+            (DequivPiK* : eqkinde G (ekpi A K) K*))
+        DeqK**
+        (eqtpe/trans DequivA' DequivA)
+        ([x] eqkinde/trans (DequivK'' x) (DequivK x))
+     <- eqkinde-pi-invert' Dord DequivPiK*
+        (DeqK* : ekind-eq K* (ekpi A' K'))
+        (DequivA : eqtpe G A A' ektype)
+        ([x] DequivK x : eqkinde (econs G x A) (K x) (K' x))
+     <- eqkinde-resp ectx-eq/i DeqK* ekind-eq/i DequivK*
+        (DequivPiK** : eqkinde G (ekpi A' K') K**)
+     <- eqkinde-pi-invert' Dord DequivPiK**
+        (DeqK** : ekind-eq K** (ekpi A'' K''))
+        (DequivA' : eqtpe G A' A'' ektype)
+        ([x] DequivK' x : eqkinde (econs G x A') (K' x) (K'' x))
+        %% Get K' = K'' under A instead of A'
+     <- extend-eordered _ Dord _ Dord'
+     <- eqkinde-tcon-bind Dord' (eqtpe/sym DequivA) DequivK'
+        ([x] DequivK'' x : eqkinde (econs G x A) (K' x) (K'' x)).
+
+%worlds (ecsig | easig | eovar | ebind | evar)
+  (eqkinde-pi-invert  _ _ _ _ _)
+  (eqkinde-pi-invert' _ _ _ _ _).
+%total (D1 D2)
+  (eqkinde-pi-invert  _ D1 _ _ _)
+  (eqkinde-pi-invert' _ D2 _ _ _).
+
+eqkinde-pi-pi-invert : eordered G -> eqkinde G (ekpi A K) (ekpi A' K')
+                        -> eqtpe G A A' ektype
+                        -> ({x} eqkinde (econs G x A) (K x) (K' x)) -> type.
+%mode eqkinde-pi-pi-invert +X0 +X1 -X2 -X3.
+
+- : eqkinde-pi-pi-invert Dord
+        (Deq : eqkinde G (ekpi A K) (ekpi A' K'))
+        DequivAA'
+        DequivKK'
+     <- eqkinde-pi-invert' Dord Deq
+        (DeqA'K' : ekind-eq (ekpi A' K') (ekpi A'* K'*))
+        (DequivA : eqtpe G A A'* ektype)
+        ([x] DequivK x : eqkinde (econs G x A) (K x) (K'* x))
+        %%
+     <- ekpi-inj DeqA'K'
+        (DeqA'A'* : etp-eq A' A'*) 
+        ([x] DeqK'K'* x : ekind-eq (K' x) (K'* x))
+     <- etp-eq-sym DeqA'A'* DeqA'*A'
+     <- eqtpe-resp ectx-eq/i etp-eq/i DeqA'*A' ekind-eq/i DequivA
+        (DequivAA' : eqtpe G A A' ektype)
+        %%
+     <- ({x} ekind-eq-sym (DeqK'K'* x) (DeqK'*K' x))
+     <- ({x}
+            eqkinde-resp ectx-eq/i ekind-eq/i (DeqK'*K' x) (DequivK x)
+            (DequivKK' x : eqkinde (econs G x A) (K x) (K' x))).
+
+%worlds (ecsig | easig | evar | eovar | ebind) (eqkinde-pi-pi-invert _ _ _ _).
+%total {} (eqkinde-pi-pi-invert _ _ _ _).
+
+
+%% Type family normalization and similarity %%
+%% This normalizes away the family-level redexes.
+
+norm : etp -> etp -> type.
+
+norm/pi   : norm (epi A B) (epi A B).
+
+norm/lam  : norm (ealam A B) (ealam A B')
+             <- ({x} norm (B x) (B' x)).
+
+norm/app  : norm (eaapp B M) (B' M)
+             <- norm B (ealam A B').
+
+sim : etp -> etp -> ekind -> type.
+
+sim/pi  : sim (epi A B) (epi C D) ektype
+           <- eqtp A C ektype
+           <- ({x} evof x A -> eqtp (B x) (D x) ektype).
+
+sim/lam : sim (ealam A B) (ealam C D) (ekpi E K)
+              % A sim C sim E : type isn't necessary.
+           <- ({x} evof x E -> sim (B x) (D x) (K x)).
+
+%% Sim lemmas %%
+
+sim-resp : sim A B K -> etp-eq A A' -> etp-eq B B' -> ekind-eq K K'
+            -> sim A' B' K' -> type.
+%mode sim-resp +X0 +X1 +X2 +X4 -X5.
+
+- : sim-resp D etp-eq/i etp-eq/i ekind-eq/i D.
+
+%worlds (ecsig | easig | evar | ebind) (sim-resp _ _ _ _ _).
+%total {} (sim-resp _ _ _ _ _).
+
+sim-sub-gen : (evof M A -> sim B C K)
+               -> (eof M A -> sim B C K) -> type.
+%mode sim-sub-gen +X1 -X2.
+
+-pi   : sim-sub-gen
+            ([d:evof M A]
+                sim/pi
+                ([y] [e:evof y B] DeqC d y e : eqtp (C y) (C' y) ektype)
+                (DeqB d : eqtp B B' ektype))
+            ([d:eof M A]
+                sim/pi
+                ([y] [e] DeqC' y e d)
+                (DeqB' d))
+         <- esubst-eqtp-gen DeqB
+            (DeqB' : eof M A -> eqtp B B' ektype)
+         <- ({y} {e:evof y B}
+                esubst-eqtp-gen ([d] DeqC d y e)
+                (DeqC' y e : eof M A -> eqtp (C y) (C' y) ektype)).
+
+-lam  : sim-sub-gen
+            ([d:evof M A]
+                sim/lam
+                ([y] [e:evof y B] DsimC d y e : sim (C y) (C' y) (K y)))
+            ([d:eof M A]
+                sim/lam
+                ([y] [e] DsimC' y e d))
+         <- ({y} {e:evof y B}
+                sim-sub-gen ([d] DsimC d y e)
+                (DsimC' y e : eof M A -> sim (C y) (C' y) (K y))).
+
+%worlds (ecsig | easig | evar | ebind) (sim-sub-gen _ _).
+%total D (sim-sub-gen D _).
+
+sim-sub : ({x} {d:evof x A} sim (B x) (C x) (K x))
+           -> eof N A
+           -> sim (B N) (C N) (K N) -> type.
+%mode sim-sub +X1 +X2 -X3.
+
+- : sim-sub ([x] [d:evof x A] Dsim x d) Dof
+        (Dsim' Dof)
+     <- sim-sub-gen (Dsim _) Dsim'.
+
+%worlds (ecsig | easig | evar | ebind) (sim-sub _ _ _).
+%total {} (sim-sub _ _ _).
+
+
+sim-vof-con : ({x} evof x A -> sim (B x) (C x) (K x))
+               -> eqtp A A' ektype
+               -> ({x} evof x A' -> sim (B x) (C x) (K x)) -> type.
+%mode sim-vof-con +X1 +X2 -X3.
+
+- : sim-vof-con
+        ([x] [d:evof x A] Dsim x d : sim (B x) (C x) (K x))
+        (Deqtp : eqtp A A' ektype)
+        Dsim'
+     <- eqtp-reg Deqtp
+        (DofA : ekof A ektype)
+        (DofA' : ekof A' ektype)
+        _
+     <- ({x} {d:evof x A'}
+            sim-sub
+            ([x] [d:evof x A] Dsim x d)
+            (eof/eqtp (eqtp/sym Deqtp) (eof/var DofA' d))
+            (Dsim' x d : sim (B x) (C x) (K x))).
+
+%worlds (ecsig | easig | evar | ebind) (sim-vof-con _ _ _).
+%total {} (sim-vof-con _ _ _).
+
+sim-kcon  : sim A B K -> eqkind K L -> sim A B L -> type.
+%mode sim-kcon +X1 +X2 -X3.
+%% for symmetry
+sim-kcon' : sim A B K -> eqkind L K -> sim A B L -> type.
+%mode sim-kcon' +X1 +X2 -X3.
+
+- : sim-kcon Dsim eqkind/tp Dsim.
+
+- : sim-kcon Dsim (eqkind/refl _) Dsim.
+
+- : sim-kcon
+        (Dsim : sim A B K)
+        (eqkind/sym (Deqk : eqkind L K))
+        Dsim'
+     <- sim-kcon' Dsim Deqk Dsim'.
+              
+- : sim-kcon
+        (Dsim : sim A B K)
+        (eqkind/trans (Deqk' : eqkind K' L) (Deqk : eqkind K K'))
+        Dsim''
+     <- sim-kcon Dsim Deqk
+        (Dsim' : sim A B K')
+     <- sim-kcon Dsim' Deqk'
+        (Dsim'' : sim A B L).
+
+- : sim-kcon
+        (sim/lam ([x] [d:evof x A] DsimB x d : sim (B x) (D x) (K x))
+          : sim (ealam E B) (ealam E' D) (ekpi A K))
+        (eqkind/pi
+            ([x] [d:evof x A] DeqK x d : eqkind (K x) (L x))
+            (DeqA : eqtp A A' ektype))
+        (sim/lam DsimB'')
+     <- ({x} {d:evof x A}
+            sim-kcon (DsimB x d) (DeqK x d)
+            (DsimB' x d : sim (B x) (D x) (L x)))
+     <- sim-vof-con DsimB' DeqA
+        ([x] [d:evof x A'] DsimB'' x d : sim (B x) (D x) (L x)).
+
+%% symmetric cases
+
+- : sim-kcon' Dsim eqkind/tp Dsim.
+
+- : sim-kcon' Dsim (eqkind/refl _) Dsim.
+
+- : sim-kcon'
+        (Dsim : sim A B K)
+        (eqkind/sym (Deqk : eqkind K L))
+        Dsim'
+     <- sim-kcon Dsim Deqk Dsim'.
+              
+- : sim-kcon'
+        (Dsim : sim A B L)
+        (eqkind/trans (Deqk' : eqkind K' L) (Deqk : eqkind K K'))
+        Dsim''
+     <- sim-kcon' Dsim Deqk'
+        (Dsim' : sim A B K')
+     <- sim-kcon' Dsim' Deqk
+        (Dsim'' : sim A B K).
+
+- : sim-kcon'
+        (sim/lam ([x] [d:evof x A] DsimB x d : sim (B x) (D x) (K x))
+          : sim (ealam E B) (ealam E' D) (ekpi A K))
+        (eqkind/pi
+            ([x] [d:evof x A'] DeqL x d : eqkind (L x) (K x))
+            (DeqA : eqtp A' A ektype))
+        (sim/lam DsimB'')
+     <- sim-vof-con DsimB (eqtp/sym DeqA)
+        ([x] [d:evof x A'] DsimB' x d : sim (B x) (D x) (K x))
+     <- ({x} {d:evof x A'}
+            sim-kcon' (DsimB' x d) (DeqL x d)
+            (DsimB'' x d : sim (B x) (D x) (L x))).
+
+%worlds (ecsig | easig | evar | ebind) (sim-kcon _ _ _) (sim-kcon' _ _ _).
+%total (D1 D2) (sim-kcon _ D1 _) (sim-kcon' _ D2 _).
+
+%% Need an explicit contexts sim in order to do functionality.
+
+sime : ectx -> etp -> etp -> ekind -> type.
+
+sime/pi  : sime G (epi A B) (epi C D) ektype
+            <- eqtpe G A C ektype
+            <- ({x} eqtpe (econs G x A) (B x) (D x) ektype).
+
+sime/lam : sime G (ealam A B) (ealam C D) (ekpi E K)
+            <- ({x} sime (econs G x E) (B x) (D x) (K x)).
+
+weakeng-sime : eappend G1 G2 G
+                -> eappend (econs G1 X C) G2 G'
+                -> sime G A B K
+%%
+                -> sime G' A B K -> type.
+%mode weakeng-sime +X1 +X2 +X3 -X4.
+
+-pi   : weakeng-sime Dappend Dappend'
+            (sime/pi
+                ([x] DeqB x : eqtpe (econs G x A) (B x) (B' x) ektype)
+                (DeqA : eqtpe G A A' ektype))
+            (sime/pi DeqB' DeqA')
+         <- weakeng-eqtpe Dappend Dappend' DeqA DeqA'
+         <- ({x}
+                weakeng-eqtpe (eappend/cons Dappend) (eappend/cons Dappend')
+                (DeqB x)
+                (DeqB' x)).
+
+-lam  : weakeng-sime Dapp Dapp'
+            (sime/lam
+                ([x] DeqB x : sime (econs G x A) (B x) (B' x) (K x)))
+            (sime/lam DeqB')
+         <- ({x}
+                weakeng-sime (eappend/cons Dapp) (eappend/cons Dapp')
+                (DeqB x)
+                (DeqB' x)).
+
+%worlds (ecsig | easig | evar | ebind) (weakeng-sime _ _ _ _).
+%total D (weakeng-sime _ _ D _).
+
+sime-sub : ({x} eisvar x I -> eordered (G x))
+            -> ({x} eappend (econs G1 x A) (G2 x) (G x))
+            -> ({x} sime (G x) (B1 x) (B2 x) (K x))
+            -> eofe G1 N A
+            -> ecsub ([x] G x) N Gx
+%%
+            -> sime Gx (B1 N) (B2 N) (K N) -> type.
+%mode sime-sub +X1 +X2 +X3 +X4 +X5 -X6.
+
+-pi   : sime-sub
+            ([x] [d] Dord x d : eordered (G x))
+            ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+            ([x]
+                sime/pi
+                ([y] DeqC x y
+                  : eqtpe (econs (G x) y (B x)) (C x y) (C' x y) ektype)
+                (DeqB x
+                  : eqtpe (G x) (B x) (B' x) ektype))
+            (DofN : eofe G1 N A)
+            (Dcsub : ecsub G N Gx)
+%%
+            (sime/pi DeqCx DeqBx)
+%%
+         <- ({x} {d}
+                extend-eordered _ (Dord x d) J
+                ([y] [e] Dord' x d y e
+                  : eordered (econs (G x) y (B x))))
+         <- ({y} {e}
+                eqtpe-sub
+                ([x] [d] Dord' x d y e)
+                ([x] eappend/cons (Dappend x))
+                ([x] DeqC x y) DofN (ecsub/cons Dcsub)
+                (DeqCx y
+                  : eqtpe (econs Gx y (B N)) (C N y) (C' N y) ektype))
+         <- eqtpe-sub Dord Dappend DeqB DofN Dcsub DeqBx.
+
+-lam  : sime-sub
+            ([x] [d] Dord x d : eordered (G x))
+            ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+            ([x]
+                sime/lam
+                ([y] DsimC x y
+                  : sime (econs (G x) y (B x)) (C x y) (C' x y) (K x y)))
+            (DofN : eofe G1 N A)
+            (Dcsub : ecsub G N Gx)
+%%
+            (sime/lam DsimCx)
+%%
+         <- ({x} {d}
+                extend-eordered _ (Dord x d) J
+                ([y] [e] Dord' x d y e
+                  : eordered (econs (G x) y (B x))))
+         <- ({y} {e}
+                sime-sub
+                ([x] [d] Dord' x d y e)
+                ([x] eappend/cons (Dappend x))
+                ([x] DsimC x y) DofN (ecsub/cons Dcsub)
+                (DsimCx y
+                  : sime (econs Gx y (B N)) (C N y) (C' N y) (K N y))).
+
+%worlds (ecsig | easig | evar | eovar | ebind) (sime-sub _ _ _ _ _ _).
+%total D (sime-sub _ _ D _ _ _).
+
+
+sime-kcon  : eordered G -> sime G A B K -> eqkinde G K L
+              -> sime G A B L -> type.
+%mode sime-kcon +X0 +X1 +X2 -X3.
+%% for symmetry
+sime-kcon' : eordered G -> sime G A B K -> eqkinde G L K
+              -> sime G A B L -> type.
+%mode sime-kcon' +X0 +X1 +X2 -X3.
+
+- : sime-kcon _ Dsime eqkinde/tp Dsime.
+
+- : sime-kcon _ Dsime (eqkinde/refl _) Dsime.
+
+- : sime-kcon Dord Dsime (eqkinde/sym Deqk) Dsime'
+     <- sime-kcon' Dord Dsime Deqk Dsime'.
+              
+- : sime-kcon Dord Dsime (eqkinde/trans Deqk' Deqk)
+        Dsime''
+     <- sime-kcon Dord Dsime Deqk Dsime'
+     <- sime-kcon Dord Dsime' Deqk' Dsime''.
+
+- : sime-kcon Dord
+        (sime/lam DsimeB)
+        (eqkinde/pi DeqK DeqA)
+        (sime/lam DsimeB''')
+     <- extend-eordered _ Dord _ Dord'
+     <- ({x} {d}
+            sime-kcon (Dord' x d) (DsimeB x) (DeqK x)
+            (DsimeB' x : sime (econs G x A) (B x) (B' x) (K x)))
+        %% finagle the bound var from A to A':
+        %% (XXX make this a lemma?)
+        %%   first, weaken x' : A' before x : A
+     <- ({x} {x'}
+            weakeng-sime
+            (eappend/cons eappend/nil)
+            (eappend/cons eappend/nil)
+            (DsimeB' x)
+            (DsimeB'' x x'
+              : sime (econs (econs G x' A') x A) (B x) (B' x) (K x)))
+        %% need to weaken A = A', and get wfness of A'
+     <- ({x'}
+            weaken-eqtpe DeqA _ _
+            (DeqA' x' : eqtpe (econs G x' A') A A' ektype))
+     <- extend-eordered _ Dord _ Dord''
+     <- ({x'} {d'}
+            eqtpe-reg (Dord'' x' d') (DeqA' x') (_1 x') (DofA' x') (_2 x'))
+        %%   then subst x' for x
+     <- ({x'} {d'}
+            extend-eordered _ (Dord'' x' d') _nat
+            ([x] [d] Dord''' x d x' d'))
+     <- ({x'} {d'}
+            sime-sub ([x] [d] Dord''' x d x' d') ([_] eappend/nil)
+            ([x] DsimeB'' x x')
+            (eofe/eqtp
+                (eqtpe/sym (DeqA' x'))
+                (eofe/var (DofA' x') elookup/hit)) ecsub/base
+            (DsimeB''' x'
+              : sime (econs G x' A') (B x') (B' x') (K x'))).
+
+%% symmetric cases
+
+- : sime-kcon' _ Dsime eqkinde/tp Dsime.
+
+- : sime-kcon' _ Dsime (eqkinde/refl _) Dsime.
+
+- : sime-kcon' Dord Dsime (eqkinde/sym Deqk)
+        Dsime'
+     <- sime-kcon Dord Dsime Deqk Dsime'.
+              
+- : sime-kcon' Dord Dsime (eqkinde/trans Deqk' Deqk)
+        Dsime''
+     <- sime-kcon' Dord Dsime Deqk'
+        (Dsime' : sime G A B K')
+     <- sime-kcon' Dord Dsime' Deqk
+        (Dsime'' : sime G A B K).
+
+- : sime-kcon' Dord
+        (sime/lam
+            ([x] DsimeB x : sime (econs G x A) (B x) (D x) (K x))
+          : sime G (ealam E B) (ealam E' D) (ekpi A K))
+        (eqkinde/pi
+            ([x] DeqL x : eqkinde (econs G x A') (L x) (K x))
+            (DeqA : eqtpe G A' A ektype))
+        (sime/lam DsimeB''')
+        %% finagle the bound var in DsimeB from A to A':
+        %% first, weaken x' : A' before x : A
+     <- ({x} {x'}
+            weakeng-sime
+            (eappend/cons eappend/nil)
+            (eappend/cons eappend/nil)
+            (DsimeB x)
+            (DsimeB' x x'
+              : sime (econs (econs G x' A') x A) (B x) (D x) (K x)))
+        %% weaken A = A' and get wfness of A'
+     <- ({x'}
+            weaken-eqtpe DeqA _ _
+            (DeqA' x' : eqtpe (econs G x' A') A' A ektype))
+     <- extend-eordered _ Dord _ Dord'
+     <- ({x'} {d'}
+            eqtpe-reg (Dord' x' d') (DeqA' x')
+            (DofA x') (DofA' x') (_1 x'))
+        %% subst x' for x
+     <- ({x'} {d'}
+            extend-eordered _ (Dord' x' d') _nat
+            ([x] [d] Dord'' x d x' d'))
+     <- ({x'} {d'}
+            sime-sub ([x] [d] Dord'' x d x' d') ([_] eappend/nil)
+            ([x] DsimeB' x x')
+            (eofe/eqtp
+                (DeqA' x')
+                (eofe/var (DofA x') elookup/hit))
+            ecsub/base
+            (DsimeB'' x'
+              : sime (econs G x' A') (B x') (D x') (K x')))
+        %%
+     <- extend-eordered _ Dord _ Dord*
+     <- ({x} {d}
+            sime-kcon' (Dord* x d) (DsimeB'' x) (DeqL x)
+            (DsimeB''' x : sime (econs G x A') (B x) (D x) (L x))).
+
+%worlds (ecsig | easig | eovar) (sime-kcon _ _ _ _) (sime-kcon' _ _ _ _).
+%total (D1 D2) (sime-kcon _ _ D1 _) (sime-kcon' _ _ D2 _).
+
+%%%%
+
+%% [ispi A K] means A is a pi underneath kind K.
+ispi : etp -> ekind -> type.
+
+ispi/pi   : ispi (epi A B) ektype
+             <- ekof A ektype
+             <- ({x} evof x A -> ekof (B x) ektype).
+
+ispi/lam  : ispi (ealam A' B) (ekpi A K)
+             <- ekof A ektype %% added 2/23/2011 for regularity
+             <- ({x} evof x A -> ispi (B x) (K x)).
+
+%% explicit contexts version
+ispie : ectx -> etp -> ekind -> type.
+
+ispie/pi    : ispie G (epi A B) ektype
+               <- ekofe G A ektype
+               <- ({x} ekofe (econs G x A) (B x) ektype).
+
+ispie/lam   : ispie G (ealam A' B) (ekpi A K)
+               <- ekofe G A ektype
+               <- ({x} ispie (econs G x A) (B x) (K x)).
+
+sim-fun-e : ({x} eisvar x I -> eordered (G x))
+             -> ({x} eappend (econs G1 x A) (G2 x) (G x))
+             -> eqtme G1 M N A
+             -> ({x} ispie (G x) (B x) (K x))
+             -> ecsub G M Gx
+%%
+             -> sime Gx (B M) (B N) (K M) -> type.
+%mode sim-fun-e +X1 +X2 +X2 +X4 +X5 -X6.
+
+-pi   : sim-fun-e
+            ([x] [d] Dord x d : eordered (G x))
+            ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+            (Deqtm : eqtme G1 M N A)
+            ([x]
+                ispie/pi
+                ([y] DofC x y : ekofe (econs (G x) y (B x)) (C x y) ektype)
+                (DofB x : ekofe (G x) (B x) ektype))
+            (Dcsub : ecsub ([x] G x) M Gx)
+%%
+            (sime/pi DeqC DeqB)
+%%
+         <- ({x} {d}
+                eordered-append (Dappend x) (Dord x d)
+                (DordG1xA x d : eordered (econs G1 x A)))
+         <- ({x} {d}
+                eordered-cons (DordG1xA x d)
+                (DordG1' x d : eordered G1))
+         <- strengthen-eordered DordG1' DordG1
+         <- eqtme-reg DordG1 Deqtm DofM DofN DofA
+         <- eqtm-tpsub-e Dord Dappend Deqtm DofM DofN DofB Dcsub
+            (DeqB : eqtpe Gx (B M) (B N) ektype)
+         <- ({x} {d}
+                extend-eordered _ (Dord x d) _dontcare
+                ([y] [e] Dord' x d y e : eordered (econs (G x) y (B x))))
+         <- ({y} {e}
+                eqtm-tpsub-e
+                ([x] [d] Dord' x d y e)
+                ([x] eappend/cons (Dappend x))
+                Deqtm DofM DofN ([x] DofC x y) (ecsub/cons Dcsub)
+                (DeqC y : eqtpe (econs Gx y (B M)) (C M y) (C N y) ektype)).
+
+-lam  : sim-fun-e
+            ([x] [d] Dord x d : eordered (G x))
+            ([x] Dappend x : eappend (econs G1 x A) (G2 x) (G x))
+            (Deqtm : eqtme G1 M N A)
+            ([x]
+                ispie/lam
+                ([y] DispiC x y
+                  : ispie (econs (G x) y (B x)) (C x y) (K x y))
+                _)
+            (Dcsub : ecsub ([x] G x) M Gx)
+%%
+            (sime/lam DsimC)
+%%
+         <- ({x} {d}
+                extend-eordered _ (Dord x d) _dontcare
+                ([y] [e] Dord' x d y e : eordered (econs (G x) y (B x))))
+         <- ({y} {e}
+                sim-fun-e
+                ([x] [d] Dord' x d y e)
+                ([x] eappend/cons (Dappend x))
+                Deqtm ([x] DispiC x y) (ecsub/cons Dcsub)
+                (DsimC y : sime (econs Gx y (B M)) (C M y) (C N y) (K M y))).
+
+%worlds (ecsig | easig | evar | ebind | eovar) (sim-fun-e _ _ _ _ _ _).
+%total D (sim-fun-e _ _ _ D _ _).
+
+%%%% Explicit/implicit contexts sim conversion %%%%
+
+%% cut %%
+
+msim  : sim A B K -> metric -> type.
+msime : sime G A B K -> metric -> type.
+
+msim/pi   : msim (sim/pi ([x] [d] DeqB x d) DeqA) (mpair M1 M2)
+             <- meqtp DeqA M1
+             <- ({x} {d} meqtp (DeqB x d) M2).
+
+msim/lam  : msim (sim/lam ([x] [d] Dsim x d)) (msing M)
+             <- ({x} {d} msim (Dsim x d) M).
+
+msime/pi  : msime (sime/pi ([x] DeqB x) DeqA) (mpair M1 M2)
+             <- meqtpe DeqA M1
+             <- ({x} meqtpe (DeqB x) M2).
+
+msime/lam : msime (sime/lam ([x] DsimB x)) (msing M)
+             <- ({x} msime (DsimB x) M).
+
+can-msim  : {D:sim A B K} msim D M -> type.
+%mode can-msim +X1 -X2.
+
+- : can-msim (sim/pi D2 D1) (msim/pi D2' D1')
+     <- can-meqtp D1 D1'
+     <- ({x} {d} can-meqtp (D2 x d) (D2' x d)).
+
+- : can-msim (sim/lam D) (msim/lam D')
+     <- ({x} {d} can-msim (D x d) (D' x d)).
+
+%worlds (ecsig | easig | evar | eovar | ebind) (can-msim _ _).
+%total D (can-msim D _).
+
+cut-sim-m : {M}
+                {D : {x} {d:evof x A} sim (B x) (B' x) (K x)}
+                ({x} {d} msim (D x d) M)
+             -> ({x} elookup (G x) x A)
+%%
+             -> {D' : {x} sime (G x) (B x) (B' x) (K x)}
+                ({x} msime (D' x) M) -> type.
+%mode cut-sim-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+cut-sime-m : {M}
+                {D : {x} {d:evof x A} sime (G x) (B x) (B' x) (K x)}
+                ({x} {d} msime (D x d) M)
+             -> ({x} elookup (G x) x A)
+%%
+             -> {D' : {x} sime (G x) (B x) (B' x) (K x)}
+                ({x} msime (D' x) M) -> type.
+%mode cut-sime-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+-pi   : cut-sim-m (mpair Am Bm)
+            ([x] [d]
+                sim/pi
+                ([y] [e] DeqB x d y e : eqtp (B x y) (B' x y) ektype)
+                (DeqA x d : eqtp (A x) (A' x) ektype))
+            ([x] [d]
+                msim/pi
+                ([y] [e] DmeqB x d y e : meqtp (DeqB x d y e) Bm)
+                (DmeqA x d : meqtp (DeqA x d) Am))
+            ([x] Dlook x : elookup (G x) x C)
+%%
+            ([x] sime/pi (DeqeB' x) (DeqeA x))
+            ([x] msime/pi (DmeqeB' x) (DmeqeA x))
+%%
+         <- cut-eqtp-m Am DeqA DmeqA Dlook
+            DeqeA DmeqeA
+         <- ({x} {d}
+                cut-eqtp-m Bm ([y] [e] DeqB x d y e) ([y] [e] DmeqB x d y e)
+                ([y] elookup/hit)
+                ([y] DeqeB x d y)
+                ([y] DmeqeB x d y))
+         <- ({y}
+                cut-eqtpe-m Bm ([x] [d] DeqeB x d y) ([x] [d] DmeqeB x d y)
+                ([x] elookup/miss (Dlook x))
+                ([x] DeqeB' x y)
+                ([x] DmeqeB' x y)).
+
+-lam  : cut-sim-m (msing M)
+            ([x] [d]
+                sim/lam
+                ([y] [e] DsimB x d y e : sim (B x y) (B' x y) (K x y)))
+            ([x] [d]
+                msim/lam
+                ([y] [e] DmsimB x d y e : msim (DsimB x d y e) M))
+            ([x] Dlook x : elookup (G x) x C)
+%%
+            ([x] sime/lam (DsimeB' x))
+            ([x] msime/lam (DmsimeB' x))
+%%
+         <- ({x} {d}
+                cut-sim-m M ([y] [e] DsimB x d y e) ([y] [e] DmsimB x d y e)
+                ([y] elookup/hit)
+                ([y] DsimeB x d y)
+                ([y] DmsimeB x d y))
+         <- ({y}
+                cut-sime-m M ([x] [d] DsimeB x d y) ([x] [d] DmsimeB x d y)
+                ([x] elookup/miss (Dlook x))
+                ([x] DsimeB' x y)
+                ([x] DmsimeB' x y)).
+
+%%
+
+-pi   : cut-sime-m (mpair Am Bm)
+            ([x] [d] sime/pi (DeqB x d) (DeqA x d))
+            ([x] [d] msime/pi (DmeqB x d) (DmeqA x d))
+            ([x] Dlook x : elookup (G x) x C)
+%%
+            ([x] sime/pi (DeqeB' x) (DeqeA x))
+            ([x] msime/pi (DmeqeB' x) (DmeqeA x))
+%%
+         <- cut-eqtpe-m Am DeqA DmeqA Dlook
+            ([x] DeqeA x : eqtpe (G x) (A x) (A' x) ektype)
+            ([x] DmeqeA x : meqtpe (DeqeA x) Am)
+         <- ({y} 
+                cut-eqtpe-m Bm ([x] [d] DeqB x d y) ([x] [d] DmeqB x d y) 
+                ([x] elookup/miss (Dlook x))
+                ([x] DeqeB' x y  
+                  : eqtpe (econs (G x) y (A x)) (B x y) (B' x y) ektype)
+                ([x] DmeqeB' x y
+                  : meqtpe (DeqeB' x y) Bm)).
+
+-lam  : cut-sime-m (msing M)
+            ([x] [d] sime/lam (DsimB x d))
+            ([x] [d] msime/lam (DmsimB x d))
+            ([x] Dlook x)
+%%
+            ([x] sime/lam ([y] DsimB' x y))
+            ([x] msime/lam ([y] DmsimB' x y))
+%%
+         <- ({y}
+                cut-sime-m M ([x] [d] DsimB x d y) ([x] [d] DmsimB x d y)
+                ([x] elookup/miss (Dlook x))
+                ([x] DsimB' x y)
+                ([x] DmsimB' x y)).
+
+%worlds (ecsig | easig | evar | eovar | ebind)
+  (cut-sim-m _ _ _ _ _ _)
+  (cut-sime-m _ _ _ _ _ _).
+%total {(M1 M2)}
+  (cut-sim-m M1 _ _ _ _ _)
+  (cut-sime-m M2 _ _ _ _ _).
+
+cut-sim : ({x} evof x A -> sim (B x) (B' x) (K x))
+           -> ({x} elookup (G x) x A)
+%%
+           -> ({x} sime (G x) (B x) (B' x) (K x)) -> type.
+%mode cut-sim +X1 +X2 -X3.
+
+- : cut-sim ([x] [d] Dsim x d) Dlook
+        Dsim'
+     <- ({x} {d}
+            can-msim (Dsim x d) (Dmsim x d))
+     <- cut-sim-m _ Dsim Dmsim Dlook Dsim' _.
+
+%worlds (ecsig | easig | evar | eovar | ebind) (cut-sim _ _ _).
+%total {} (cut-sim _ _ _).
+
+%% same thing for ispi
+
+mispi  : ispi A K -> metric -> type.
+mispie : ispie G A K -> metric -> type.
+
+mispi/pi  : mispi (ispi/pi DofB DofA) (mpair M1 M2)
+             <- mekof DofA M1
+             <- ({x} {d} mekof (DofB x d) M2).
+
+mispi/lam : mispi (ispi/lam DisB DofA) (mpair M1 M2)
+             <- mekof DofA M1
+             <- ({x} {d} mispi (DisB x d) M2).
+
+
+mispie/pi  : mispie (ispie/pi DofB DofA) (mpair M1 M2)
+             <- mekofe DofA M1
+             <- ({x} mekofe (DofB x) M2).
+
+mispie/lam : mispie (ispie/lam DisB DofA) (mpair M1 M2)
+             <- mekofe DofA M1
+             <- ({x} mispie (DisB x) M2).
+
+can-mispi : {D:ispi A K} mispi D M -> type.
+%mode can-mispi +D -X.
+
+- : can-mispi (ispi/pi D2 D1) (mispi/pi D2' D1')
+     <- can-mekof D1 D1'
+     <- ({x} {d} can-mekof (D2 x d) (D2' x d)).
+
+- : can-mispi (ispi/lam D2 D1) (mispi/lam D2' D1')
+     <- can-mekof D1 D1'
+     <- ({x} {d} can-mispi (D2 x d) (D2' x d)).
+
+%worlds (ecsig | easig | evar | eovar | ebind) (can-mispi _ _).
+%total D (can-mispi D _).
+
+cut-ispi-m : {M}
+                 {D : {x} {d:evof x A} ispi (B x) (K x)}
+                 ({x} {d} mispi (D x d) M)
+              -> ({x} elookup (G x) x A)
+%%
+              -> {D' : {x} ispie (G x) (B x) (K x)}
+                 ({x} mispie (D' x) M) -> type.
+%mode cut-ispi-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+cut-ispie-m : {M}
+                 {D : {x} {d:evof x A} ispie (G x) (B x) (K x)}
+                 ({x} {d} mispie (D x d) M)
+              -> ({x} elookup (G x) x A)
+%%
+              -> {D' : {x} ispie (G x) (B x) (K x)}
+                 ({x} mispie (D' x) M) -> type.
+%mode cut-ispie-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+-pi   : cut-ispi-m (mpair Am Bm)
+            ([x] [d]
+                ispi/pi
+                ([y] [e] DofB x d y e)
+                (DofA x d))
+            ([x] [d]
+                mispi/pi
+                ([y] [e] DmofB x d y e)
+                (DmofA x d))
+            ([x] Dlook x: elookup (G x) x C)
+%%
+            ([x] ispie/pi ([y] DofeB' x y) (DofeA x))
+            ([x] mispie/pi ([y] DmofeB' x y) (DmofeA x))
+%%
+         <- cut-ekof-m Am DofA DmofA Dlook
+            DofeA DmofeA
+         <- ({x} {d}
+                cut-ekof-m Bm ([y] [e] DofB x d y e) ([y] [e] DmofB x d y e)
+                ([y] elookup/hit)
+                ([y] DofeB x d y)
+                ([y] DmofeB x d y))
+         <- ({y}
+                cut-ekofe-m Bm ([x] [d] DofeB x d y) ([x] [d] DmofeB x d y)
+                ([x] elookup/miss (Dlook x))
+                ([x] DofeB' x y)
+                ([x] DmofeB' x y)).
+
+-lam  : cut-ispi-m (mpair Am Bm)
+            ([x] [d]
+                ispi/lam
+                ([y] [e] DisB x d y e)
+                (DofA x d))
+            ([x] [d]
+                mispi/lam
+                ([y] [e] DmisB x d y e)
+                (DmofA x d))
+            ([x] Dlook x: elookup (G x) x C)
+%%
+            ([x] ispie/lam ([y] DiseB' x y) (DofeA x))
+            ([x] mispie/lam ([y] DmiseB' x y) (DmofeA x))
+%%
+         <- cut-ekof-m Am DofA DmofA Dlook
+            DofeA DmofeA
+         <- ({x} {d}
+                cut-ispi-m Bm ([y] [e] DisB x d y e) ([y] [e] DmisB x d y e)
+                ([y] elookup/hit)
+                ([y] DiseB x d y)
+                ([y] DmiseB x d y))
+         <- ({y}
+                cut-ispie-m Bm ([x] [d] DiseB x d y) ([x] [d] DmiseB x d y)
+                ([x] elookup/miss (Dlook x))
+                ([x] DiseB' x y)
+                ([x] DmiseB' x y)).
+
+%%
+
+-pi   : cut-ispie-m (mpair Am Bm)
+            ([x] [d] ispie/pi (DofB x d) (DofA x d))
+            ([x] [d] mispie/pi (DmofB x d) (DmofA x d))
+            ([x] Dlook x)
+%%
+            ([x] ispie/pi (DofB' x) (DofA' x))
+            ([x] mispie/pi (DmofB' x) (DmofA' x))
+%%
+         <- cut-ekofe-m Am DofA DmofA Dlook
+            DofA' DmofA'
+         <- ({y}
+                cut-ekofe-m Bm ([x] [d] DofB x d y) ([x] [d] DmofB x d y)
+                ([x] elookup/miss (Dlook x))
+                ([x] DofB' x y)
+                ([x] DmofB' x y)).
+
+-lam  : cut-ispie-m (mpair Am Bm)
+            ([x] [d] ispie/lam (DisB x d) (DofA x d))
+            ([x] [d] mispie/lam (DmisB x d) (DmofA x d))
+            ([x] Dlook x)
+%%
+            ([x] ispie/lam (DisB' x) (DofA' x))
+            ([x] mispie/lam (DmisB' x) (DmofA' x))
+%%
+         <- cut-ekofe-m Am DofA DmofA Dlook
+            DofA' DmofA'
+         <- ({y}
+                cut-ispie-m Bm ([x] [d] DisB x d y) ([x] [d] DmisB x d y)
+                ([x] elookup/miss (Dlook x))
+                ([x] DisB' x y)
+                ([x] DmisB' x y)).
+
+%worlds (ecsig | easig | evar | eovar | ebind)
+  (cut-ispi-m _ _ _ _ _ _)
+  (cut-ispie-m _ _ _ _ _ _).
+%total {(M1 M2)}
+  (cut-ispi-m M1 _ _ _ _ _)
+  (cut-ispie-m M2 _ _ _ _ _).
+
+cut-ispi : ({x} evof x A -> ispi (B x) (K x))
+           -> ({x} elookup (G x) x A)
+%%
+           -> ({x} ispie (G x) (B x) (K x)) -> type.
+%mode cut-ispi +X1 +X2 -X3.
+
+- : cut-ispi Dis Dlook Dise
+     <- ({x} {d}
+            can-mispi (Dis x d) (Dmis x d))
+     <- cut-ispi-m _ Dis Dmis Dlook Dise _.
+
+%worlds (ecsig | easig | evar | eovar | ebind) (cut-ispi _ _ _).
+%total {} (cut-ispi _ _ _).
+
+sim1-to-sime : ({x} evof x A -> sim (B x) (B' x) (K x))
+                -> ({x} sime (econs enil x A) (B x) (B' x) (K x)) -> type.
+%mode sim1-to-sime +X1 -X2.
+
+- : sim1-to-sime
+        ([x] [d:evof x A] Dsim x d : sim (B x) (B' x) (K x))
+        Dsime
+     <- cut-sim Dsim ([_] elookup/hit)
+        ([x] Dsime x : sime (econs enil x A) (B x) (B' x) (K x)).
+
+%worlds (ecsig | easig | evar | eovar | ebind) (sim1-to-sime _ _).
+%total {} (sim1-to-sime _ _).
+
+ispi1-to-ispie : ({x} evof x A -> ispi (B x) (K x))
+                -> ({x} ispie (econs enil x A) (B x) (K x)) -> type.
+%mode ispi1-to-ispie +X1 -X2.
+
+- : ispi1-to-ispie Dispi Dispie
+     <- cut-ispi Dispi ([_] elookup/hit) Dispie.
+
+%worlds (ecsig | easig | evar | eovar | ebind) (ispi1-to-ispie _ _).
+%total {} (ispi1-to-ispie _ _).
+
+sim-to-sime : sim A B K -> sime enil A B K -> type.
+%mode sim-to-sime +X1 -X2.
+
+-pi   : sim-to-sime
+            (sim/pi
+                ([x] [d:evof x A] DeqB x d : eqtp (B x) (B' x) ektype)
+                (DeqA : eqtp A A' ektype))
+            (sime/pi DeqtpeB DeqtpeA)
+         <- eqtp1-to-eqtpe DeqB DeqtpeB
+         <- eqtp-to-eqtpe DeqA DeqtpeA.
+
+-lam  : sim-to-sime
+            (sim/lam
+                ([x] [d:evof x A] DsimB x d : sim (B x) (B' x) (K x)))
+            (sime/lam DsimeB)
+         <- sim1-to-sime DsimB DsimeB.
+
+%worlds (ecsig | easig | evar | eovar | ebind) (sim-to-sime _ _).
+%total D (sim-to-sime D _).
+
+simi : ectx -> etp -> etp -> ekind -> type.
+simi/nil  : simi enil A B K
+             <- sim A B K.
+simi/cons : simi (econs G X A) B C K
+             <- (evof X A -> simi G B C K).
+
+simi-pi : ({x} eqtpi (econs G x A) (B x) (B' x) ektype)
+           -> eqtpi G A A' ektype
+%%
+           -> simi G (epi A B) (epi A' B') ektype -> type.
+%mode simi-pi +X1 +X2 -X3.
+
+-nil  : simi-pi
+            ([x] eqtpi/cons ([d:evof x A] eqtpi/nil (DeqB x d)))
+            (eqtpi/nil (Deqtp : eqtp A A' ektype) : eqtpi enil A A' ektype)
+            (simi/nil (sim/pi DeqB Deqtp)).
+
+-cons : simi-pi
+            ([x] eqtpi/cons
+                ([d:evof x A] eqtpi/cons
+                    ([e:evof Y C] DeqB x d e : eqtpi G (B x) (B' x) ektype)))
+            (eqtpi/cons ([e:evof Y C] DeqA e : eqtpi G A A' ektype))
+            %%
+            (simi/cons DsimLam)
+            %%
+         <- ({e:evof Y C}
+                simi-pi ([x] eqtpi/cons ([d] DeqB x d e)) (DeqA e)
+                (DsimLam e)).
+
+%worlds (ecsig | easig | ebind | evar | eofblock) (simi-pi _ _ _).
+%total D (simi-pi _ D _).
+
+simi-lam : {G} ({x} simi (econs G x A) (B x) (B' x) (K x))
+            -> {A1} {A2} simi G (ealam A1 B) (ealam A2 B') (ekpi A K) -> type.
+%mode simi-lam +G +X1 +A1 +A2 -X2.
+
+-nil  : simi-lam _
+            ([x] simi/cons ([d:evof x A] simi/nil (DsimB x d))) _ _
+            (simi/nil (sim/lam DsimB)).
+
+-cons : simi-lam _
+            ([x] simi/cons 
+                ([d:evof x A]
+                    simi/cons
+                    ([e:evof Y B] DsimC x d e
+                      : simi G (C x) (C' x) (K x))))
+            A1 A2
+            (simi/cons Dsimi')
+         <- ({e:evof Y B}
+                simi-lam _ ([x] simi/cons ([d] DsimC x d e))
+                A1 A2
+                (Dsimi' e : simi G (ealam A1 C) (ealam A2 C') (ekpi A K))).
+
+%worlds (ecsig | easig | ebind | evar | eofblock) (simi-lam _ _ _ _ _).
+%total G (simi-lam G _ _ _ _).
+
+sime-to-simi : sime G A B K -> simi G A B K -> type.
+%mode sime-to-simi +X1 -X2.
+
+-pi  : sime-to-simi
+           (sime/pi
+               ([x] DeqB x : eqtpe (econs G x A) (B x) (B' x) ektype)
+               (DeqA : eqtpe G A A' ektype))
+           Dsimi
+        <- eqtpe-to-eqtpi DeqA DeqiA
+        <- ({x} eqtpe-to-eqtpi (DeqB x) (DeqiB x))
+        <- simi-pi DeqiB DeqiA Dsimi.
+
+-lam  : sime-to-simi
+            (sime/lam
+                ([x] DsimB x : sime (econs G x A) (B x) (B' x) (K x)))
+            Dsimi
+         <- ({x} sime-to-simi (DsimB x) (DsimiB x))
+         <- simi-lam _ DsimiB _ _ Dsimi.
+
+%worlds (ecsig | easig | evar | ebind) (sime-to-simi _ _).
+%total D (sime-to-simi D _).
+
+sime-to-sim : sime enil A B K -> sim A B K -> type.
+%mode sime-to-sim +X1 -X2.
+
+- : sime-to-sim D D' <- sime-to-simi D (simi/nil D').
+
+%worlds (ecsig | easig | evar | eovar | ebind) (sime-to-sim _ _).
+%total {} (sime-to-sim _ _).
+
+%%%%
+
+sim-fun : eqtm M N A -> ({x} evof x A -> ispi (B x) (K x))
+           -> sim (B M) (B N) (K M) -> type.
+%mode sim-fun +X1 +X2 -X3.
+
+- : sim-fun
+        (Deqtm : eqtm M N A)
+        ([x] [d] Dispi x d : ispi (B x) (K x))
+        Dsim
+     <- eqtm-to-eqtme Deqtm (Deqtme_nil : eqtme enil M N A)
+     <- extend-eordered _ eordered/nil _ Dord
+     <- ispi1-to-ispie Dispi Dispie
+     <- sim-fun-e Dord ([_] eappend/nil) Deqtme_nil Dispie ecsub/base
+        (Dsime : sime enil (B M) (B N) (K M))
+     <- sime-to-sim Dsime
+        (Dsim : sim (B M) (B N) (K M)).
+
+%worlds (ecsig | easig | evar | ebind) (sim-fun _ _ _).
+%total {} (sim-fun _ _ _).
+
+sim-trans : sim A B K -> sim B C K
+             -> sim A C K -> type.
+%mode sim-trans +X1 +X2 -X3.
+
+- : sim-trans
+        (sim/pi
+            ([x] [d:evof x A1] DeqB1 x d : eqtp (B1 x) (B2 x) ektype)
+            (DeqA1 : eqtp A1 A2 ektype))
+        (sim/pi
+            ([x] [d:evof x A2] DeqB2 x d : eqtp (B2 x) (B3 x) ektype)
+            (DeqA2 : eqtp A2 A3 ektype))
+        (sim/pi
+            ([x] [d:evof x A1] eqtp/trans (DeqB2' x d) (DeqB1 x d))
+            (eqtp/trans DeqA2 DeqA1))
+     <- eqtp-reg DeqA1
+        (DofA1 : ekof A1 ektype)
+        (DofA2 : ekof A2 ektype)
+        _
+     <- ({x} {d:evof x A1}
+            esubst-eqtp ([x] [d:evof x A2] DeqB2 x d)
+            (eof/eqtp DeqA1 (eof/var DofA1 d))
+            (DeqB2' x d : eqtp (B2 x) (B3 x) ektype)).
+
+- : sim-trans
+        (sim/lam
+            ([x] [d:evof x C] DsimB1 x d : sim (B1 x) (B2 x) (K x)))
+        (sim/lam
+            ([x] [d:evof x C] DsimB2 x d : sim (B2 x) (B3 x) (K x)))
+        (sim/lam DsimB3)
+     <- ({x} {d:evof x C}
+            sim-trans (DsimB1 x d) (DsimB2 x d)
+            (DsimB3 x d : sim (B1 x) (B3 x) (K x))).
+
+%worlds (ecsig | easig | evar | ebind) (sim-trans _ _ _).
+%total D (sim-trans D _ _).
+
+ispi-reg : ispi B K
+            -> ewfkind K -> type.
+%mode ispi-reg +X1 -X2.
+
+-pi   : ispi-reg (ispi/pi DofB DofA)
+            ewfkind/tp.
+
+-lam  : ispi-reg
+            (ispi/lam
+                ([x] [d:evof x A] DispiB x d : ispi (B x) (K x))
+                (DofA : ekof A ektype))
+            (ewfkind/pi DofK DofA)
+         <- ({x} {d:evof x A}
+                ispi-reg (DispiB x d)
+                (DofK x d : ewfkind (K x))).
+
+%worlds (ecsig | easig | evar | ebind) (ispi-reg _ _).
+%total D (ispi-reg D _).
+
+%% Derived form
+sim-fun' : ({x} evof x A -> sim (B x) (B' x) (K x)) 
+            -> ({x} evof x A -> ispi (B x) (K x))
+            -> eqtm M N A
+            -> sim (B M) (B' N) (K M) -> type.
+%mode sim-fun' +X1 +X2 +X3 -X4.
+
+- : sim-fun'
+        ([x] [d] DsimB x d : sim (B x) (B' x) (K x))
+        ([x] [d] DispiB x d : ispi (B x) (K x))
+        (Deq : eqtm M N A)
+%%        
+        Dsim
+%%        
+     <- sim-fun Deq DispiB
+        (DsimBM_BN : sim (B M) (B N) (K M))
+     <- eqtm-reg Deq DofM DofN DofA
+     <- sim-sub DsimB DofN
+        (DsimBN_B'N : sim (B N) (B' N) (K N))
+     <- ({x} {d} ispi-reg (DispiB x d) (DofK x d : ewfkind (K x)))
+     <- eqtm-ksub DofK Deq DofM DofN
+        (DeqKM_KN : eqkind (K M) (K N))
+     <- sim-kcon DsimBN_B'N (eqkind/sym DeqKM_KN)
+        (DsimBN_B'N* : sim (B N) (B' N) (K M))
+     <- sim-trans DsimBM_BN DsimBN_B'N*
+        (Dsim : sim (B M) (B' N) (K M)).
+
+%worlds (ecsig | easig | evar | ebind) (sim-fun' _ _ _ _).
+%total {} (sim-fun' _ _ _ _).
+
+%% ispi lemmas %%
+
+ispi-resp : ispi A K -> etp-eq A A' -> ekind-eq K K'
+             -> ispi A' K' -> type.
+%mode ispi-resp +X1 +X2 +X3 -X4.
+
+- : ispi-resp D etp-eq/i ekind-eq/i D.
+
+%worlds (ecsig | easig | ebind) (ispi-resp _ _ _ _).
+%total {} (ispi-resp _ _ _ _).
+
+ispi-kpi-lam : ispi B (ekpi A K)
+                -> etp-eq B (ealam A' B') -> type.
+%mode ispi-kpi-lam +X1 -X2.
+
+- : ispi-kpi-lam (ispi/lam _ _) etp-eq/i.
+
+%worlds (ecsig | easig | evar | ebind) (ispi-kpi-lam _ _).
+%total {} (ispi-kpi-lam _ _).
+
+ispi-sim-refl : ispi A K -> sim A A K -> type.
+%mode ispi-sim-refl +X1 -X2.
+
+- : ispi-sim-refl (ispi/pi ([x] [d] DofB x d) DofA)
+        (sim/pi ([x] [d] eqtp/refl (DofB x d)) (eqtp/refl DofA)).
+
+- : ispi-sim-refl (ispi/lam ([x] [d] DispiB x d) DofA)
+        (sim/lam DsimB)
+     <- ({x} {d}
+            ispi-sim-refl (DispiB x d)
+            (DsimB x d : sim (B x) (B x) (K x))).
+
+%worlds (ecsig | easig | ebind) (ispi-sim-refl _ _).
+%total D (ispi-sim-refl D _).
+
+ispi-subst-gen : (evof M A -> ispi B K)
+                  -> (eof M A -> ispi B K) -> type.
+%mode ispi-subst-gen +X1 -X2.
+
+-pi   : ispi-subst-gen
+            ([d:evof M A]
+                ispi/pi
+                ([y] [e:evof y B] DofC d y e : ekof (C y) ektype)
+                (DofB d : ekof B ektype))
+            ([d:eof M A]
+                ispi/pi
+                ([y] [e] DofC' y e d)
+                (DofB' d))
+         <- esubst-kof-gen DofB DofB'
+         <- ({y} {e:evof y B}
+                esubst-kof-gen ([d:evof M A] DofC d y e)
+                (DofC' y e : eof M A -> ekof (C y) ektype)).
+
+-lam  : ispi-subst-gen
+            ([d:evof M A]
+                ispi/lam
+                ([y] [e:evof y B] DispiC d y e : ispi (C y) (K y))
+                (DofB d))
+            ([d:eof M A]
+                ispi/lam
+                ([y] [e:evof y B] DispiC' y e d)
+                (DofB' d))
+         <- ({y} {e:evof y B}
+                ispi-subst-gen ([d:evof M A] DispiC d y e)
+                ([d:eof M A] DispiC' y e d : ispi (C y) (K y)))
+         <- esubst-kof-gen DofB DofB'.
+
+%worlds (ecsig | easig | ebind) (ispi-subst-gen _ _).
+%total D (ispi-subst-gen D _).
+
+ispi-subst : ({x} evof x A -> ispi (B x) (K x))
+              -> eof M A
+              -> ispi (B M) (K M) -> type.
+%mode ispi-subst +X1 +X2 -X3.
+
+- : ispi-subst D1 D2 (D1' D2)
+     <- ispi-subst-gen (D1 _) D1'.
+
+%worlds (ecsig | easig | ebind) (ispi-subst _ _ _).
+%total D (ispi-subst D _ _).
+
+ispi-eqkind : ispi A K -> eqkind K K' -> ispi A K' -> type.
+%mode ispi-eqkind +X1 +X2 -X3.
+
+ispi-eqkind' : ispi A K -> eqkind K' K -> ispi A K' -> type.
+%mode ispi-eqkind' +X1 +X2 -X3.
+
+-tp     : ispi-eqkind D eqkind/tp D.
+
+-refl   : ispi-eqkind D (eqkind/refl _) D.
+
+-pi     : ispi-eqkind
+              (ispi/lam
+                  ([x] [d:evof x A] Dispi x d : ispi (B x) (K x))
+                  (DofA : ekof A ektype))
+              (eqkind/pi
+                  ([x] [d:evof x A] DeqK x d : eqkind (K x) (K' x))
+                  (DeqA : eqtp A A' ektype))
+              (ispi/lam Dispi'' DofA')
+           <- ({x} {d:evof x A}
+                  ispi-eqkind (Dispi x d) (DeqK x d)
+                  (Dispi' x d : ispi (B x) (K' x)))
+           <- eqtp-reg DeqA _ DofA' _
+           <- ({x} {d:evof x A'}
+                  ispi-subst Dispi'
+                  (eof/eqtp (eqtp/sym DeqA) (eof/var DofA' d))
+                  (Dispi'' x d : ispi (B x) (K' x))).
+
+-sym    : ispi-eqkind (Dispi : ispi A K) (eqkind/sym Deq')
+              Dispi'
+           <- ispi-eqkind' Dispi Deq' Dispi'.
+
+-trans  : ispi-eqkind
+              (Dispi : ispi A K)
+              (eqkind/trans
+                  (Deq2 : eqkind K' K'')
+                  (Deq1 : eqkind K K'))
+              Dispi2
+           <- ispi-eqkind Dispi Deq1 Dispi1
+           <- ispi-eqkind Dispi1 Deq2 Dispi2.
+
+%%
+
+-tp     : ispi-eqkind' D eqkind/tp D.
+
+-refl   : ispi-eqkind' D (eqkind/refl _) D.
+
+-pi     : ispi-eqkind'
+              (ispi/lam
+                  ([x] [d:evof x A] Dispi x d : ispi (B x) (K x))
+                  DofA)
+              (eqkind/pi
+                  ([x] [d:evof x A'] DeqK' x d : eqkind (K' x) (K x))
+                  (DeqA' : eqtp A' A ektype))
+              (ispi/lam Dispi'' DofA')
+           <- eqtp-reg DeqA' DofA' _ _
+           <- ({x} {d:evof x A'}
+                  ispi-subst Dispi (eof/eqtp DeqA' (eof/var DofA' d))
+                  (Dispi' x d : ispi (B x) (K x)))
+           <- ({x} {d:evof x A'}
+                  ispi-eqkind' (Dispi' x d) (DeqK' x d)
+                  (Dispi'' x d : ispi (B x) (K' x))).
+
+-sym    : ispi-eqkind' Dispi (eqkind/sym Deq) Dispi'
+           <- ispi-eqkind Dispi Deq Dispi'.
+
+-trans  : ispi-eqkind'
+              (Dispi : ispi A K)
+              (eqkind/trans
+                  (Deq2 : eqkind K' K)
+                  (Deq1 : eqkind K'' K'))
+              Dispi1
+           <- ispi-eqkind' Dispi Deq2 Dispi2
+           <- ispi-eqkind' Dispi2 Deq1 Dispi1.
+
+%worlds (ecsig | easig | ebind)
+  (ispi-eqkind _ _ _)
+  (ispi-eqkind' _ _ _).
+%total (D1 D2)
+  (ispi-eqkind _ D1 _)
+  (ispi-eqkind' _ D2 _).
+
+%% norm lemmas %%
+
+norm-resp : norm A B -> etp-eq A A' -> etp-eq B B'
+             -> norm A' B' -> type.
+%mode norm-resp +X1 +X2 +X3 -X4.
+
+- : norm-resp Dnorm etp-eq/i etp-eq/i Dnorm.
+
+%worlds (ecsig | easig | evar | ebind) (norm-resp _ _ _ _).
+%total {} (norm-resp _ _ _ _).
+
+norm-fun : norm A B -> norm A B' -> etp-eq B B' -> type.
+%mode norm-fun +X1 +X2 -X3.
+
+-pi     : norm-fun norm/pi norm/pi etp-eq/i.
+
+-lam    : norm-fun
+              (norm/lam ([x] DnormB1 x : norm (B x) (B1 x)))
+              (norm/lam ([x] DnormB2 x : norm (B x) (B2 x)))
+              DeqLam
+           <- ({x}
+                  norm-fun (DnormB1 x) (DnormB2 x)
+                  (DeqB1B2 x : etp-eq (B1 x) (B2 x)))
+           <- ealam-compat etp-eq/i DeqB1B2
+              (DeqLam : etp-eq (ealam A B1) (ealam A B2)).
+
+-app    : norm-fun
+              (norm/app (DnormB1 : norm B (ealam A1 B1)))
+              (norm/app (DnormB2 : norm B (ealam A2 B2)))
+              (DeqB1B2 M)
+           <- norm-fun DnormB1 DnormB2
+              (DeqLam : etp-eq (ealam A1 B1) (ealam A2 B2))
+           <- ealam-inj DeqLam _ ([x] DeqB1B2 x : etp-eq (B1 x) (B2 x)).
+
+%worlds (ecsig | easig | evar) (norm-fun _ _ _).
+%total D (norm-fun D _ _).
+
+
+ektype-unique : eqkind ektype K -> ekind-eq K ektype -> type.
+ektype-unique' : eqkind K ektype -> ekind-eq K ektype -> type.
+%mode ektype-unique +X1 -X2.
+%mode ektype-unique' +X1 -X2.
+
+- : ektype-unique eqkind/tp ekind-eq/i.
+
+- : ektype-unique (eqkind/refl _) ekind-eq/i.
+
+- : ektype-unique (eqkind/sym Deqk) Deq
+     <- ektype-unique' Deqk Deq.
+
+- : ektype-unique
+        (eqkind/trans
+            (Deqk2 : eqkind K K') 
+            (Deqk1 : eqkind ektype K))
+        DeqK'
+     <- ektype-unique Deqk1
+        (DeqK : ekind-eq K ektype)
+     <- eqkind-resp Deqk2 DeqK ekind-eq/i
+        (Deqk2' : eqkind ektype K')
+     <- ektype-unique Deqk2'
+        (DeqK' : ekind-eq K' ektype).
+
+%%
+
+- : ektype-unique' eqkind/tp ekind-eq/i.
+
+- : ektype-unique' (eqkind/refl _) ekind-eq/i.
+
+- : ektype-unique' (eqkind/sym Deqk) Deq
+     <- ektype-unique Deqk Deq.
+
+- : ektype-unique'
+        (eqkind/trans
+            (Deqk2 : eqkind K' ektype)
+            (Deqk1 : eqkind K K'))
+        Deq
+     <- ektype-unique' Deqk2
+        (DeqK' : ekind-eq K' ektype)
+     <- eqkind-resp Deqk1 ekind-eq/i DeqK'
+        (DeqK : eqkind K ektype)
+     <- ektype-unique' DeqK
+        (Deq : ekind-eq K ektype).
+
+%worlds (ecsig | easig | ebind) (ektype-unique _ _) (ektype-unique' _ _).
+%total (D1 D2) (ektype-unique D1 _) (ektype-unique' D2 _).
+
+%{
+ekof-pi-pi-contra : ekof (epi A B) (ekpi C K) -> false -> type.
+%mode ekof-pi-pi-contra +X1 -X2.
+
+-ext : ekof-pi-pi-contra
+           (ekof/ext
+               ([x] [d:evof x A] DofApp x d
+                 : ekof (eaapp (epi B C) x) (K x))
+               (DofPi : ekof (epi B C) (ekpi A K')))
+           Dfalse
+        <- ekof-pi-pi-contra DofPi Dfalse.
+
+-eqk  : ekof-pi-pi-contra
+            (ekof/eqkind
+                (Deqk : eqkind K (ekpi C K'))
+                (Dof : ekof (epi A B) K))
+            _
+            .
+
+%worlds (ecsig | easig | ebind) (ekof-pi-pi-contra _ _).
+%total D (ekof-pi-pi-contra D _).
+}%
+
+type-pi-contra : ekind-eq (ekpi A K) ektype -> false -> type.
+%mode type-pi-contra +X1 -X2.
+%worlds (ecsig | easig | ebind) (type-pi-contra _ _).
+%total {} (type-pi-contra _ _).
+
+ekof-pi-type : ekof (epi A B) K -> ekind-eq K ektype -> type.
+%mode ekof-pi-type +X1 -X2.
+
+-pi     : ekof-pi-type (ekof/pi _ _) ekind-eq/i.
+
+-ekq    : ekof-pi-type
+              (ekof/eqkind
+                  (Deqk : eqkind K L)
+                  (Dof : ekof (epi A B) K))
+              DeqL
+           <- ekof-pi-type Dof
+              (DeqK : ekind-eq K ektype)
+           <- eqkind-resp Deqk DeqK ekind-eq/i
+              (Deqk' : eqkind ektype L)
+           <- ektype-unique Deqk'
+              (DeqL : ekind-eq L ektype).
+
+-ext    : ekof-pi-type
+              (ekof/ext
+                  ([x] [d:evof x A] DofApp x d
+                    : ekof (eaapp (epi B C) x) (K x))
+                  (DofPi : ekof (epi B C) (ekpi A K')))
+              Deq
+           <- ekof-pi-type DofPi
+              (DeqPiType : ekind-eq (ekpi A K') ektype)
+           <- type-pi-contra DeqPiType
+              Dfalse
+           <- false-implies-ekind-eq Dfalse Deq.
+
+%worlds (ecsig | easig | ebind) (ekof-pi-type _ _).
+%total D (ekof-pi-type D _).
+
+norm-ispi : ekof A K -> norm A A' -> ispi A' K -> type.
+%mode norm-ispi +X1 +X2 -X3.
+
+-pi   : norm-ispi
+            (DofPi : ekof (epi A B) K)
+            norm/pi
+            Dispi
+         <- ekof-pi-invert DofPi
+            (DofA : ekof A ektype)
+            ([x] [d:evof x A] DofB x d : ekof (B x) ektype)
+         <- ekof-pi-type DofPi
+            (DeqK : ekind-eq K ektype)
+         <- ekind-eq-sym DeqK
+            (DeqK' : ekind-eq ektype K)
+         <- ispi-resp (ispi/pi DofB DofA) etp-eq/i DeqK'
+            (Dispi : ispi (epi A B) K).
+
+-lam  : norm-ispi
+            (ekof/lam
+                (DofA : ekof A ektype)
+                ([x] [d:evof x A] DofB x d : ekof (B x) (K x)))
+            (norm/lam
+                ([x] DnormB x : norm (B x) (B' x)))
+            (ispi/lam DispiB DofA)
+         <- ({x} {d:evof x A}
+                norm-ispi (DofB x d) (DnormB x)
+                (DispiB x d : ispi (B' x) (K x))).
+
+%{ Need to do it this way if induction is over the reduction argument.
+-lam  : norm-ispi
+            (DofLam : ekof (ealam A B) K)
+            (norm/lam ([x] DnormB x : norm (B x) (B' x)))
+            Dispi
+         <- ekof-lam-invert DofLam
+            (DofA : ekof A ektype)
+            ([x] [d:evof x A] DofB x d : ekof (B x) (K' x))
+            (DequivK : eqkind K (ekpi A K'))
+         <- eqkind-pi-invert DequivK
+            (DeqK : ekind-eq K (ekpi A* K*))
+            (DequivA : eqtp A A* ektype)
+            ([x] [d:evof x A] DequivK' x d : eqkind (K' x) (K* x))
+         <- ekind-eq-sym DeqK (DeqPiK : ekind-eq (ekpi A* K*) K)
+         <- eqtp-reg DequivA _ DofA* _
+         <- ({x} {d:evof x A*}
+                esubst-eqkind DequivK'
+                (eof/eqtp (eqtp/sym DequivA) (eof/var DofA* d))
+                (DequivK'' x d : eqkind (K' x) (K* x)))
+         <- ({x} {d:evof x A*}
+                esubst-kof DofB
+                (eof/eqtp (eqtp/sym DequivA) (eof/var DofA* d))
+                (DofB'' x d : ekof (B x) (K' x)))
+         <- ({x} {d:evof x A*}
+                norm-ispi
+                (ekof/eqkind (DequivK'' x d) (DofB'' x d))
+                (DnormB x)
+                (DispiB' x d : ispi (B' x) (K* x)))
+         <- ispi-resp (ispi/lam DispiB') etp-eq/i DeqPiK
+            (Dispi : ispi (ealam A B') K).
+}%
+
+-app    : norm-ispi
+              (ekof/app
+                  (DofM : eof M A)
+                  (DofB : ekof B (ekpi A K))
+                : ekof (eaapp B M) (K M))
+              (norm/app
+                  (DnormB : norm B (ealam A' B'))
+                : norm (eaapp B M) (B' M))
+              Dispi
+           <- norm-ispi DofB DnormB
+              (ispi/lam
+                  ([x] [d:evof x A] DispiB' x d : ispi (B' x) (K x))
+                  _)
+           <- ispi-subst DispiB' DofM
+              (Dispi : ispi (B' M) (K M)).
+
+-eqk    : norm-ispi
+              (ekof/eqkind
+                  (Deqkind : eqkind K K')
+                  (DofA : ekof A K))
+              (Dnorm : norm A A')
+              Dispi'
+           <- norm-ispi DofA Dnorm
+              (Dispi : ispi A' K)
+           <- ispi-eqkind Dispi Deqkind Dispi'.
+
+-ext    : norm-ispi
+              (ekof/ext
+                  ([x] [d:evof x A] DofApp x d : ekof (eaapp B x) (K x))
+                  (DofB : ekof B (ekpi A K')))
+              (Dnorm : norm B B')
+              Dispi
+           <- norm-ispi DofB Dnorm
+              (DispiB' : ispi B' (ekpi A K'))
+           <- ispi-kpi-lam DispiB'
+              (DeqB' : etp-eq B' (ealam A' C))
+           <- norm-resp Dnorm etp-eq/i DeqB'
+              (DnormB : norm B (ealam A' C))
+              %% x, d:evof x A |- (norm/app DnormB) : norm (eaapp B x) (C x)
+           <- ({x} {d:evof x A}
+                  norm-ispi (DofApp x d) (norm/app DnormB)
+                  (DispiC x d : ispi (C x) (K x)))
+              %%
+           <- etp-eq-sym DeqB' (DeqLam : etp-eq (ealam A' C) B')
+           <- ekof-reg DofB
+              (ewfkind/pi _ DofA)
+           <- ispi-resp (ispi/lam DispiC DofA) DeqLam ekind-eq/i
+              (Dispi : ispi B' (ekpi A K)).
+
+%worlds (ecsig | easig | ebind) (norm-ispi _ _ _).
+%total D (norm-ispi D _ _).
+
+% XXX maybe not the best name
+norm-str : ({x:etm} norm A (B x)) -> ({x} etp-eq (B x) B') -> type.
+%mode norm-str +X1 -X2.
+
+- : norm-str ([x] norm/pi) ([x] etp-eq/i).
+
+- : norm-str ([x] norm/lam ([y] DnormB x y : norm (B y) (B' x y)))
+        DeqLam
+     <- ({y}
+            norm-str ([x] DnormB x y)
+            ([x] DeqB x y : etp-eq (B' x y) (B'' y)))
+     <- ({x}
+            ealam-compat etp-eq/i ([y] DeqB x y)
+            (DeqLam x : etp-eq (ealam A (B' x)) _)).
+
+- : norm-str ([x] norm/app (DnormB x : norm B (ealam (A x) (B' x))))
+        ([x] DeqB' x _)
+     <- norm-str DnormB
+        ([x] DeqLam x : etp-eq (ealam (A x) (B' x)) (ealam A* B'*)) 
+     <- ({x}
+            ealam-inj (DeqLam x)
+            _
+            ([y] DeqB' x y : etp-eq (B' x y) (B'* y))).
+          
+%worlds (ecsig | easig | evar) (norm-str _ _).
+%total D (norm-str D _).
+
+inst-lam : etp-eq (A M) (ealam C D)
+            -> ({x:etm} etp-eq (A x) (ealam (C' x) (D' x))) -> type.
+%mode inst-lam +X1 -X2.
+
+- : inst-lam etp-eq/i ([x] etp-eq/i).
+
+%worlds (ecsig | easig | evar) (inst-lam _ _).
+%total {} (inst-lam _ _).
+
+
+norm-unsub : {A:etm -> etp} norm (A M) B -> ({x:etm} norm (A x) (A' x)) -> type.
+%mode norm-unsub +X1 +X2 -X3.
+
+-pi   : norm-unsub _ norm/pi ([x] norm/pi).
+
+-app  : norm-unsub
+            ([x] eaapp (A x) (N x))
+            (norm/app 
+                (DnormA : norm (A M) (ealam C D))
+              : norm (eaapp (A M) (N M)) _)
+            ([x] norm/app (DnormA*' x))
+         <- norm-unsub A DnormA
+            ([x] DnormA* x : norm (A x) (A' x))
+         <- norm-fun (DnormA* M) DnormA
+            (DeqA' : etp-eq (A' M) (ealam C D))
+         <- inst-lam DeqA'
+            ([x] DeqA'' x : etp-eq (A' x) (ealam (C' x) (D' x)))
+         <- ({x}
+                norm-resp (DnormA* x) etp-eq/i (DeqA'' x)
+                (DnormA*' x : norm (A x) (ealam (C' x) (D' x)))).
+
+-lam  : norm-unsub ([x] ealam (A x) ([y] B x y))
+            (norm/lam
+                ([y] DnormB y : norm (B M y) (B' y)))
+            ([x] norm/lam (DnormB* x))
+         <- ({y}
+                norm-unsub ([x] B x y) (DnormB y)
+                ([x] DnormB* x y : norm (B x y) (B* x y))).
+
+%worlds (ecsig | easig | evar) (norm-unsub _ _ _).
+%total D (norm-unsub _ D _).
+
+%% Generalization of pi injectivity %%
+
+norm-sim : eqtp A B K -> norm A A'
+            -> norm B B' -> sim A' B' K -> type.
+%mode norm-sim +X1 +X2 -X3 -X4.
+
+%% second version for symmetry
+norm-sim' : norm A A' -> eqtp B A K
+            -> norm B B' -> sim A' B' K -> type.
+%mode norm-sim' +X1 +X2 -X3 -X4.
+
+-app    : norm-sim
+              (eqtp/app 
+                  (Deqtm : eqtm M N D)
+                  (Deqtp : eqtp B B' (ekpi D K)))
+              (norm/app (DnormB : norm B (ealam A C)))
+%%              
+              (norm/app DnormB')
+              DsimCM
+%%              
+           <- norm-sim Deqtp DnormB
+              (DnormB' : norm B' (ealam A' C'))
+              (sim/lam ([x] [d:evof x D] DsimC x d : sim (C x) (C' x) (K x)))
+              %%
+           <- eqtp-reg Deqtp
+              (DofB : ekof B (ekpi D K))
+              (DofB' : ekof B' (ekpi D K))
+              _dontcare
+           <- norm-ispi DofB DnormB
+              (ispi/lam
+                  ([x] [d:evof x D] DispiC x d : ispi (C x) (K x))
+                  _)
+           <- sim-fun' DsimC DispiC Deqtm
+              (DsimCM : sim (C M) (C' N) (K M)).
+
+-pi     : norm-sim
+              (eqtp/pi
+                  ([x] [d:evof x A] DeqB x d : eqtp (B x) (B' x) ektype)
+                  (DeqA : eqtp A A' ektype))
+              norm/pi
+              norm/pi
+              (sim/pi DeqB DeqA).
+
+-lam    : norm-sim
+              (eqtp/lam
+                  ([x] [d:evof x A] DeqB x d : eqtp (B x) (B' x) (K x))
+                  (DeqA : eqtp A A' ektype))
+              (norm/lam ([x] DnormB x : norm (B x) (B1 x)))
+              (norm/lam DnormB')
+              (sim/lam DsimB1B2)
+           <- ({x} {d:evof x A}
+                  norm-sim (DeqB x d) (DnormB x)
+                  (DnormB' x : norm (B' x) (B2 x))
+                  (DsimB1B2 x d : sim (B1 x) (B2 x) (K x))).
+
+-ext    : norm-sim
+              (eqtp/ext
+                  ([x] [d:evof x A] DeqApp x d
+                    : eqtp (eaapp B x) (eaapp C x) (K x))
+                  (DofC : ekof C (ekpi A K''))
+                  (DofB : ekof B (ekpi A K')))
+              (DnormB : norm B B')
+              (DnormC ace)
+              DsimB'
+           <- norm-ispi DofB DnormB
+              (Dispi : ispi B' (ekpi A K'))
+           <- ispi-kpi-lam Dispi
+              (DeqB' : etp-eq B' (ealam A' B''))
+           <- norm-resp DnormB etp-eq/i DeqB'
+              (DnormBLam : norm B (ealam A' B''))
+              %%
+           <- ({x} {d}
+                  norm-sim (DeqApp x d) (norm/app DnormBLam)
+                  (norm/app
+                      (DnormC x : norm C (ealam (D x) ([y] E x y))))
+                  (DsimB'' x d : sim (B'' x) (E x x) (K x)))
+           <- etp-eq-sym DeqB' (DeqLam : etp-eq (ealam A' B'') B')
+           <- norm-str DnormC
+              ([x] DeqLamDE x : etp-eq (ealam (D x) (E x)) Lam')
+           <- ealam-inj-str DeqLamDE
+              ([x] DeqD x : etp-eq (D x) D')
+              ([x] [y] DeqE x y : etp-eq (E x y) (E' y))
+           <- ({x}
+                  ealam-compat (DeqD x) (DeqE x)
+                  (DeqLamDE' x : etp-eq (ealam (D x) (E x)) (ealam D' E')))
+           <- ({x}
+                  etp-eq-sym (DeqLamDE' x)
+                  (DeqLamDE'' x : etp-eq (ealam D' E') (ealam (D x) (E x))))
+           <- ({x} {d}
+                  sim-resp (DsimB'' x d) etp-eq/i (DeqE x x) ekind-eq/i
+                  (DsimB''* x d : sim (B'' x) (E' x) (K x)))
+           <- sim-resp (sim/lam DsimB''*) DeqLam (DeqLamDE'' ace) ekind-eq/i
+              (DsimB' : sim B' (ealam (D ace) (E ace)) (ekpi A K)).
+
+-extw   : norm-sim
+              (eqtp/extw
+                  ([x] [d:evof x A]
+                      DeqApp x d : eqtp (eaapp B x) (eaapp C x) (K x))
+                  (DeqBC : eqtp B C (ekpi A K')))
+              (DnormB : norm B B')
+              (DnormC ace)
+              DsimB'
+           <- eqtp-reg DeqBC
+              (DofB : ekof B (ekpi A K'))
+              (DofC : ekof C (ekpi A K'))
+              _
+           <- norm-ispi DofB DnormB
+              (Dispi : ispi B' (ekpi A K'))
+           <- ispi-kpi-lam Dispi
+              (DeqB' : etp-eq B' (ealam A' B''))
+           <- norm-resp DnormB etp-eq/i DeqB'
+              (DnormBLam : norm B (ealam A' B''))
+              %%
+           <- ({x} {d}
+                  norm-sim (DeqApp x d) (norm/app DnormBLam)
+                  (norm/app
+                      (DnormC x : norm C (ealam (D x) ([y] E x y))))
+                  (DsimB'' x d : sim (B'' x) (E x x) (K x)))
+           <- etp-eq-sym DeqB' (DeqLam : etp-eq (ealam A' B'') B')
+           <- norm-str DnormC
+              ([x] DeqLamDE x : etp-eq (ealam (D x) (E x)) Lam')
+           <- ealam-inj-str DeqLamDE
+              ([x] DeqD x : etp-eq (D x) D')
+              ([x] [y] DeqE x y : etp-eq (E x y) (E' y))
+           <- ({x}
+                  ealam-compat (DeqD x) (DeqE x)
+                  (DeqLamDE' x : etp-eq (ealam (D x) (E x)) (ealam D' E')))
+           <- ({x}
+                  etp-eq-sym (DeqLamDE' x)
+                  (DeqLamDE'' x : etp-eq (ealam D' E') (ealam (D x) (E x))))
+           <- ({x} {d}
+                  sim-resp (DsimB'' x d) etp-eq/i (DeqE x x) ekind-eq/i
+                  (DsimB''* x d : sim (B'' x) (E' x) (K x)))
+           <- sim-resp (sim/lam DsimB''*) DeqLam (DeqLamDE'' ace) ekind-eq/i
+              (DsimB' : sim B' (ealam (D ace) (E ace)) (ekpi A K)).
+
+-beta   : norm-sim
+              (eqtp/beta 
+                  (DofN : eof N A)
+                  ([x] [d:evof x A] DofB x d : ekof (B x) (K x)))
+              (norm/app (norm/lam ([x] DnormB x : norm (B x) (B' x))))
+              (DnormB N)
+              Dsim
+           <- esubst-kof DofB DofN (DofBx : ekof (B N) (K N))
+           <- norm-ispi DofBx (DnormB N)
+              (DispiB'N : ispi (B' N) (K N))
+           <- ispi-sim-refl DispiB'N
+              (Dsim : sim (B' N) (B' N) (K N)).
+
+-sym    : norm-sim
+              (eqtp/sym (Deqtp : eqtp B A K))
+              (Dnorm : norm A A')
+              DnormB
+              Dsim
+           <- norm-sim' Dnorm Deqtp
+              (DnormB : norm B B')
+              (Dsim : sim A' B' K).
+
+-trans  : norm-sim
+              (eqtp/trans
+                  (DeqB : eqtp B C K)
+                  (DeqA : eqtp A B K))
+              (DnormA : norm A A')
+              DnormC
+              DsimA'C'
+           <- norm-sim DeqA DnormA
+              (DnormB : norm B B')
+              (DsimA'B' : sim A' B' K)
+           <- norm-sim DeqB DnormB
+              (DnormC : norm C C')
+              (DsimB'C' : sim B' C' K)
+           <- sim-trans DsimA'B' DsimB'C'
+              (DsimA'C' : sim A' C' K).
+
+-refl   : norm-sim
+              (eqtp/refl (Dof : ekof A K))
+              (Dnorm : norm A A')
+              Dnorm
+              Dsim
+           <- norm-ispi Dof Dnorm
+              (Dispi : ispi A' K)
+           <- ispi-sim-refl Dispi
+              (Dsim : sim A' A' K).
+
+-kcon   : norm-sim
+              (eqtp/kcon (Deqk : eqkind K L) (Deqtp : eqtp A B K))
+              (DnormA : norm A A')
+              DnormB
+              Dsim'
+           <- norm-sim Deqtp DnormA
+              (DnormB : norm B B')
+              (Dsim : sim A' B' K)
+           <- sim-kcon Dsim Deqk Dsim'.
+
+%%
+
+-app    : norm-sim'
+              (norm/app (DnormC : norm C (ealam D E)))
+              (eqtp/app
+                  (Deqtm : eqtm M N A)
+                  (Deqtp : eqtp B C (ekpi A K)))
+              (norm/app DnormB)
+              Dsim'
+           <- norm-sim' DnormC Deqtp
+              (DnormB : norm B (ealam D' E'))
+              (sim/lam ([x] [d:evof x A] DsimE x d : sim (E x) (E' x) (K x)))
+              %%
+           <- eqtp-reg Deqtp DofB DofC _dofPi
+           <- norm-ispi DofC DnormC
+              (ispi/lam
+                  ([x] [d:evof x A] DispiE x d : ispi (E x) (K x))
+                  _)
+           <- sim-fun' DsimE DispiE (eqtm/sym Deqtm)
+              (Dsim : sim (E N) (E' M) (K N))
+           <- eqtp-reg Deqtp _ _
+              (ewfkind/pi
+                  ([x] [d:evof x A] DofK x d : ewfkind (K x))
+                  (DofA : ekof A ektype))
+           <- eqtm-reg Deqtm DofM DofN _
+           <- eqtm-ksub DofK (eqtm/sym Deqtm) DofN DofM
+              (Deqkind : eqkind (K N) (K M))
+           <- sim-kcon Dsim Deqkind
+              (Dsim' : sim (E N) (E' M) (K M)).
+
+-pi     : norm-sim'
+              norm/pi
+              (eqtp/pi
+                  ([x] [d:evof x A'] DeqB x d : eqtp (B' x) (B x) ektype)
+                  (DeqA : eqtp A' A ektype))
+              norm/pi
+              (sim/pi DeqB' (eqtp/sym DeqA))
+           <- eqtp-reg DeqA _ DofA _
+           <- ({x} {d:evof x A}
+                  esubst-eqtp ([x] [d:evof x A'] eqtp/sym (DeqB x d))
+                  (eof/eqtp (eqtp/sym DeqA) (eof/var DofA d))
+                  (DeqB' x d : eqtp (B x) (B' x) ektype)).
+
+-lam    : norm-sim'
+              (norm/lam ([x] DnormB x : norm (B x) (B* x)))
+              (eqtp/lam
+                  ([x] [d:evof x A'] DeqB x d : eqtp (B' x) (B x) (K x))
+                  (DeqA : eqtp A' A ektype))
+              (norm/lam DnormB')
+              (sim/lam DsimB)
+           <- ({x} {d:evof x A'}
+                  norm-sim' (DnormB x) (DeqB x d)
+                  (DnormB' x : norm (B' x) (B'* x))
+                  (DsimB x d : sim (B* x) (B'* x) (K x))).
+
+-ext    : norm-sim'
+              (DnormB : norm B B')
+              (eqtp/ext
+                  ([x] [d:evof x A] DeqApp x d
+                    : eqtp (eaapp C x) (eaapp B x) (K x))
+                  (DofB : ekof B (ekpi A K'))
+                  (DofC : ekof C (ekpi A K'')))
+              (DnormC ace)
+              DsimB'
+           <- norm-ispi DofB DnormB
+              (Dispi : ispi B' (ekpi A K'))
+           <- ispi-kpi-lam Dispi
+              (DeqB' : etp-eq B' (ealam A' B''))
+           <- norm-resp DnormB etp-eq/i DeqB'
+              (DnormBLam : norm B (ealam A' B''))
+              %%
+           <- ({x} {d}
+                  norm-sim' (norm/app DnormBLam) (DeqApp x d)
+                  (norm/app
+                      (DnormC x : norm C (ealam (D x) ([y] E x y))))
+                  (DsimB'' x d : sim (B'' x) (E x x) (K x)))
+           <- etp-eq-sym DeqB' (DeqLam : etp-eq (ealam A' B'') B')
+           <- norm-str DnormC
+              ([x] DeqLamDE x : etp-eq (ealam (D x) (E x)) Lam')
+           <- ealam-inj-str DeqLamDE
+              ([x] DeqD x : etp-eq (D x) D')
+              ([x] [y] DeqE x y : etp-eq (E x y) (E' y))
+           <- ({x}
+                  ealam-compat (DeqD x) (DeqE x)
+                  (DeqLamDE' x : etp-eq (ealam (D x) (E x)) (ealam D' E')))
+           <- ({x}
+                  etp-eq-sym (DeqLamDE' x)
+                  (DeqLamDE'' x : etp-eq (ealam D' E') (ealam (D x) (E x))))
+           <- ({x} {d}
+                  sim-resp (DsimB'' x d) etp-eq/i (DeqE x x) ekind-eq/i
+                  (DsimB''* x d : sim (B'' x) (E' x) (K x)))
+           <- sim-resp (sim/lam DsimB''*) DeqLam (DeqLamDE'' ace) ekind-eq/i
+              (DsimB' : sim B' (ealam (D ace) (E ace)) (ekpi A K)).
+
+-extw   : norm-sim'
+              (DnormB : norm B B')
+              (eqtp/extw
+                  ([x] [d:evof x A]
+                      DeqApp x d : eqtp (eaapp C x) (eaapp B x) (K x))
+                  (DeqBC : eqtp C B (ekpi A K')))
+              (DnormC ace)
+              DsimB'
+           <- eqtp-reg DeqBC
+              (DofC : ekof C (ekpi A K'))
+              (DofB : ekof B (ekpi A K'))
+              _
+           <- norm-ispi DofB DnormB
+              (Dispi : ispi B' (ekpi A K'))
+           <- ispi-kpi-lam Dispi
+              (DeqB' : etp-eq B' (ealam A' B''))
+           <- norm-resp DnormB etp-eq/i DeqB'
+              (DnormBLam : norm B (ealam A' B''))
+              %%
+           <- ({x} {d}
+                  norm-sim' (norm/app DnormBLam) (DeqApp x d)
+                  (norm/app
+                      (DnormC x : norm C (ealam (D x) ([y] E x y))))
+                  (DsimB'' x d : sim (B'' x) (E x x) (K x)))
+           <- etp-eq-sym DeqB' (DeqLam : etp-eq (ealam A' B'') B')
+           <- norm-str DnormC
+              ([x] DeqLamDE x : etp-eq (ealam (D x) (E x)) Lam')
+           <- ealam-inj-str DeqLamDE
+              ([x] DeqD x : etp-eq (D x) D')
+              ([x] [y] DeqE x y : etp-eq (E x y) (E' y))
+           <- ({x}
+                  ealam-compat (DeqD x) (DeqE x)
+                  (DeqLamDE' x : etp-eq (ealam (D x) (E x)) (ealam D' E')))
+           <- ({x}
+                  etp-eq-sym (DeqLamDE' x)
+                  (DeqLamDE'' x : etp-eq (ealam D' E') (ealam (D x) (E x))))
+           <- ({x} {d}
+                  sim-resp (DsimB'' x d) etp-eq/i (DeqE x x) ekind-eq/i
+                  (DsimB''* x d : sim (B'' x) (E' x) (K x)))
+           <- sim-resp (sim/lam DsimB''*) DeqLam (DeqLamDE'' ace) ekind-eq/i
+              (DsimB' : sim B' (ealam (D ace) (E ace)) (ekpi A K)).
+
+-beta   : norm-sim'
+              (DnormBN : norm (B N) C)
+              (eqtp/beta
+                  (DofN : eof N A)
+                  ([x] [d:evof x A] DofB x d : ekof (B x) (K x)))
+              %%
+              Dnorm
+              Dsim
+              %%
+           <- norm-unsub _ DnormBN
+              ([x:etm] DnormB x : norm (B x) (B' x))
+           <- norm-fun (DnormB N) DnormBN
+              (DeqB'N : etp-eq (B' N) C)
+           <- norm-resp (norm/app (norm/lam DnormB)) etp-eq/i DeqB'N
+              (Dnorm : norm (eaapp (ealam A B) N) C)
+              %%
+           <- esubst-kof DofB DofN
+              (DofBN : ekof (B N) (K N))
+           <- norm-ispi DofBN DnormBN
+              (DispiC : ispi C (K N))
+           <- ispi-sim-refl DispiC
+              (Dsim : sim C C (K N)).
+
+-sym    : norm-sim'
+              (Dnorm : norm A A')
+              (eqtp/sym (Deqtp : eqtp A B K))
+              DnormB
+              Dsim
+           <- norm-sim Deqtp Dnorm DnormB Dsim.
+
+-trans  : norm-sim'
+              (DnormA : norm A A')
+              (eqtp/trans
+                  (DeqB : eqtp B A K)
+                  (DeqC : eqtp C B K))
+              DnormC
+              DsimA'C'
+           <- norm-sim' DnormA DeqB
+              (DnormB : norm B B')
+              (DsimA'B' : sim A' B' K)
+           <- norm-sim' DnormB DeqC
+              (DnormC : norm C C')
+              (DsimB'C' : sim B' C' K)
+              %%
+           <- sim-trans DsimA'B' DsimB'C'
+              (DsimA'C' : sim A' C' K).
+
+-refl   : norm-sim'
+              (Dnorm : norm A A')
+              (eqtp/refl (Dof : ekof A K))
+              Dnorm
+              Dsim
+           <- norm-ispi Dof Dnorm Dispi
+           <- ispi-sim-refl Dispi Dsim.
+
+-kcon   : norm-sim'
+              (DnormA : norm A A')
+              (eqtp/kcon (Deqk : eqkind K L) (Deqtp : eqtp B A K))
+              DnormB
+              Dsim'
+           <- norm-sim' DnormA Deqtp
+              (DnormB : norm B B')
+              (Dsim : sim A' B' K)
+           <- sim-kcon Dsim Deqk Dsim'.
+
+%worlds (ecsig | easig | ebind) (norm-sim _ _ _ _) (norm-sim' _ _ _ _).
+%total (D1 D2) (norm-sim D1 _ _ _) (norm-sim' _ D2 _ _).
+
+
+eqtp-pi-invert : eqtp (epi A B) (epi A' B') ektype
+                  -> eqtp A A' ektype
+                  -> ({x} evof x A -> eqtp (B x) (B' x) ektype) -> type.
+%mode eqtp-pi-invert +X1 -X2 -X3.
+
+- : eqtp-pi-invert
+        (Deqtp : eqtp (epi A B) (epi A' B') ektype)
+        DeqA
+        DeqB
+     <- norm-sim Deqtp norm/pi
+        (Dnorm : norm (epi A' B') C)
+        (Dsim : sim (epi A B) C ektype)
+     <- norm-fun Dnorm norm/pi
+        (DeqC : etp-eq C (epi A' B'))
+     <- sim-resp Dsim etp-eq/i DeqC ekind-eq/i
+        (sim/pi
+            ([x] [d:evof x A] DeqB x d : eqtp (B x) (B' x) ektype)
+            (DeqA : eqtp A A' ektype)).
+
+%worlds (ecsig | easig | ebind) (eqtp-pi-invert _ _ _).
+%total {} (eqtp-pi-invert _ _ _).

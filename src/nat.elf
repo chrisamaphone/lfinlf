@@ -1,0 +1,14 @@
+nat : type.  %name nat N.
+
+0 : nat.
+s : nat -> nat.
+
+lt : nat -> nat -> type.
+
+lt/z : lt 0 (s _).
+lt/s : lt (s N1) (s N2)
+        <- lt N1 N2.
+
+nat-eq : nat -> nat -> type.
+
+nat-eq/i : nat-eq N N.

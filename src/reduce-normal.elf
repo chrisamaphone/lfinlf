@@ -1,0 +1,82 @@
+
+variable : etm -> type.
+
+%block evvar  : block {x:etm} {dv:variable x}.
+%block evbind : some {A:etp} block {x:etm} {d:evof x A} {dv:variable x}.
+
+%%%% Beta Normalization %%%%
+
+oa : etm -> type. %% outermost atomic.
+
+oa/const  : oa (econst C).
+
+oa/var    : oa X
+             <- variable X.
+
+oa/app    : oa (eapp M N).
+
+
+tpoa : etp -> type.
+
+tpoa/const  : tpoa (eaconst A).
+tpoa/app    : tpoa (eaapp A M).
+
+reduce    : etm -> etm -> type.
+tpreduce  : etp -> etp -> type.
+kreduce   : ekind -> ekind -> type.
+
+reduce-app    : etm -> etm -> etm -> type.
+% tpreduce-app  : etp -> etm -> etp -> type.
+
+reduce/const    : reduce (econst C) (econst C).
+
+reduce/var      : reduce X X
+                   <- variable X.
+
+reduce/lam      : reduce (elam A M) (elam A' M')
+                   <- tpreduce A A'
+                   <- ({x} variable x -> reduce (M x) (M' x)).
+
+reduce/app      : reduce (eapp M N) O
+                   <- reduce M M'
+                   <- reduce N N'
+                   <- reduce-app M' N' O.
+
+reduce-app/atm  : reduce-app M N (eapp M N)
+                   <- oa M.
+
+reduce-app/beta : reduce-app (elam A ([x] M x)) N O
+                   <- reduce (M N) O.
+
+%%
+
+tpreduce/const  : tpreduce (eaconst A) (eaconst A).
+
+tpreduce/pi     : tpreduce (epi A B) (epi A' B')
+                   <- tpreduce A A'
+                   <- ({x} variable x -> tpreduce (B x) (B' x)).
+
+tpreduce/lam    : tpreduce (ealam A B) (ealam A' B')
+                   <- tpreduce A A'
+                   <- ({x} variable x -> tpreduce (B x) (B' x)).
+
+tpreduce/app    : tpreduce (eaapp A M) (eaapp A' M')
+                   <- tpreduce A A'
+                   <- reduce M M'.
+
+%{ Removed 12/16/09 based on advice from Karl that reduction should only
+    serve to transform the EL term in the way that hsub transforms the
+    IL term -- that is, reductions on types should only reduce the terms
+    inside them.
+tpreduce-app/atm  : tpreduce-app A M (eaapp A M)
+                     <- tpoa A.
+
+tpreduce-app/beta : tpreduce-app (ealam A ([x] B x)) M C
+                     <- tpreduce (B M) C.
+}%
+
+kreduce/type  : kreduce ektype ektype.
+
+kreduce/pi    : kreduce (ekpi A K) (ekpi A' K')
+                 <- tpreduce A A'
+                 <- ({x} variable x -> kreduce (K x) (K' x)).

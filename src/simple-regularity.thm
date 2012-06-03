@@ -1,0 +1,173 @@
+
+%% implicit typing, simple regularity %%
+
+atof-reg-kofes : at-of R A -> kofes snil A sktype -> type.
+%mode atof-reg-kofes +X1 -X2.
+
+-const  : atof-reg-kofes (at-of/const Dkof Dcof) Dkofes
+           <- kof-to-kofe Dkof (Dkofe : kofe nil A ktype)
+           <- kofe-simp simpctx/nil ksimp/type Dkofe
+              (Dkofes : kofes snil A sktype).
+
+-var    : atof-reg-kofes (at-of/var Dkof Dvof) Dkofes
+           <- kof-to-kofe Dkof (Dkofe : kofe nil A ktype)
+           <- kofe-simp simpctx/nil ksimp/type Dkofe
+              (Dkofes : kofes snil A sktype).
+
+-app    : atof-reg-kofes (at-of/app Dtpsub Dof Datof) Dkofes'
+           <- atof-reg-kofes Datof 
+              (kofes/pi ([x] DkofesB x) DsimpA DkofesA)
+           <- of-to-ofe Dof (Dofe : ofe nil M A)
+           <- ({x}
+                  weaken-ofe Dofe _ _
+                  (Dofe' x : ofe (cons nil x A) M A))
+           <- ({x}
+                  ofe-simp (simpctx/cons DsimpA simpctx/nil) DsimpA (Dofe' x)
+                  (Dofes x : ofes (scons snil x T) M T))
+           <- ({x}
+                  lookup-simp (simpctx/cons DsimpA simpctx/nil) DsimpA lookup/hit
+                  (Dslook x : slookup (scons snil x T) x T))
+           <- tpsubst-es 
+              ([x] [d:isvar x 0] sordered/cons (sbounded/nil d)) 
+              ([x] Dslook x) 
+              ([x] Dofes x) 
+              ([x] DkofesB x) 
+              Dtpsub
+              ([x] Dkofes x : kofes (scons snil x T) B' sktype)
+           <- strengthen-kofes ([_] sappend/nil) sappend/nil ([x] Dkofes x)
+              Dkofes'.
+
+%worlds (csig | asig | bind | var | ovar) (atof-reg-kofes _ _).
+%total D (atof-reg-kofes D _).
+
+
+atkof-reg-wfkindes : at-kof P K -> wfkindes snil K -> type.
+%mode atkof-reg-wfkindes +X1 -X2.
+
+-const  : atkof-reg-wfkindes (at-kof/const Dwfkind _) Dwfkindes
+           <- wfkind-to-wfkinde Dwfkind (Dwfkinde : wfkinde nil K)
+           <- wfkinde-simp simpctx/nil Dwfkinde
+              (Dwfkindes : wfkindes snil K).
+
+-app    : atkof-reg-wfkindes 
+              (at-kof/app 
+                  (Dksub : ksub ([x] K x) M Kx)
+                  (Dof : of M A)
+                  (Datkof : at-kof P (kpi A [x] K x)))
+              Dwfkindes''
+           <- atkof-reg-wfkindes Datkof
+              (wfkindes/pi ([x] Dwfkindes x) DsimpA DkofesA)
+           <- of-to-ofe Dof (Dofe : ofe nil M A)
+           <- ({x}
+                  weaken-ofe Dofe _ _
+                  (Dofe' x : ofe (cons nil x A) M A))
+           <- ({x}
+                  ofe-simp (simpctx/cons DsimpA simpctx/nil) DsimpA (Dofe' x)
+                  (Dofes x : ofes (scons snil x T) M T))
+           <- ({x}
+                  lookup-simp (simpctx/cons DsimpA simpctx/nil) DsimpA lookup/hit
+                  (Dslook x : slookup (scons snil x T) x T))
+           <- ksubst-es
+              ([x] [d:isvar x 0] sordered/cons (sbounded/nil d))
+              ([x] Dslook x)
+              ([x] Dofes x)
+              ([x] Dwfkindes x)
+              Dksub
+              ([x] Dwfkindes' x : wfkindes (scons snil x T) Kx)
+           <- strengthen-wfkindes ([_] sappend/nil) sappend/nil ([x] Dwfkindes' x)
+              (Dwfkindes'' : wfkindes snil Kx).
+
+%worlds (csig | asig | bind | var | ovar) (atkof-reg-wfkindes _ _).
+%total D (atkof-reg-wfkindes D _).
+
+
+%% explicit typing, simple regularity %%
+
+atofe-reg-kofes : ordered G -> at-ofe G R A -> simpctx G G' 
+                   -> kofes G' A sktype -> type.
+%mode atofe-reg-kofes +X0 +X1 +X2 -X3.
+
+-closed : atofe-reg-kofes _ (at-ofe/closed Datof) _ Dkofes'
+           <- atof-reg-kofes Datof Dkofes
+           <- sappend-nil _ Dappend
+           <- weaken-kofes' Dappend Dkofes Dkofes'.
+
+-const  : atofe-reg-kofes _ (at-ofe/const Dkofe Dcof) Dsimpctx Dkofes
+           <- kofe-simp Dsimpctx ksimp/type Dkofe Dkofes.
+
+-var    : atofe-reg-kofes _ (at-ofe/var Dkofe _) Dsimpctx Dkofes
+           <- kofe-simp Dsimpctx ksimp/type Dkofe Dkofes.
+
+-app    : atofe-reg-kofes Dord (at-ofe/app Dsub Dofe Datofe) Dsimpctx 
+              Dkofes'
+           <- atofe-reg-kofes Dord Datofe Dsimpctx 
+              (kofes/pi ([x] DkofesB x) DsimpA DkofesA)
+           <- ({x} weaken-ofe Dofe _ _ 
+                (Dofe' x : ofe (cons G x A) M A))
+           <- ({x} ofe-simp 
+                  (simpctx/cons DsimpA Dsimpctx) 
+                  DsimpA 
+                  (Dofe' x)
+                  (Dofes x : ofes (scons G' x T) M T))
+           <- ({x}
+                  lookup-simp (simpctx/cons DsimpA Dsimpctx) DsimpA lookup/hit
+                  (Dslook x : slookup (scons G' x T) x T))
+           <- ordered-simpctx Dsimpctx Dord Dsord
+           <- extend-sordered _ Dsord _
+              ([x] [d] Dsord' x d : sordered (scons G' x T))
+           <- tpsubst-es 
+              ([x] [d] Dsord' x d)
+              ([x] Dslook x) 
+              ([x] Dofes x) 
+              ([x] DkofesB x) 
+              Dsub
+              ([x] Dkofes x : kofes (scons G' x T) B' sktype)
+           <- strengthen-kofes ([_] sappend/nil) sappend/nil ([x] Dkofes x) 
+              Dkofes'.
+
+%worlds (csig | asig | bind | var | ovar) (atofe-reg-kofes _ _ _ _).
+%total D (atofe-reg-kofes _ D _ _).
+
+
+atkofe-reg-wfkindes : ordered G -> at-kofe G P K -> simpctx G G' 
+                       -> wfkindes G' K -> type.
+%mode atkofe-reg-wfkindes +X0 +X1 +X2 -X3.
+
+-closed : atkofe-reg-wfkindes _ (at-kofe/closed Datkof) _ Dwfkindes'
+           <- atkof-reg-wfkindes Datkof Dwfkindes
+           <- sappend-nil _ Dappend
+           <- weaken-wfkindes' Dappend Dwfkindes Dwfkindes'.
+
+-const  : atkofe-reg-wfkindes _ (at-kofe/const Dwfkinde _) Dsimpctx Dwfkindes
+           <- wfkinde-simp Dsimpctx Dwfkinde Dwfkindes.
+
+-app    : atkofe-reg-wfkindes Dord (at-kofe/app Dsub Dofe Datkofe) Dsimpctx
+              Dwfkindes'
+           <- atkofe-reg-wfkindes Dord Datkofe Dsimpctx
+              (wfkindes/pi ([x] DwfkindesK x) DsimpA DkofesA)
+           <- ({x} weaken-ofe Dofe _ _
+                  (Dofe' x : ofe (cons G x A) M A))
+           <- ({x} ofe-simp
+                  (simpctx/cons DsimpA Dsimpctx)
+                  DsimpA
+                  (Dofe' x)
+                  (Dofes x : ofes (scons G' x T) M T))
+           <- ({x}
+                  lookup-simp (simpctx/cons DsimpA Dsimpctx) DsimpA lookup/hit
+                  (Dslook x : slookup (scons G' x T) x T))
+           <- ordered-simpctx Dsimpctx Dord Dsord
+           <- extend-sordered _ Dsord _
+              ([x] [d] Dsord' x d : sordered (scons G' x T))
+           <- ksubst-es
+              ([x] [d] Dsord' x d)
+              ([x] Dslook x)
+              ([x] Dofes x)
+              ([x] DwfkindesK x)
+              Dsub
+              ([x] Dwfkindes x : wfkindes (scons G' x T) K')
+           <- strengthen-wfkindes ([_] sappend/nil) sappend/nil ([x] Dwfkindes x)
+              Dwfkindes'.
+
+%worlds (csig | asig | bind | var | ovar) (atkofe-reg-wfkindes _ _ _ _).
+%total D (atkofe-reg-wfkindes _ D _ _).
+

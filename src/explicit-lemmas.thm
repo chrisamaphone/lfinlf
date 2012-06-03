@@ -1,0 +1,3760 @@
+%%  append  %%
+
+
+append-nil : {G} append nil G G -> type.
+%mode append-nil +X1 -X2.
+
+- : append-nil nil append/nil.
+
+- : append-nil (cons G X A) (append/cons D)
+     <- append-nil G D.
+
+%worlds (csig | asig | var) (append-nil _ _).
+%total G (append-nil G _).
+
+
+
+sappend-nil : {G} sappend snil G G -> type.
+%mode sappend-nil +X1 -X2.
+
+- : sappend-nil snil sappend/nil.
+
+- : sappend-nil (scons G X A) (sappend/cons D)
+     <- sappend-nil G D.
+
+%worlds (csig | asig | var | evar) (sappend-nil _ _).
+%total G (sappend-nil G _).
+
+%% ordered variables %%
+
+isvar-fun : isvar X I -> isvar X J -> nat-eq I J -> type.
+%mode isvar-fun +X1 +X2 -X3.
+
+- : isvar-fun D D nat-eq/i.
+
+%worlds (csig | asig | var | ovar) (isvar-fun _ _ _).
+%total {} (isvar-fun _ _ _).
+
+
+precedes-trans : precedes X Y -> precedes Y Z -> precedes X Z -> type.
+%mode precedes-trans +X1 +X2 -X3.
+
+- : precedes-trans 
+     (precedes/i DltIJ (DisvarY : isvar Y J) (DisvarX : isvar X I))
+     (precedes/i DltJ'K (DisvarZ : isvar Z K) (DisvarY' : isvar Y J')) 
+        (precedes/i DltIK DisvarZ DisvarX)
+     <- isvar-fun DisvarY DisvarY' (Deq : nat-eq J J')
+     <- lt-resp nat-eq/i Deq DltIJ DltIJ'
+     <- lt-trans DltIJ' DltJ'K DltIK.
+
+%worlds (csig | asig | var | ovar) (precedes-trans _ _ _).
+%total {} (precedes-trans _ _ _).
+
+
+precedes-antisymm : precedes X X -> false -> type.
+%mode precedes-antisymm +X1 -X2.
+
+- : precedes-antisymm 
+        (precedes/i (Dlt : lt I J) (Disvar' : isvar X J) (Disvar : isvar X I)) 
+        Dfalse
+     <- isvar-fun Disvar Disvar' (Deq : nat-eq I J)
+     <- lt-resp Deq nat-eq/i Dlt (Dlt' : lt J J)
+     <- lt-antisymm Dlt' Dfalse.
+
+%worlds (csig | asig | var | ovar) (precedes-antisymm _ _).
+%total {} (precedes-antisymm _ _).
+
+
+bounded-increase-bound : bounded G X -> precedes X Y -> bounded G Y -> type.
+%mode bounded-increase-bound +X1 +X2 -X3.
+
+- : bounded-increase-bound (bounded/nil _) (precedes/i _ D _) (bounded/nil D).
+
+- : bounded-increase-bound (bounded/cons Dbounded Dprecedes) Dprecedes'
+        (bounded/cons Dbounded Dprecedes'')
+     <- precedes-trans Dprecedes Dprecedes' Dprecedes''.
+
+%worlds (csig | asig | bind | var | ovar) (bounded-increase-bound _ _ _).
+%total {} (bounded-increase-bound _ _ _).
+
+
+
+sbounded-increase-bound : sbounded G X -> precedes X Y -> sbounded G Y -> type.
+%mode sbounded-increase-bound +X1 +X2 -X3.
+
+- : sbounded-increase-bound (sbounded/nil _) (precedes/i _ D _) (sbounded/nil D).
+
+- : sbounded-increase-bound (sbounded/cons Dbounded Dprecedes) Dprecedes'
+        (sbounded/cons Dbounded Dprecedes'')
+     <- precedes-trans Dprecedes Dprecedes' Dprecedes''.
+
+%worlds (csig | asig | bind | var | ovar | evar) (sbounded-increase-bound _ _ _).
+%total {} (sbounded-increase-bound _ _ _).
+
+
+%% inversion to get isvar %%
+
+bounded-isvar : bounded G X -> isvar X I -> type.
+%mode bounded-isvar +X1 -X2.
+
+- : bounded-isvar (bounded/nil (Disvar : isvar X I) : bounded nil X)
+        Disvar.
+
+- : bounded-isvar (bounded/cons _ (precedes/i _ Disvar _)) 
+        Disvar.
+
+%worlds (csig | asig | var | ovar) (bounded-isvar _ _).
+%total D (bounded-isvar D _).
+
+
+lookup-isvar : lookup G X T -> ordered G -> isvar X I -> type.
+%mode lookup-isvar +X1 +X2 -X3.
+
+- : lookup-isvar
+        (lookup/hit : lookup (cons G X T) X T)
+        (ordered/cons (Dsbounded : bounded G X) : ordered (cons G X T))
+        Disvar
+     <- bounded-isvar Dsbounded 
+        (Disvar : isvar X I).
+
+- : lookup-isvar  
+        (lookup/miss (Dslookup))
+        (ordered/cons ((bounded/cons Dsbounded _)))
+        Disvar
+     <- lookup-isvar Dslookup (ordered/cons Dsbounded)
+        (Disvar : isvar X I).
+
+%worlds (csig | asig | var | ovar) (lookup-isvar _ _ _).
+%total D (lookup-isvar D _ _).
+
+
+sbounded-isvar : sbounded G X -> isvar X I -> type.
+%mode sbounded-isvar +X1 -X2.
+
+- : sbounded-isvar (sbounded/nil (Disvar : isvar X I) : sbounded snil X)
+        Disvar.
+
+- : sbounded-isvar (sbounded/cons _ (precedes/i _ Disvar _)) 
+        Disvar.
+
+%worlds (csig | asig | var | ovar | evar) (sbounded-isvar _ _).
+%total D (sbounded-isvar D _).
+
+
+slookup-isvar : slookup G X T -> sordered G -> isvar X I -> type.
+%mode slookup-isvar +X1 +X2 -X3.
+
+- : slookup-isvar
+        (slookup/hit : slookup (scons G X T) X T)
+        (sordered/cons (Dsbounded : sbounded G X) : sordered (scons G X T))
+        Disvar
+     <- sbounded-isvar Dsbounded 
+        (Disvar : isvar X I).
+
+- : slookup-isvar  
+        (slookup/miss (Dslookup))
+        (sordered/cons ((sbounded/cons Dsbounded _)))
+        Disvar
+     <- slookup-isvar Dslookup (sordered/cons Dsbounded)
+        (Disvar : isvar X I).
+
+%worlds (csig | asig | var | ovar | evar) (slookup-isvar _ _ _).
+%total D (slookup-isvar D _ _).
+
+
+%% inversion to get ordered %%
+
+
+ordered-cons : ordered (cons G X A) -> ordered G -> type.
+%mode ordered-cons +X1 -X2.
+
+-nil   : ordered-cons 
+             (ordered/cons (bounded/nil Disvar : bounded nil X))
+             ordered/nil.
+
+-cons  : ordered-cons
+             (ordered/cons (bounded/cons Dbound _))
+             (ordered/cons Dbound).
+
+%worlds (csig | asig | var | bind | ovar) (ordered-cons _ _).
+%total D (ordered-cons D _).
+
+
+sordered-scons : sordered (scons G X A) -> sordered G -> type.
+%mode sordered-scons +X1 -X2.
+
+-nil   : sordered-scons 
+             (sordered/cons (sbounded/nil Disvar : sbounded snil X))
+             sordered/nil.
+
+-cons  : sordered-scons
+             (sordered/cons (sbounded/cons Dbound _))
+             (sordered/cons Dbound).
+
+%worlds (csig | asig | var | bind | ovar | evar) (sordered-scons _ _).
+%total D (sordered-scons D _).
+
+ordered-append : append G1 G2 G -> ordered G
+                  -> ordered G1 -> type.
+%mode ordered-append +X1 +X2 -X3.
+
+-nil    : ordered-append
+              (append/nil : append G nil G)
+              (Dord : ordered G)
+              Dord.
+
+-cons   : ordered-append
+              (append/cons
+                  (Dappend : append G1 G2 G)
+                : append G1 (cons G2 X A) (cons G X A))
+              (Dord : ordered (cons G X A))
+              Dord1
+           <- ordered-cons Dord (Dord' : ordered G)
+           <- ordered-append Dappend Dord'
+              (Dord1 : ordered G1).
+
+%worlds (csig | asig | var | bind | ovar) (ordered-append _ _ _).
+%total D (ordered-append D _ _).
+
+append-lookup : append (cons G1 X T) G2 G
+                 -> lookup G X T -> type.
+%mode append-lookup +X1 -X2.
+
+- : append-lookup append/nil lookup/hit.
+
+- : append-lookup (append/cons Dappend) (lookup/miss Dlook)
+     <- append-lookup Dappend Dlook.
+
+%worlds (csig | asig | var | ovar) (append-lookup _ _).
+%total D (append-lookup D _).
+
+strengthen-lookup : ({x:atm} lookup G Y (A x)) 
+                     -> lookup G Y A' -> ({x} tp-eq (A x) A') -> type.
+%mode strengthen-lookup +X1 -X2 -X3.
+
+- : strengthen-lookup ([_] lookup/hit) lookup/hit ([_] tp-eq/i).
+
+- : strengthen-lookup ([x] lookup/miss (Dlook x)) 
+        (lookup/miss Dlook') Deq
+     <- strengthen-lookup Dlook Dlook' Deq.
+
+%worlds (csig | asig | var | bind | ovar) (strengthen-lookup _ _ _).
+%total D (strengthen-lookup D _ _).
+
+
+strengthen-slookup : ({x:atm} slookup G Y T) -> slookup G Y T -> type.
+%mode strengthen-slookup +X1 -X2.
+
+- : strengthen-slookup ([x] slookup/hit)
+        slookup/hit.
+
+- : strengthen-slookup ([x] slookup/miss (Dlook x))
+        (slookup/miss Dlook')
+     <- strengthen-slookup Dlook Dlook'.
+
+%worlds (csig | asig | var | bind | ovar | evar) (strengthen-slookup _ _).
+%total D (strengthen-slookup D _).
+
+
+
+
+slookup-drop : ({x} sappend (scons G1 x S) G2 (G x)) 
+                -> sappend G1 G2 G'
+                -> ({x} slookup (G x) Y T)
+%%                   
+                -> slookup G' Y T -> type.
+%mode slookup-drop +X1 +X2 +X3 -X4.
+
+- : slookup-drop 
+        ([x] sappend/cons (Dappend x)) 
+        (sappend/cons Dappend')
+        ([x] slookup/hit)
+        (slookup/hit).
+
+- : slookup-drop
+        ([_] sappend/nil)
+        sappend/nil
+        ([x] slookup/miss (Dlook x))
+        Dlook'
+     <- strengthen-slookup Dlook Dlook'.
+
+- : slookup-drop
+        ([x] sappend/cons (Dappend x))
+        (sappend/cons Dappend')
+        ([x] slookup/miss (Dlook x))
+        (slookup/miss Dlook')
+     <- slookup-drop Dappend Dappend' Dlook Dlook'.
+
+%worlds (csig | asig | var | ovar | evar) (slookup-drop _ _ _ _).
+%total D (slookup-drop D _ _ _).
+
+slookup-drop' : drop ([x] G x) G' -> ({x} slookup (G x) Y T)
+                 -> slookup G' Y T -> type.
+%mode slookup-drop' +X1 +X2 -X3.
+
+- : slookup-drop' 
+        (drop/base (Ddrop : drop ([x] G x) G'))
+        ([x] slookup/miss (Dlook x : slookup (G x) Y T))
+        Dlook'
+     <- slookup-drop' Ddrop Dlook
+        (Dlook' : slookup G' Y T).
+
+- : slookup-drop'
+        (drop/cons (Ddrop : drop ([x] G x) G'))
+        ([x] slookup/miss (Dlook x : slookup (G x) Y T))
+        (slookup/miss Dlook')
+     <- slookup-drop' Ddrop Dlook
+        (Dlook' : slookup G' Y T).
+
+- : slookup-drop'
+        (drop/cons (Ddrop : drop ([x] G x) G'))
+        ([x] slookup/hit)
+        slookup/hit.
+
+- : slookup-drop' drop/closed D (D aca).
+
+%worlds (csig | asig | var | ovar | evar) (slookup-drop' _ _ _).
+%total D (slookup-drop' D _ _).
+
+isvar-vof-contra : isvar X _ -> vof X _ -> false -> type.
+%mode isvar-vof-contra +X1 +X2 -X3.
+%worlds (csig | asig | bind | var | ovar) (isvar-vof-contra _ _ _).
+%total {} (isvar-vof-contra _ _ _).
+
+isvar-app-contra : isvar (app R M) _ -> false -> type.
+%mode isvar-app-contra +X1 -X2.
+%worlds (csig | asig | bind | var | ovar) (isvar-app-contra _ _).
+%total {} (isvar-app-contra _ _).
+
+isvar-const-contra : isvar (const C) _ -> false -> type.
+%mode isvar-const-contra +X1 -X2.
+%worlds (csig | asig | bind | var | ovar) (isvar-const-contra _ _).
+%total {} (isvar-const-contra _ _).
+
+vof-isvar-contra : vof X A -> isvar X I -> false -> type.
+%mode vof-isvar-contra +X1 +X2 -X3.
+%worlds (csig | asig | bind | var | ovar) (vof-isvar-contra _ _ _).
+%total {} (vof-isvar-contra _ _ _).
+
+
+vof-fun : vof X A -> vof X A' -> tp-eq A A' -> type.
+%mode vof-fun +X1 +X2 -X3.
+
+- : vof-fun D D' tp-eq/i.
+
+%worlds (csig | asig | var | bind | ovar) (vof-fun _ _ _).
+%total {} (vof-fun _ _ _).
+
+
+lookup-bounded-contra : lookup G X A -> bounded G X -> false -> type.
+%mode lookup-bounded-contra +X1 +X2 -X3.
+
+- : lookup-bounded-contra lookup/hit (bounded/cons _ Dprec) Dfalse
+     <- precedes-antisymm Dprec Dfalse.
+
+- : lookup-bounded-contra (lookup/miss Dlook) (bounded/cons Dbound Dprec)
+        Dfalse
+     <- bounded-increase-bound Dbound Dprec Dbound'
+     <- lookup-bounded-contra Dlook Dbound' Dfalse.
+
+%worlds (csig | asig | var | ovar) (lookup-bounded-contra _ _ _).
+%total D (lookup-bounded-contra D _ _).
+
+
+
+
+slookup-sbounded-contra : slookup G X T -> sbounded G X -> false -> type.
+%mode slookup-sbounded-contra +X1 +X2 -X3.
+
+- : slookup-sbounded-contra slookup/hit (sbounded/cons _ Dprec) Dfalse
+     <- precedes-antisymm Dprec Dfalse.
+
+- : slookup-sbounded-contra (slookup/miss Dlook) (sbounded/cons Dbound Dprec)
+        Dfalse
+     <- sbounded-increase-bound Dbound Dprec Dbound'
+     <- slookup-sbounded-contra Dlook Dbound' Dfalse.
+
+%worlds (csig | asig | var | ovar | evar) (slookup-sbounded-contra _ _ _).
+%total D (slookup-sbounded-contra D _ _).
+
+
+lookup-fun : ordered G 
+               -> lookup G X A 
+               -> lookup G X A' 
+%%                  
+               -> tp-eq A A' -> type.
+%mode lookup-fun +X0 +X1 +X2 -X3.
+
+- : lookup-fun _ _ _ tp-eq/i.
+
+- : lookup-fun 
+        (Dord  : ordered (cons G Y S))
+        (lookup/miss (Dlook  : lookup G X A)  : lookup (cons G Y S) X A) 
+        (lookup/miss (Dlook' : lookup G X A') : lookup (cons G Y S) X A') 
+%%        
+        Deq
+%%        
+     <- ordered-cons Dord
+        (Dord' : ordered G)
+     <- lookup-fun Dord' Dlook Dlook'
+        (Deq : tp-eq A A').
+
+- : lookup-fun
+        (ordered/cons (Dbound : bounded G Y) : ordered (cons G Y S))
+        (lookup/miss (Dlook : lookup G Y A))
+        lookup/hit
+%%        
+        Deq
+%%
+     <- lookup-bounded-contra Dlook Dbound Dfalse
+     <- false-implies-tp-eq Dfalse Deq.
+
+- : lookup-fun
+        (ordered/cons (Dbound : bounded G Y) : ordered (cons G Y S))
+        lookup/hit
+        (lookup/miss (Dlook : lookup G Y A))
+%%        
+        Deq
+%%
+     <- lookup-bounded-contra Dlook Dbound Dfalse
+     <- false-implies-tp-eq Dfalse Deq.
+
+%worlds (csig | asig | var | ovar) (lookup-fun _ _ _ _).
+%total D (lookup-fun _ D _ _).
+
+
+slookup-fun : sordered G 
+               -> slookup G X T 
+               -> slookup G X T' 
+%%                  
+               -> stp-eq T T' -> type.
+%mode slookup-fun +X0 +X1 +X2 -X3.
+
+- : slookup-fun _ _ _ stp-eq/i.
+
+- : slookup-fun 
+        (Dord  : sordered (scons G Y S))
+        (slookup/miss (Dlook  : slookup G X T)  : slookup (scons G Y S) X T) 
+        (slookup/miss (Dlook' : slookup G X T') : slookup (scons G Y S) X T') 
+%%        
+        Deq
+%%%        
+     <- sordered-scons Dord
+        (Dord' : sordered G)
+     <- slookup-fun Dord' Dlook Dlook'
+        (Deq : stp-eq T T').
+
+- : slookup-fun
+        (sordered/cons (Dbound : sbounded G Y) : sordered (scons G Y S))
+        (slookup/miss (Dlook : slookup G Y T))
+        slookup/hit
+%%        
+        Deq
+%%%
+     <- slookup-sbounded-contra Dlook Dbound Dfalse
+     <- false-implies-stp-eq Dfalse Deq.
+
+- : slookup-fun
+        (sordered/cons (Dbound : sbounded G Y) : sordered (scons G Y S))
+        slookup/hit
+        (slookup/miss (Dlook : slookup G Y T))
+%%        
+        Deq
+%%%
+     <- slookup-sbounded-contra Dlook Dbound Dfalse
+     <- false-implies-stp-eq Dfalse Deq.
+
+%worlds (csig | asig | var | ovar | evar) (slookup-fun _ _ _ _).
+%total D (slookup-fun _ D _ _).
+
+
+%% preserving orderedness/boundedness %%
+
+extend-ordered : {A}
+                     ordered G 
+                  -> {I} 
+                     ({x:atm} isvar x I -> ordered (cons G x A)) 
+                  -> type.
+%mode extend-ordered +X1 +X2 -X3 -X4.
+
+- : extend-ordered _ ordered/nil
+        0 ([x] [d] ordered/cons (bounded/nil d)).
+
+- : extend-ordered _ (ordered/cons (bounded/nil (DisvarY : isvar Y I)))
+        (s I) ([x] [d] ordered/cons
+          (bounded/cons (bounded/nil DisvarY) (precedes/i Dlt d DisvarY)))
+     <- lt-succ I Dlt.
+
+- : extend-ordered _
+        (ordered/cons (bounded/cons D1 (precedes/i D2 (DisvarY:isvar Y I) D3)))
+        (s I) ([x] [d] ordered/cons
+          (bounded/cons (bounded/cons D1 (precedes/i D2 (DisvarY:isvar Y I) D3))
+            (precedes/i Dlt d DisvarY)))
+     <- lt-succ I Dlt.
+
+%worlds (csig | asig | var | bind | ovar) (extend-ordered _ _ _ _).
+%total {} (extend-ordered _ _ _ _).
+
+
+extend-sordered : {A}
+                     sordered G 
+                  -> {I} 
+                     ({x:atm} isvar x I -> sordered (scons G x A)) 
+                  -> type.
+%mode extend-sordered +X1 +X2 -X3 -X4.
+
+- : extend-sordered _ sordered/nil
+        0 ([x] [d] sordered/cons (sbounded/nil d)).
+
+- : extend-sordered _ (sordered/cons (sbounded/nil (DisvarY : isvar Y I)))
+        (s I) ([x] [d] sordered/cons
+          (sbounded/cons (sbounded/nil DisvarY) (precedes/i Dlt d DisvarY)))
+     <- lt-succ I Dlt.
+
+- : extend-sordered _
+        (sordered/cons (sbounded/cons D1 (precedes/i D2 (DisvarY:isvar Y I) D3)))
+        (s I) ([x] [d] sordered/cons
+          (sbounded/cons (sbounded/cons D1 (precedes/i D2 (DisvarY:isvar Y I) D3))
+            (precedes/i Dlt d DisvarY)))
+     <- lt-succ I Dlt.
+
+%worlds (csig | asig | var | bind | ovar | evar) (extend-sordered _ _ _ _).
+%total {} (extend-sordered _ _ _ _).
+
+
+%%% metrics on typing derivations %%%
+% needed for cut-of and cut-ofe because we'd like to induct on the term itself,
+% but sometimes we make an inductive call on its type, so we really need a
+% common metric for of and ofe typing derivations.
+
+metric : type.    %name metric Mm.
+
+munit : metric.
+msing : metric -> metric.
+mpair : metric -> metric -> metric.
+
+mof     : of M A -> metric -> type.
+matof   : at-of R A -> metric -> type.
+mkof    : kof A K -> metric -> type.
+matkof  : at-kof P K -> metric -> type.
+mwfkind : wfkind K -> metric -> type.
+
+mof/at      : mof (of/at Datof) (msing Datof')
+               <- matof Datof Datof'.
+
+mof/lam     : mof (of/lam Dkof ([x] [d] Dof x d)) (mpair Dof' Dkof')
+               <- mkof Dkof Dkof'
+               <- ({x} {d} mof (Dof x d) Dof').
+
+matof/const : matof (at-of/const Dkof _) (msing Dkof')
+               <- mkof Dkof Dkof'.
+
+matof/var   : matof (at-of/var Dkof _) (msing Dkof')
+               <- mkof Dkof Dkof'.
+
+matof/app   : matof (at-of/app _ Dof Datof) (mpair Dof' Datof')
+               <- mof Dof Dof'
+               <- matof Datof Datof'.
+
+mkof/base   : mkof (kof/base Datkof) (msing Datkof')
+              <- matkof Datkof Datkof'.
+
+mkof/pi     : mkof (kof/pi ([x] [d] Dkof2 x d) Dkof1) (mpair Dkof2' Dkof1')
+               <- mkof Dkof1 Dkof1'
+               <- ({x} {d} mkof (Dkof2 x d) Dkof2').
+
+mkof/lam    : mkof (kof/lam ([x] [d] Dkof2 x d) Dkof1) 
+                  (mpair Dkof2' Dkof1')
+               <- mkof Dkof1 Dkof1'
+               <- ({x} {d} mkof (Dkof2 x d) Dkof2').
+
+matkof/const : matkof (at-kof/const Dwfkind _) (msing Dwfkind')
+                <- mwfkind Dwfkind Dwfkind'.
+
+matkof/app   : matkof (at-kof/app _ Dof Datkof) (mpair Dof' Datkof')
+                <- mof Dof Dof'
+                <- matkof Datkof Datkof'.
+
+mwfkind/tp   : mwfkind wfkind/tp munit.
+
+mwfkind/pi   : mwfkind (wfkind/pi ([x] [d] Dwfkind x d) Dkof) 
+                   (mpair Dwfkind' Dkof')
+                <- ({x} {d} mwfkind (Dwfkind x d) Dwfkind')
+                <- mkof Dkof Dkof'.
+
+
+can-matof : {D:at-of R A} matof D Rm -> type.
+%mode can-matof +X1 -X2.
+
+can-mof : {D:of M A} mof D Mm -> type.
+%mode can-mof +X1 -X2.
+
+can-matkof : {D:at-kof P K} matkof D Pm -> type.
+%mode can-matkof +X1 -X2.
+
+can-mkof : {D:kof A K} mkof D Am -> type.
+%mode can-mkof +X1 -X2.
+
+can-mwfkind : {D:wfkind K} mwfkind D Km -> type.
+%mode can-mwfkind +X1 -X2.
+
+
+-     : can-matof (at-of/const D _) (matof/const D')
+         <- can-mkof D D'.
+
+-     : can-matof (at-of/var D _) (matof/var D')
+         <- can-mkof D D'.
+
+-     : can-matof (at-of/app _ Dof Datof) (matof/app Datof' Dof')
+         <- can-matof Datof Datof'
+         <- can-mof Dof Dof'.
+
+-     : can-mof (of/at D) (mof/at D')
+         <- can-matof D D'.
+
+-     : can-mof (of/lam D1 D2) (mof/lam D2' D1')
+         <- can-mkof D1 D1'
+         <- ({x} {d} can-mof (D2 x d) (D2' x d)).
+
+-     : can-matkof (at-kof/const D _) (matkof/const D')
+         <- can-mwfkind D D'.
+
+-     : can-matkof (at-kof/app _ Dof Datkof) (matkof/app Datkof' Dof')
+         <- can-mof Dof Dof'
+         <- can-matkof Datkof Datkof'.
+
+-     : can-mkof (kof/base Datkof) (mkof/base Datkof')
+         <- can-matkof Datkof Datkof'.
+
+-     : can-mkof (kof/pi D2 D1) (mkof/pi D2' D1')
+         <- can-mkof D1 D1'
+         <- ({x} {d} can-mkof (D2 x d) (D2' x d)).
+
+-     : can-mkof (kof/lam D2 D1) (mkof/lam D2' D1')
+         <- can-mkof D1 D1'
+         <- ({x} {d} can-mkof (D2 x d) (D2' x d)).
+
+-     : can-mwfkind wfkind/tp mwfkind/tp.
+
+-     : can-mwfkind (wfkind/pi D2 D1) (mwfkind/pi D1' D2')
+         <- can-mkof D1 D1'
+         <- ({x} {d} can-mwfkind (D2 x d) (D2' x d)).
+
+
+%worlds (csig | asig | var | bind) 
+  (can-matof    _ _) 
+  (can-mof     _ _) 
+  (can-matkof  _ _)
+  (can-mkof    _ _) 
+  (can-mwfkind _ _).
+%total (D1 D2 D3 D4 D5) 
+  (can-matof   D1 _)
+  (can-mof     D2 _)
+  (can-matkof  D3 _)
+  (can-mkof    D4 _)
+  (can-mwfkind D5 _).
+
+
+%% metrics for explicit contexts typing
+
+matofe   : at-ofe G R A -> metric -> type.
+mofe     : ofe G M A -> metric -> type.
+matkofe  : at-kofe G P K -> metric -> type.
+mkofe    : kofe G A K -> metric -> type.
+mwfkinde : wfkinde G K -> metric ->  type.
+
+matofe/closed  : matofe (at-ofe/closed Datof) Datof'
+                  <- matof Datof Datof'.
+
+matofe/const   : matofe (at-ofe/const Dkofe _) (msing Dkofe')
+                  <- mkofe Dkofe Dkofe'.
+
+matofe/var     : matofe (at-ofe/var Dkof _) (msing Dkof')
+                  <- mkofe Dkof Dkof'.
+
+matofe/app     : matofe (at-ofe/app _ Dofe Datofe) (mpair Dofe' Datofe') 
+                  <- mofe Dofe Dofe'
+                  <- matofe Datofe Datofe'.
+
+mofe/at        : mofe (ofe/at Datofe) (msing Datofe')
+                  <- matofe Datofe Datofe'.
+
+mofe/lam       : mofe (ofe/lam Dkofe ([x] Dofe x)) (mpair Dofe' Dkofe')
+                  <- mkofe Dkofe Dkofe'
+                  <- ({x} mofe (Dofe x) Dofe').
+
+matkofe/const  : matkofe (at-kofe/const Dwfkinde _) (msing Dwfkinde')
+                  <- mwfkinde Dwfkinde Dwfkinde'.
+
+matkofe/closed : matkofe (at-kofe/closed Datkof) Datkof'
+                  <- matkof Datkof Datkof'.
+
+matkofe/app    : matkofe (at-kofe/app _ Dofe Datkofe) (mpair Dofe' Datkofe')
+                  <- mofe Dofe Dofe'
+                  <- matkofe Datkofe Datkofe'.
+
+mkofe/base     : mkofe (kofe/base Datkofe) (msing Datkofe')
+                  <- matkofe Datkofe Datkofe'.
+
+mkofe/pi       : mkofe (kofe/pi ([x] DkofeB x) DkofeA) (mpair DkofeB' DkofeA')
+                  <- ({x} mkofe (DkofeB x) DkofeB')
+                  <- mkofe DkofeA DkofeA'.
+
+mkofe/lam      : mkofe (kofe/lam ([x] D2 x) D1) (mpair D2' D1')
+                  <- mkofe D1 D1'
+                  <- ({x} mkofe (D2 x) D2').
+
+mwfkinde/tp    : mwfkinde wfkinde/tp munit.
+
+mwfkinde/pi    : mwfkinde (wfkinde/pi ([x] Dwfkinde x) Dkofe)
+                     (mpair Dwfkinde' Dkofe')
+                  <- ({x} mwfkinde (Dwfkinde x) Dwfkinde')
+                  <- mkofe Dkofe Dkofe'.
+
+%% can-mofe
+
+can-matofe : {D:at-ofe G R A} matofe D Rm -> type.
+%mode can-matofe +X1 -X2.
+
+can-mofe : {D:ofe G M A} mofe D Mm -> type.
+%mode can-mofe +X1 -X2.
+
+can-matkofe : {D:at-kofe G P K} matkofe D Pm -> type.
+%mode can-matkofe +X1 -X2.
+
+can-mkofe : {D:kofe G A K} mkofe D Am -> type.
+%mode can-mkofe +X1 -X2.
+
+can-mwfkinde : {D:wfkinde G K} mwfkinde D Km -> type.
+%mode can-mwfkinde +X1 -X2.
+
+
+-     : can-matofe (at-ofe/const D _) (matofe/const D')
+         <- can-mkofe D D'.
+
+-     : can-matofe (at-ofe/closed D) (matofe/closed Dmatof)
+         <- can-matof D Dmatof.
+
+-     : can-matofe (at-ofe/var D _) (matofe/var D')
+         <- can-mkofe D D'.
+
+-     : can-matofe (at-ofe/app _ Dof Datof) (matofe/app Datof' Dof')
+         <- can-matofe Datof Datof'
+         <- can-mofe Dof Dof'.
+
+-     : can-mofe (ofe/at D) (mofe/at D')
+         <- can-matofe D D'.
+
+-     : can-mofe (ofe/lam D1 D2) (mofe/lam D2' D1')
+         <- can-mkofe D1 D1'
+         <- ({x} can-mofe (D2 x) (D2' x)).
+
+-     : can-matkofe (at-kofe/const D _) (matkofe/const D')
+         <- can-mwfkinde D D'.
+
+-     : can-matkofe (at-kofe/closed D) (matkofe/closed D')
+         <- can-matkof D D'.
+
+-     : can-matkofe (at-kofe/app _ Dof Datkof) (matkofe/app Datkof' Dof')
+         <- can-mofe Dof Dof'
+         <- can-matkofe Datkof Datkof'.
+
+-     : can-mkofe (kofe/base Datkof) (mkofe/base Datkof')
+         <- can-matkofe Datkof Datkof'.
+
+-     : can-mkofe (kofe/pi D2 D1) (mkofe/pi D1' D2')
+         <- can-mkofe D1 D1'
+         <- ({x} can-mkofe (D2 x) (D2' x)).
+
+-     : can-mkofe (kofe/lam D2 D1) (mkofe/lam D2' D1')
+         <- can-mkofe D1 D1'
+         <- ({x} can-mkofe (D2 x) (D2' x)).
+
+-     : can-mwfkinde wfkinde/tp mwfkinde/tp.
+
+-     : can-mwfkinde (wfkinde/pi D2 D1) (mwfkinde/pi D1' D2')
+         <- can-mkofe D1 D1'
+         <- ({x} can-mwfkinde (D2 x) (D2' x)).
+
+
+%worlds (csig | asig | var | bind) 
+  (can-matofe   _ _) 
+  (can-mofe     _ _) 
+  (can-matkofe  _ _)
+  (can-mkofe    _ _) 
+  (can-mwfkinde _ _).
+%total (D1 D2 D3 D4 D5) 
+  (can-matofe   D1 _)
+  (can-mofe     D2 _)
+  (can-matkofe  D3 _)
+  (can-mkofe    D4 _)
+  (can-mwfkinde D5 _).
+
+
+
+
+%% respects lemmas %%
+
+matof-resp : atm-eq R R' 
+              -> tp-eq A A' 
+              -> {D:at-of R A} 
+                 matof D Rm
+%%                 
+              -> {D':at-of R' A'} 
+                 matof D' Rm -> type.
+%mode matof-resp +X1 +X2 +X3 +X4 -X5 -X6.
+
+- : matof-resp atm-eq/i tp-eq/i D Dm D Dm.
+
+%worlds (csig | asig | var | bind) (matof-resp _ _ _ _ _ _).
+%total {} (matof-resp _ _ _ _ _ _).
+
+
+matkof-resp : atp-eq P P'
+               -> kind-eq K K'
+               -> {D:at-kof P K}
+                  matkof D Pm
+%%
+               -> {D':at-kof P' K'}
+                  matkof D' Pm -> type.
+%mode matkof-resp +X1 +X2 +X3 +X4 -X5 -X6.
+
+- : matkof-resp atp-eq/i kind-eq/i D Dm D Dm.
+
+%worlds (csig | asig | var | bind) (matkof-resp _ _ _ _ _ _).
+%total {} (matkof-resp _ _ _ _ _ _).
+
+
+mof-resp : tm-eq M M'
+            -> tp-eq A A'
+            -> {D:of M A}
+               mof D Mm
+%%
+            -> {D':of M A'}
+               mof D' Mm -> type.
+%mode mof-resp +X1 +X2 +X3 +X4 -X5 -X6.
+
+- : mof-resp tm-eq/i tp-eq/i D Dm D Dm.
+
+%worlds (csig | asig | var | bind) (mof-resp _ _ _ _ _ _).
+%total {} (mof-resp _ _ _ _ _ _).
+
+
+mkof-resp : tp-eq A A' 
+             -> kind-eq K K' 
+             -> {D:kof A K} mkof D Am 
+%%                
+             -> {D':kof A' K'} mkof D' Am -> type.
+%mode mkof-resp +X0 +X1 +X2 +X3 -X4 -X5.
+
+- : mkof-resp tp-eq/i kind-eq/i D Dm D Dm.
+
+%worlds (csig | asig | var | bind) (mkof-resp _ _ _ _ _ _).
+%total {} (mkof-resp _ _ _ _ _ _).
+
+
+mwfkind-resp : kind-eq K K' -> {D:wfkind K} mwfkind D Km
+                -> {D':wfkind K'} mwfkind D' Km -> type.
+%mode mwfkind-resp +X1 +X2 +X3 -X4 -X5.
+
+- : mwfkind-resp kind-eq/i D Dm D Dm.
+
+%worlds (csig | asig | var | bind) (mwfkind-resp _ _ _ _ _).
+%total {} (mwfkind-resp _ _ _ _ _).
+
+
+
+%%% weakening %%%
+
+
+weaken-lookup : lookup G Y A -> {X} {B} lookup (cons G X B) Y A -> type.
+%mode weaken-lookup +X1 +X2 +X3 -X4.
+
+- : weaken-lookup Dlook _ _ (lookup/miss Dlook).
+
+%worlds (csig | asig | bind | ovar | var) (weaken-lookup _ _ _ _).
+%total {} (weaken-lookup _ _ _ _).
+
+
+weaken-lookup' : append G1 G2 G -> lookup G1 X A -> lookup G X A -> type.
+%mode weaken-lookup' +X1 +X2 -X3.
+
+- : weaken-lookup' append/nil D D.
+
+- : weaken-lookup' 
+        (append/cons (Dapp : append G1 G2' G'))
+        (Dlook : lookup G1 X A)
+%%
+        Dlook''
+     <- weaken-lookup' Dapp Dlook Dlook'
+     <- weaken-lookup Dlook' _ _ Dlook''.
+
+%worlds (csig | asig | bind | ovar | var) (weaken-lookup' _ _ _).
+%total D (weaken-lookup' D _ _).
+
+
+weakeng-lookup : append G1 G2 G -> append (cons G1 X B) G2 G' -> lookup G Y A 
+%%                     
+                  -> lookup G' Y A -> type.
+%mode weakeng-lookup +X1 +X2 +X3 -X4.
+
+-hit    : weakeng-lookup
+              (append/cons _)
+              (append/cons _)
+              lookup/hit
+%%
+              lookup/hit.
+
+-miss   : weakeng-lookup 
+              (append/cons Dapp1) 
+              (append/cons Dapp2) 
+              (lookup/miss Dlook)
+%%
+              (lookup/miss Dlook')
+%%%
+           <- weakeng-lookup Dapp1 Dapp2 Dlook Dlook'.
+
+-nil    : weakeng-lookup append/nil append/nil Dlook
+%%
+              (lookup/miss Dlook).
+
+
+%worlds (csig | asig | var | bind) (weakeng-lookup _ _ _ _).
+%total D (weakeng-lookup _ _ D _).
+
+
+weakeng-atofe-m : {Rm} 
+                     append G1 G2 G
+                  -> append (cons G1 X B) G2 G'
+                  -> {D:at-ofe G R A}
+                     matofe D Rm
+%%
+                  -> {D':at-ofe G' R A}
+                     matofe D' Rm -> type.
+%mode weakeng-atofe-m +X1 +X2 +X3 +X4 +X5 -X6 -X7.
+
+weakeng-ofe-m : {Mm} 
+                    append G1 G2 G
+                 -> append (cons G1 X B) G2 G'
+                 -> {D:ofe G M A}
+                    mofe D Mm
+%%                    
+                 -> {D':ofe G' M A}
+                    mofe D' Mm -> type.
+%mode weakeng-ofe-m +X1 +X2 +X3 +X4 +X5 -X6 -X7.
+
+weakeng-atkofe-m : {Pm}
+                      append G1 G2 G
+                   -> append (cons G1 X B) G2 G'
+                   -> {D:at-kofe G P K}
+                      matkofe D Pm
+%%
+                   -> {D':at-kofe G' P K}
+                      matkofe D' Pm -> type.
+%mode weakeng-atkofe-m +X1 +X2 +X3 +X4 +X5 -X6 -X7.
+
+weakeng-kofe-m   : {Am}
+                      append G1 G2 G
+                   -> append (cons G1 X B) G2 G'
+                   -> {D:kofe G A K}
+                      mkofe D Am
+%%
+                   -> {D':kofe G' A K}
+                      mkofe D' Am -> type.
+%mode weakeng-kofe-m +X1 +X2 +X3 +X4 +X5 -X6 -X7.
+
+weakeng-wfkinde-m : {Km}
+                        append G1 G2 G
+                     -> append (cons G1 X B) G2 G'
+                     -> {D:wfkinde G A}
+                        mwfkinde D Km
+%%
+                     -> {D':wfkinde G' A}
+                        mwfkinde D' Km -> type.
+%mode weakeng-wfkinde-m +X1 +X2 +X3 +X4 +X5 -X6 -X7.
+
+-closed : weakeng-atofe-m Rm
+             (Dappend : append G1 G2 G)
+             (Dappend' : append (cons G1 X B) G2 G')
+             (at-ofe/closed (Datof : at-of R A))
+             (matofe/closed (Dmatof : matof Datof Rm))
+%%
+             (at-ofe/closed Datof)
+             (matofe/closed Dmatof).
+
+-const : weakeng-atofe-m (msing Am)
+             (Dappend : append G1 G2 G)
+             (Dappend' : append (cons G1 X B) G2 G')
+             (at-ofe/const (Dkofe : kofe G A ktype) (Dcof : cof C A))
+             (matofe/const (Dmkofe : mkofe Dkofe Am))
+%%
+             (at-ofe/const Dkofe' Dcof)
+             (matofe/const Dmkofe')
+%%%            
+          <- weakeng-kofe-m Am Dappend Dappend' Dkofe Dmkofe
+             (Dkofe' : kofe G' A ktype)
+             (Dmkofe' : mkofe Dkofe' Am).
+
+-var   : weakeng-atofe-m (msing Am)
+             (Dappend : append G1 G2 G)
+             (Dappend' : append (cons G1 X B) G2 G')
+             (at-ofe/var (Dkofe : kofe G A ktype) (Dlookup : lookup G Y A))
+             (matofe/var (Dmkofe : mkofe Dkofe Am))
+%%
+             (at-ofe/var Dkofe' Dlookup')
+             (matofe/var Dmkofe')
+%%%
+          <- weakeng-lookup Dappend Dappend' Dlookup
+             (Dlookup' : lookup G' Y A)
+          <- weakeng-kofe-m Am Dappend Dappend' Dkofe Dmkofe
+             (Dkofe' : kofe G' A ktype)
+             (Dmkofe' : mkofe Dkofe' Am).
+
+-app    : weakeng-atofe-m (mpair Mm Rm) %% G, x:B |- app (R:C) (M:A)
+             (Dappend : append G1 G2 G)
+             (Dappend' : append (cons G1 X B) G2 G')
+             (at-ofe/app 
+                 (Dsub : tpsub ([x] C x) M C')
+                 (Dofe : ofe G M A)
+                 (Datofe : at-ofe G R (pi A ([x] C x))))
+             (matofe/app
+                 (Dmatofe : matofe Datofe Rm)
+                 (Dmofe : mofe Dofe Mm))
+%%
+             (at-ofe/app Dsub Dofe' Datofe')
+             (matofe/app Dmatofe' Dmofe')
+%%%
+          <- weakeng-atofe-m Rm Dappend Dappend' Datofe Dmatofe
+             (Datofe' : at-ofe G' R (pi A ([x] C x)))
+             (Dmatofe' : matofe Datofe' Rm)
+          <- weakeng-ofe-m Mm Dappend Dappend' Dofe Dmofe
+             (Dofe' : ofe G' M A)
+             (Dmofe' : mofe Dofe' Mm).
+
+-at     : weakeng-ofe-m (msing Rm)
+             (Dappend : append G1 G2 G)
+             (Dappend' : append (cons G1 X B) G2 G')
+             (ofe/at (Datofe : at-ofe G R (base P)))
+             (mofe/at (Dmatofe : matofe Datofe Rm))
+%%
+             (ofe/at Datofe')
+             (mofe/at Dmatofe')
+%%%            
+          <- weakeng-atofe-m Rm Dappend Dappend' Datofe Dmatofe
+             (Datofe' : at-ofe G' R (base P))
+             (Dmatofe' : matofe Datofe' Rm).
+
+-lam    : weakeng-ofe-m (mpair Mm Am)  %% G, X:B |- \x.M : {X:A} C
+              (Dappend : append G1 G2 G)
+              (Dappend' : append (cons G1 X B) G2 G')
+              (ofe/lam 
+                  (Dkofe : kofe G A ktype)
+                  ([x] Dofe x : ofe (cons G x A) (M x) (C x)))
+              (mofe/lam
+                  ([x] Dmofe x : mofe (Dofe x) Mm)
+                  (Dmkofe : mkofe Dkofe Am))
+%%
+              (ofe/lam Dkofe' ([x] Dofe' x))
+              (mofe/lam ([x] Dmofe' x) Dmkofe')
+%%
+           <- weakeng-kofe-m Am Dappend Dappend' Dkofe Dmkofe
+              (Dkofe' : kofe G' A ktype)
+              (Dmkofe' : mkofe Dkofe' Am)
+           <- ({x}
+                  weakeng-ofe-m 
+                  Mm 
+                  (append/cons Dappend)
+                  (append/cons Dappend')
+                  (Dofe x)
+                  (Dmofe x)
+                  (Dofe' x : ofe (cons G' x A) (M x) (C x))
+                  (Dmofe' x : mofe (Dofe' x) Mm)).
+
+-aconst  : weakeng-atkofe-m (msing Km)
+               (Dappend : append G1 G2 G)
+               (Dappend' : append (cons G1 X B) G2 G')
+               (at-kofe/const
+                   (Dwfkinde : wfkinde G K)
+                   (Dckof : ckof P K))
+               (matkofe/const
+                   (Dmwfkinde : mwfkinde Dwfkinde Km))
+%%
+               (at-kofe/const Dwfkinde' Dckof)
+               (matkofe/const Dmwfkinde')
+%%%
+            <- weakeng-wfkinde-m Km Dappend Dappend' Dwfkinde Dmwfkinde
+               (Dwfkinde' : wfkinde G' K)
+               (Dmwfkinde' : mwfkinde Dwfkinde' Km).
+
+-aclosed : weakeng-atkofe-m Pm
+               (Dappend : append G1 G2 G)
+               (Dappend' : append (cons G1 X B) G2 G')
+               (at-kofe/closed
+                   (Datkof : at-kof P K))
+               (matkofe/closed
+                   (Dmatkof : matkof Datkof Pm))
+%%
+               (at-kofe/closed Datkof)
+               (matkofe/closed Dmatkof).
+
+-aapp    : weakeng-atkofe-m (mpair Mm Pm)
+               (Dappend  : append G1 G2 G)
+               (Dappend' : append (cons G1 X B) G2 G')
+               (at-kofe/app
+                   (Dksub    : ksub ([x] K x) M K')
+                   (Dofe     : ofe G M A)
+                   (Datkofe  : at-kofe G P (kpi A [x] K x)))
+               (matkofe/app
+                   (Dmatkofe : matkofe Datkofe Pm)
+                   (Dmofe    : mofe Dofe Mm))
+%%
+               (at-kofe/app Dksub Dofe' Datkofe')
+               (matkofe/app Dmatkofe' Dmkofe')
+%%%
+            <- weakeng-atkofe-m Pm Dappend Dappend' Datkofe Dmatkofe
+               (Datkofe'  : at-kofe G' P (kpi A [x] K x))
+               (Dmatkofe' : matkofe Datkofe' Pm)
+            <- weakeng-ofe-m Mm Dappend Dappend' Dofe Dmofe
+               (Dofe'     : ofe G' M A)
+               (Dmkofe'   : mofe Dofe' Mm).
+
+-base    : weakeng-kofe-m (msing Pm)
+               (Dappend  : append G1 G2 G)
+               (Dappend' : append (cons G1 X B) G2 G')
+               (kofe/base
+                   (Datkofe : at-kofe G P ktype))
+               (mkofe/base
+                   (Dmatkofe : matkofe Datkofe Pm))
+%%
+               (kofe/base Datkofe')
+               (mkofe/base Dmatkofe')
+%%%
+            <- weakeng-atkofe-m Pm Dappend Dappend' Datkofe Dmatkofe
+               (Datkofe' : at-kofe G' P ktype)
+               (Dmatkofe' : matkofe Datkofe' Pm).
+
+-pi      : weakeng-kofe-m (mpair Cm Am)
+               (Dappend  : append G1 G2 G)
+               (Dappend' : append (cons G1 X B) G2 G')
+               (kofe/pi
+                   ([x] DkofeC x : kofe (cons G x A) (C x) ktype)
+                   (DkofeA       : kofe G A ktype))
+               (mkofe/pi
+                   (DmkofeA       : mkofe DkofeA Am)
+                   ([x] DmkofeC x : mkofe (DkofeC x) Cm))
+%%
+               (kofe/pi ([x] DkofeC' x) DkofeA')
+               (mkofe/pi DmkofeA' ([x] DmkofeC' x))
+%%%
+            <- weakeng-kofe-m Am Dappend Dappend' DkofeA DmkofeA
+               (DkofeA'  : kofe G' A ktype)
+               (DmkofeA' : mkofe DkofeA' Am)
+            <- ({x}
+                   weakeng-kofe-m Cm (append/cons Dappend) (append/cons Dappend')
+                   (DkofeC x) (DmkofeC x)
+                   (DkofeC' x  : kofe (cons G' x A) (C x) ktype)
+                   (DmkofeC' x : mkofe (DkofeC' x) Cm)).
+
+-alam   : weakeng-kofe-m (mpair Cm Am)
+              (Dappend  : append G1 G2 G)
+              (Dappend' : append (cons G1 X B) G2 G')
+              (kofe/lam
+                  ([x] DkofeC x : kofe (cons G x A) (C x) (K x))
+                  (DkofeA       : kofe G A ktype))
+              (mkofe/lam
+                  ([x] DmkofeC x : mkofe (DkofeC x) Cm)
+                  (DmkofeA : mkofe DkofeA Am))
+%%
+              (kofe/lam ([x] DkofeC' x) DkofeA')
+              (mkofe/lam ([x] DmkofeC' x) DmkofeA')
+%%
+           <- weakeng-kofe-m Am Dappend Dappend' DkofeA DmkofeA
+              (DkofeA' : kofe G' A ktype)
+              (DmkofeA' : mkofe DkofeA' Am)
+           <- ({x}
+                  weakeng-kofe-m Cm
+                  (append/cons Dappend) (append/cons Dappend')
+                  (DkofeC x)
+                  (DmkofeC x)
+                  (DkofeC' x : kofe (cons G' x A) (C x) (K x))
+                  (DmkofeC' x : mkofe (DkofeC' x) Cm)).
+
+-ktype  : weakeng-wfkinde-m munit Dappend Dappend' wfkinde/tp mwfkinde/tp
+              wfkinde/tp mwfkinde/tp.
+
+-kpi    : weakeng-wfkinde-m (mpair Km Am)
+              (Dappend  : append G1 G2 G)
+              (Dappend' : append (cons G1 X B) G2 G')
+              (wfkinde/pi
+                  ([x] Dwfkinde x : wfkinde (cons G x A) (K x))
+                  (Dkofe          : kofe G A ktype))
+              (mwfkinde/pi
+                  (Dmkofe          : mkofe Dkofe Am)
+                  ([x] Dmwfkinde x : mwfkinde (Dwfkinde x) Km))
+%%
+              (wfkinde/pi ([x] Dwfkinde' x) Dkofe')
+              (mwfkinde/pi Dmkofe' ([x] Dmwfkinde' x))
+%%%
+           <- weakeng-kofe-m Am Dappend Dappend' Dkofe Dmkofe
+              (Dkofe'  : kofe G' A ktype)
+              (Dmkofe' : mkofe Dkofe' Am)
+           <- ({x}
+                  weakeng-wfkinde-m Km (append/cons Dappend) (append/cons Dappend')
+                  (Dwfkinde x) (Dmwfkinde x)
+                  (Dwfkinde' x : wfkinde (cons G' x A) (K x))
+                  (Dmwfkinde' x : mwfkinde (Dwfkinde' x) Km)).
+
+%worlds (csig | asig | var | bind)
+  (weakeng-atofe-m   _ _ _ _ _ _ _)
+  (weakeng-ofe-m     _ _ _ _ _ _ _)
+  (weakeng-atkofe-m  _ _ _ _ _ _ _)
+  (weakeng-kofe-m    _ _ _ _ _ _ _)
+  (weakeng-wfkinde-m _ _ _ _ _ _ _).
+%total (Rm Mm Pm Am Km)
+  (weakeng-atofe-m   Rm _ _ _ _ _ _)
+  (weakeng-ofe-m     Mm _ _ _ _ _ _)
+  (weakeng-atkofe-m  Pm _ _ _ _ _ _)
+  (weakeng-kofe-m    Am _ _ _ _ _ _)
+  (weakeng-wfkinde-m Km _ _ _ _ _ _).
+
+
+weakeng-ofe : append G1 G2 G
+              -> append (cons G1 X B) G2 G'
+              -> ofe G M A
+%%
+              -> ofe G' M A -> type.
+%mode weakeng-ofe +X1 +X2 +X3 -X4.
+
+-      : weakeng-ofe Dappend Dappend' Dof Dof'
+          <- can-mofe Dof Dmof
+          <- weakeng-ofe-m _ Dappend Dappend' Dof Dmof Dof' _.
+
+%worlds (csig | asig | var | ovar | bind) (weakeng-ofe _ _ _ _). 
+%total {} (weakeng-ofe _ _ _ _).
+
+
+weakeng-atofe : append G1 G2 G
+              -> append (cons G1 X B) G2 G'
+              -> at-ofe G R A
+%%
+              -> at-ofe G' R A -> type.
+%mode weakeng-atofe +X1 +X2 +X3 -X4.
+
+-      : weakeng-atofe Dappend Dappend' Dof Dof'
+          <- can-matofe Dof Dmof
+          <- weakeng-atofe-m _ Dappend Dappend' Dof Dmof Dof' _.
+
+%worlds (csig | asig | var | ovar | bind) (weakeng-atofe _ _ _ _). 
+%total {} (weakeng-atofe _ _ _ _).
+
+
+
+weakeng-kofe : append G1 G2 G
+              -> append (cons G1 X B) G2 G'
+              -> kofe G A K
+%%
+              -> kofe G' A K -> type.
+%mode weakeng-kofe +X1 +X2 +X3 -X4.
+
+-      : weakeng-kofe Dappend Dappend' Dof Dof'
+          <- can-mkofe Dof Dmof
+          <- weakeng-kofe-m _ Dappend Dappend' Dof Dmof Dof' _.
+
+%worlds (csig | asig | var | ovar | bind) (weakeng-kofe _ _ _ _). 
+%total {} (weakeng-kofe _ _ _ _).
+
+
+weakeng-atkofe : append G1 G2 G
+              -> append (cons G1 X B) G2 G'
+              -> at-kofe G R A
+%%
+              -> at-kofe G' R A -> type.
+%mode weakeng-atkofe +X1 +X2 +X3 -X4.
+
+-      : weakeng-atkofe Dappend Dappend' Dof Dof'
+          <- can-matkofe Dof Dmof
+          <- weakeng-atkofe-m _ Dappend Dappend' Dof Dmof Dof' _.
+
+%worlds (csig | asig | var | ovar | bind) (weakeng-atkofe _ _ _ _). 
+%total {} (weakeng-atkofe _ _ _ _).
+
+
+weakeng-wfkinde : append G1 G2 G
+              -> append (cons G1 X B) G2 G'
+              -> wfkinde G K
+%%
+              -> wfkinde G' K -> type.
+%mode weakeng-wfkinde +X1 +X2 +X3 -X4.
+
+-      : weakeng-wfkinde Dappend Dappend' Dof Dof'
+          <- can-mwfkinde Dof Dmof
+          <- weakeng-wfkinde-m _ Dappend Dappend' Dof Dmof Dof' _.
+
+%worlds (csig | asig | var | ovar | bind) (weakeng-wfkinde _ _ _ _). 
+%total {} (weakeng-wfkinde _ _ _ _).
+
+
+
+
+weaken-ofe : ofe G M A -> {B} {X} 
+                 ofe (cons G X B) M A -> type.
+%mode weaken-ofe +X1 +X2 +X3 -X4. 
+
+- : weaken-ofe (Dofe : ofe G M A) B X
+        Dofe'
+     <- weakeng-ofe 
+        (append/nil : append G nil G)
+        (append/nil : append (cons G X B) nil (cons G X B))
+        Dofe
+        (Dofe' : ofe (cons G X B) M A).
+
+%worlds (csig | asig | var | bind) (weaken-ofe _ _ _ _).
+%total {} (weaken-ofe _ _ _ _).
+
+
+weaken-atofe : at-ofe G R A -> {B} {X} 
+%%                 
+                 at-ofe (cons G X B) R A -> type.
+%mode weaken-atofe +X1 +X2 +X3 -X4. 
+
+- : weaken-atofe 
+        (Datofe : at-ofe G R A) B X
+%%        
+        Datofe'
+%%        
+     <- weakeng-atofe 
+        (append/nil : append G nil G)
+        (append/nil : append (cons G X B) nil (cons G X B))
+        Datofe
+        (Datofe' : at-ofe (cons G X B) R A).
+
+%worlds (csig | asig | var | bind) (weaken-atofe _ _ _ _).
+%total {} (weaken-atofe _ _ _ _).
+
+
+weaken-kofe : kofe G A K -> {B} {X}
+%%
+                  kofe (cons G X B) A K -> type.
+%mode weaken-kofe +X1 +X2 +X3 -X4.
+
+- : weaken-kofe (Dkofe : kofe G A K) B X
+%%
+        Dkofe'
+%%
+     <- weakeng-kofe
+        (append/nil : append G nil G)
+        (append/nil : append (cons G X B) nil (cons G X B))
+        Dkofe
+        (Dkofe' : kofe (cons G X B) A K).
+
+%worlds (csig | asig | var | bind) (weaken-kofe _ _ _ _).
+%total {} (weaken-kofe _ _ _ _).
+
+
+weaken-atkofe : at-kofe G R A -> {B} {X} 
+%%                 
+                 at-kofe (cons G X B) R A -> type.
+%mode weaken-atkofe +X1 +X2 +X3 -X4. 
+
+- : weaken-atkofe 
+        (Datkofe : at-kofe G R A) B X
+%%        
+        Datkofe'
+%%        
+     <- weakeng-atkofe 
+        (append/nil : append G nil G)
+        (append/nil : append (cons G X B) nil (cons G X B))
+        Datkofe
+        (Datkofe' : at-kofe (cons G X B) R A).
+
+%worlds (csig | asig | var | bind) (weaken-atkofe _ _ _ _).
+%total {} (weaken-atkofe _ _ _ _).
+
+
+weaken-wfkinde : wfkinde G K -> {B} {X}
+%%
+                  wfkinde (cons G X B) K -> type.
+%mode weaken-wfkinde +X1 +X2 +X3 -X4.
+
+- : weaken-wfkinde (Dwfkinde : wfkinde G K) B X
+%%
+        Dwfkinde'
+%%
+     <- weakeng-wfkinde
+        (append/nil : append G nil G)
+        (append/nil : append (cons G X B) nil (cons G X B))
+        Dwfkinde
+        (Dwfkinde' : wfkinde (cons G X B) K).
+
+%worlds (csig | asig | var | bind) (weaken-wfkinde _ _ _ _).
+%total {} (weaken-wfkinde _ _ _ _).
+
+
+
+weaken-ofe' : append G1 G2 G -> ofe G1 M A -> ofe G M A -> type.
+%mode weaken-ofe' +X1 +X2 -X3. 
+
+-nil  : weaken-ofe' append/nil D D.
+
+-cons : weaken-ofe'  %% G = G1 @ (G2' :: X:B)
+            (append/cons (Dappend : append G1 G2' G')) 
+            (Dofe : ofe G1 M A)
+%%            
+            Dofe''
+         <- weaken-ofe' Dappend Dofe Dofe'
+         <- weaken-ofe Dofe' B X Dofe''.
+
+
+%worlds (csig | asig | var | bind) (weaken-ofe' _ _ _).
+%total D1 (weaken-ofe' D1 _ _).
+
+
+weaken-kofe' : append G1 G2 G -> kofe G1 A K -> kofe G A K -> type.
+%mode weaken-kofe' +X1 +X2 -X3.
+
+-nil  : weaken-kofe' append/nil D D.
+
+-cons : weaken-kofe'
+            (append/cons (Dappend : append G1 G2' G'))
+            (Dkofe : kofe G1 A K)
+%%
+            Dkofe''
+%%
+         <- weaken-kofe' Dappend Dkofe Dkofe'
+         <- weaken-kofe Dkofe' _ _ Dkofe''.
+
+%worlds (csig | asig | var | bind) (weaken-kofe' _ _ _).
+%total D (weaken-kofe' D _ _).
+
+
+weaken-wfkinde' : append G1 G2 G -> wfkinde G1 K -> wfkinde G K -> type.
+%mode weaken-wfkinde' +X1 +X2 -X3.
+
+-nil  : weaken-wfkinde' append/nil D D.
+
+-cons : weaken-wfkinde'
+            (append/cons (Dappend : append G1 G2' G'))
+            (Dwfkinde : wfkinde G1 K)
+%%
+            Dwfkinde''
+%%
+         <- weaken-wfkinde' Dappend Dwfkinde Dwfkinde'
+         <- weaken-wfkinde Dwfkinde' _ _ Dwfkinde''.
+
+
+%worlds (csig | asig | var | bind) (weaken-wfkinde' _ _ _).
+%total D (weaken-wfkinde' D _ _).
+
+
+
+%%% weakening for simple types %%%
+
+
+weakeng-slookup : sappend G1 G2 G
+                   -> sappend (scons G1 X B) G2 G'
+                   -> slookup G Y A
+%%
+                   -> slookup G' Y A -> type.
+%mode weakeng-slookup +X1 +X2 +X3 -X4.
+
+-hit    : weakeng-slookup (sappend/cons _) (sappend/cons _) slookup/hit
+              slookup/hit.
+
+-miss   : weakeng-slookup 
+              (sappend/cons Dapp1) 
+              (sappend/cons Dapp2)
+              (slookup/miss Dlook)
+%%              
+              (slookup/miss Dlook')
+%%%              
+           <- weakeng-slookup Dapp1 Dapp2 Dlook Dlook'.
+
+-snil   : weakeng-slookup sappend/nil sappend/nil Dlook
+              (slookup/miss Dlook).
+
+%worlds (csig | asig | var | bind | ovar | evar) (weakeng-slookup _ _ _ _).
+%total D (weakeng-slookup _ _ D _).
+
+weakeng-wfkindes : sappend G1 G2 G
+                    -> sappend (scons G1 X S) G2 G'
+                    -> wfkindes G K
+%%
+                    -> wfkindes G' K -> type.
+%mode weakeng-wfkindes +X2 +X3 +X4 -X5.
+
+weakeng-atkofes : sappend G1 G2 G
+                  -> sappend (scons G1 X S) G2 G'
+                  -> at-kofes G P K
+%%
+                  -> at-kofes G' P K -> type.
+%mode weakeng-atkofes +X2 +X3 +X4 -X5.
+
+weakeng-kofes  : sappend G1 G2 G
+                  -> sappend (scons G1 X S) G2 G'
+                  -> kofes G A K
+%%
+                  -> kofes G' A K -> type.
+%mode weakeng-kofes +X2 +X3 +X4 -X5.
+
+weakeng-atofes : sappend G1 G2 G
+                  -> sappend (scons G1 X S) G2 G'
+                  -> at-ofes G R T
+%%                     
+                  -> at-ofes G' R T -> type.
+%mode weakeng-atofes +X2 +X3 +X4 -X5.
+
+weakeng-ofes   : sappend G1 G2 G
+                  -> sappend (scons G1 X S) G2 G'
+                  -> ofes G M T
+%%
+                -> ofes G' M T -> type.
+%mode weakeng-ofes +X2 +X3 +X4 -X5.
+
+-ktype    : weakeng-wfkindes _ _ wfkindes/type wfkindes/type.
+
+-kpi      : weakeng-wfkindes Dapp1 Dapp2
+                (wfkindes/pi ([x] Dwfkindes x) Dsimp Dkofes)
+                (wfkindes/pi ([x] Dwfkindes' x) Dsimp Dkofes')
+             <- weakeng-kofes Dapp1 Dapp2 Dkofes Dkofes'
+             <- ({x}
+                    weakeng-wfkindes
+                    (sappend/cons Dapp1)
+                    (sappend/cons Dapp2)
+                    (Dwfkindes x)
+                    (Dwfkindes' x)).
+
+-closed   : weakeng-atkofes _ _
+                (at-kofes/closed D1 D2 : at-kofes G P K)
+                (at-kofes/closed D1 D2 : at-kofes G' P K).
+
+-const    : weakeng-atkofes Dapp1 Dapp2
+                (at-kofes/const D1 D2 D3 : at-kofes G (aconst A) K)
+                (at-kofes/const D1 D2' D3)
+             <- weakeng-wfkindes Dapp1 Dapp2 D2 D2'.
+
+-app      : weakeng-atkofes Dapp1 Dapp2 (at-kofes/app D2 D1)
+                (at-kofes/app D2' D1')
+             <- weakeng-atkofes Dapp1 Dapp2 D1 D1'
+             <- weakeng-ofes Dapp1 Dapp2 D2 D2'.
+
+-base     : weakeng-kofes Dapp1 Dapp2
+                (kofes/base Datkofes)
+                (kofes/base Datkofes')
+             <- weakeng-atkofes Dapp1 Dapp2 Datkofes
+                Datkofes'.
+
+-alam     : weakeng-kofes Dapp1 Dapp2
+                (kofes/lam Dof)
+                (kofes/lam Dof')
+             <- ({x}
+                    weakeng-kofes 
+                    (sappend/cons Dapp1) 
+                    (sappend/cons Dapp2) 
+                    (Dof x) 
+                    (Dof' x)).
+
+-pi       : weakeng-kofes Dapp1 Dapp2 
+                (kofes/pi ([x] DkofesB x) Dsimp DkofesA)
+                (kofes/pi ([x] DkofesB' x) Dsimp DkofesA')
+             <- weakeng-kofes Dapp1 Dapp2 DkofesA DkofesA'
+             <- ({x} weakeng-kofes 
+                    (sappend/cons Dapp1) 
+                    (sappend/cons Dapp2) 
+                    (DkofesB x) 
+                    (DkofesB' x)).
+
+-const    : weakeng-atofes Dapp1 Dapp2 
+                (at-ofes/const D1 D2 D3 : at-ofes G (const C) T) 
+                (at-ofes/const D1 D2' D3)
+             <- weakeng-kofes Dapp1 Dapp2 D2 D2'.
+
+-closed   : weakeng-atofes _ _
+                (at-ofes/closed D1 D2 : at-ofes G R T)
+                (at-ofes/closed D1 D2 : at-ofes G' R T).
+
+-var      : weakeng-atofes Dappend Dappend'
+                (at-ofes/var Dlookup)
+                (at-ofes/var Dlookup')
+             <- weakeng-slookup Dappend Dappend' Dlookup Dlookup'.
+
+-app      : weakeng-atofes Dappend Dappend' (at-ofes/app D2 D1) 
+                (at-ofes/app D2' D1')
+             <- weakeng-atofes Dappend Dappend' D1 D1'
+             <- weakeng-ofes Dappend Dappend' D2 D2'.
+
+-at       : weakeng-ofes Dappend Dappend' (ofes/at Datofes)
+                (ofes/at Datofes')
+             <- weakeng-atofes Dappend Dappend' Datofes Datofes'.
+
+-lam      : weakeng-ofes Dappend Dappend' %% G |- \x.M : U -> V
+                (ofes/lam ([x] Dofes x : ofes (scons G x U) (M x) V))
+%%                
+                (ofes/lam ([x] Dofes' x))
+%%%
+             <- ({x}
+                    weakeng-ofes 
+                    (sappend/cons Dappend) 
+                    (sappend/cons Dappend')
+                    (Dofes x)
+                    (Dofes' x : ofes (scons G' x U) (M x) V)).
+
+%worlds (csig | asig | var | bind | ovar | evar) 
+  (weakeng-wfkindes _ _ _ _)
+  (weakeng-atkofes _ _ _ _)
+  (weakeng-kofes   _ _ _ _)
+  (weakeng-atofes  _ _ _ _)
+  (weakeng-ofes    _ _ _ _).
+%total (D1 D2 D3 D4 D5)
+  (weakeng-wfkindes _ _ D1 _)
+  (weakeng-atkofes  _ _ D2 _)
+  (weakeng-kofes    _ _ D3 _)
+  (weakeng-atofes   _ _ D4 _)
+  (weakeng-ofes     _ _ D5 _).
+
+
+
+weaken-slookup : slookup G Y T -> {X} {S} slookup (scons G X S) Y T -> type.
+%mode weaken-slookup +X1 +X2 +X3 -X4.
+
+- : weaken-slookup Dlook _ _ (slookup/miss Dlook).
+
+%worlds (csig | asig | bind | var | ovar | evar) (weaken-slookup _ _ _ _).
+%total {} (weaken-slookup _ _ _ _).
+
+
+weaken-ofes : ofes G M T -> {X} {S} ofes (scons G X S) M T -> type.
+%mode weaken-ofes +X1 +X2 +X3 -X4.
+
+- : weaken-ofes Dof X S Dof'
+     <- weakeng-ofes sappend/nil sappend/nil Dof
+        (Dof' : ofes (scons G X S) M T).
+
+%worlds (csig | asig | bind | var | ovar | evar) (weaken-ofes _ _ _ _).
+%total {} (weaken-ofes _ _ _ _).
+
+
+weaken-atofes : at-ofes G M T -> {X} {S} at-ofes (scons G X S) M T -> type.
+%mode weaken-atofes +X1 +X2 +X3 -X4.
+
+- : weaken-atofes Dof X S 
+%%        
+        Dof'
+%%   
+     <- weakeng-atofes sappend/nil sappend/nil Dof
+        (Dof' : at-ofes (scons G X S) M T).
+
+%worlds (csig | asig | bind | var | ovar | evar) (weaken-atofes _ _ _ _).
+%total {} (weaken-atofes _ _ _ _).
+
+
+weaken-kofes : kofes G A K -> {X} {S} kofes (scons G X S) A K -> type.
+%mode weaken-kofes +X1 +X2 +X3 -X4.
+
+- : weaken-kofes Dof X S Dof'
+     <- weakeng-kofes sappend/nil sappend/nil Dof
+        (Dof' : kofes (scons G X S) A K).
+
+%worlds (csig | asig | bind | var | ovar | evar) (weaken-kofes _ _ _ _).
+%total {} (weaken-kofes _ _ _ _).
+
+weaken-atkofes : at-kofes G M T -> {X} {S} at-kofes (scons G X S) M T -> type.
+%mode weaken-atkofes +X1 +X2 +X3 -X4.
+
+- : weaken-atkofes Dof X S 
+%%        
+        Dof'
+%%   
+     <- weakeng-atkofes sappend/nil sappend/nil Dof
+        (Dof' : at-kofes (scons G X S) M T).
+
+%worlds (csig | asig | bind | var | ovar | evar) (weaken-atkofes _ _ _ _).
+%total {} (weaken-atkofes _ _ _ _).
+
+
+weaken-wfkindes : wfkindes G A -> {X} {S} wfkindes (scons G X S) A -> type.
+%mode weaken-wfkindes +X1 +X2 +X3 -X4.
+
+- : weaken-wfkindes Dof X S Dof'
+     <- weakeng-wfkindes sappend/nil sappend/nil Dof
+        (Dof' : wfkindes (scons G X S) A).
+
+%worlds (csig | asig | bind | var | ovar | evar) (weaken-wfkindes _ _ _ _).
+%total {} (weaken-wfkindes _ _ _ _).
+
+
+weaken-ofes' : sappend G1 G2 G -> ofes G1 M A -> ofes G M A -> type.
+%mode weaken-ofes' +X1 +X2 -X3.
+
+-nil    : weaken-ofes' sappend/nil D D.
+
+-cons   : weaken-ofes'
+              (sappend/cons (Dappend : sappend G1 G2' G))
+              (Dofes : ofes G1 M A)
+%%
+              Dofes''
+           <- weaken-ofes' Dappend Dofes Dofes'
+           <- weaken-ofes Dofes' X B Dofes''.
+
+%worlds (csig | asig | var | bind | evar) (weaken-ofes' _ _ _).
+%total D1 (weaken-ofes' D1 _ _).
+
+
+weaken-atofes' : sappend G1 G2 G -> at-ofes G1 M A -> at-ofes G M A -> type.
+%mode weaken-atofes' +X1 +X2 -X3.
+
+-nil    : weaken-atofes' sappend/nil D D.
+
+-cons   : weaken-atofes'
+              (sappend/cons (Dappend : sappend G1 G2' G))
+              (Datofes : at-ofes G1 M A)
+%%
+              Datofes''
+           <- weaken-atofes' Dappend Datofes Datofes'
+           <- weaken-atofes Datofes' X B Datofes''.
+
+%worlds (csig | asig | var | bind | evar) (weaken-atofes' _ _ _).
+%total D1 (weaken-atofes' D1 _ _).
+
+
+weaken-kofes' : sappend G1 G2 G -> kofes G1 A K -> kofes G A K -> type.
+%mode weaken-kofes' +X1 +X2 -X3.
+
+-nil    : weaken-kofes' sappend/nil D D.
+
+-cons   : weaken-kofes'
+              (sappend/cons (Dappend : sappend G1 G2' G))
+              (Dkofes : kofes G1 A K)
+%%
+              Dkofes''
+           <- weaken-kofes' Dappend Dkofes Dkofes'
+           <- weaken-kofes Dkofes' X B Dkofes''.
+
+%worlds (csig | asig | var | bind | evar) (weaken-kofes' _ _ _).
+%total D1 (weaken-kofes' D1 _ _).
+
+weaken-atkofes' : sappend G1 G2 G -> at-kofes G1 M A -> at-kofes G M A -> type.
+%mode weaken-atkofes' +X1 +X2 -X3.
+
+-nil    : weaken-atkofes' sappend/nil D D.
+
+-cons   : weaken-atkofes'
+              (sappend/cons (Dappend : sappend G1 G2' G))
+              (Datkofes : at-kofes G1 M A)
+%%
+              Datkofes''
+           <- weaken-atkofes' Dappend Datkofes Datkofes'
+           <- weaken-atkofes Datkofes' X B Datkofes''.
+
+%worlds (csig | asig | var | bind) (weaken-atkofes' _ _ _).
+%total D1 (weaken-atkofes' D1 _ _).
+
+
+weaken-wfkindes' : sappend G1 G2 G -> wfkindes G1 K -> wfkindes G K -> type.
+%mode weaken-wfkindes' +X1 +X2 -X3.
+
+-nil    : weaken-wfkindes' sappend/nil D D.
+
+-cons   : weaken-wfkindes' (sappend/cons (Dappend : sappend G1 G2' G))
+              (Dwfkindes : wfkindes G1 K)
+%%
+              Dwfkindes''
+           <- weaken-wfkindes' Dappend Dwfkindes Dwfkindes'
+           <- weaken-wfkindes Dwfkindes' X B Dwfkindes''.
+
+%worlds (csig | asig | var | bind) (weaken-wfkindes' _ _ _).
+%total D (weaken-wfkindes' D _ _).
+
+
+
+%%% strengthening for cut %%%
+
+strengthen-for-cut-atof : {Rm}
+                              {D:{x} vof x A -> at-of R (B x)}
+                              ({x} {d} matof (D x d) Rm)
+%%                              
+                           -> ({x} tp-eq (B x) B')
+                           -> {D':at-of R B'}
+                              matof D' Rm -> type.
+%mode strengthen-for-cut-atof +X1 +X2 +X3 -X4 -X5 -X6.
+
+strengthen-for-cut-of : {Mm}
+                            {D:{x} vof x A -> of M B}
+                            ({x} {d} mof (D x d) Mm)
+%%                            
+                         -> {D':of M B}
+                            mof D' Mm -> type.
+%mode strengthen-for-cut-of +X1 +X2 +X3 -X4 -X5.
+
+strengthen-for-cut-atkof : {Pm}
+                                {D:{x} vof x A -> at-kof P (K x)}
+                                ({x} {d} matkof (D x d) Pm)
+%%
+                            -> ({x} kind-eq (K x) K')
+                            -> {D':at-kof P K'}
+                               matkof D' Pm -> type.
+%mode strengthen-for-cut-atkof +X1 +X2 +X3 -X4 -X5 -X6.
+
+strengthen-for-cut-kof : {Am}
+                             {D:{x} vof x A -> kof B K}
+                             ({x} {d} mkof (D x d) Am)
+%%                             
+                          -> {D':kof B K}
+                             mkof D' Am -> type.
+%mode strengthen-for-cut-kof +Am +D +X1 -D' -X3.
+
+strengthen-for-cut-wfkind : {Km}
+                                {D:{x} vof x A -> wfkind K}
+                                ({x} {d} mwfkind (D x d) Km)
+%%
+                             -> {D':wfkind K}
+                                mwfkind D' Km -> type.
+%mode strengthen-for-cut-wfkind +X1 +X2 +X3 -X4 -X5.
+
+
+-const    : strengthen-for-cut-atof (msing Bm)
+                ([x] [d:vof x A]
+                    at-of/const 
+                    (Dkof x d : kof B ktype) 
+                    (Dcof     : cof C B))
+                ([x] [d]
+                    matof/const (Dmkof x d : mkof (Dkof x d) Bm))
+%%                  
+                ([_] tp-eq/i)
+                (at-of/const Dkof' Dcof)
+                (matof/const Dmkof')
+%%
+             <- strengthen-for-cut-kof _ Dkof Dmkof
+                (Dkof'  : kof B ktype)
+                (Dmkof' : mkof Dkof' Bm).
+
+-var      : strengthen-for-cut-atof (msing Bm)
+                ([x] [d:vof x A]
+                    at-of/var
+                    (Dkof x d : kof B ktype)
+                    (Dvof : vof Y B))
+                ([x] [d]
+                    matof/var
+                    (Dmkof x d : mkof (Dkof x d) Bm))
+%%
+                ([x] tp-eq/i) (at-of/var Dkof' Dvof) (matof/var Dmkof')
+%%%
+             <- strengthen-for-cut-kof Bm Dkof Dmkof
+                (Dkof' : kof B ktype)
+                (Dmkof' : mkof Dkof' Bm).
+
+-app      : strengthen-for-cut-atof (mpair Mm Rm)
+                ([x] [d:vof x A]
+                    at-of/app
+                    (Dsub x    : tpsub ([y] B x y) M (By x))
+                    (Dof   x d : of M (C x))
+                    (Datof x d : at-of R (pi (C x) [y] B x y)))
+                ([x] [d]
+                    matof/app
+                    (Dmatof x d : matof (Datof x d) Rm)
+                    (Dmof   x d : mof (Dof x d) Mm))
+%%
+                ([x] DeqRes x)
+                (at-of/app (Dsub'' aca) Dof'' Datof'')
+                (matof/app Dmatof'' Dmof'')
+%%%
+             <- strengthen-for-cut-atof Rm Datof Dmatof
+                ([x] DeqPi x : tp-eq (pi (C x) [y] B x y) Api)
+                (Datof'      : at-of R Api)
+                (Dmatof'     : matof Datof' Rm)
+             <- tp-eq-pi-strengthen DeqPi
+                (DeqPi' : tp-eq Api (pi C' [y] B' y))
+             <- ({x}
+                    tp-eq-trans (DeqPi x) DeqPi'
+                    (DeqPi'' x : tp-eq (pi (C x) [y] B x y) (pi C' [y] B' y)))
+             <- ({x}
+                    pi-inj (DeqPi'' x)
+                    (DeqDom x : tp-eq (C x) C')
+                    ([y] DeqCod x y : tp-eq (B x y) (B' y)))
+             <- matof-resp atm-eq/i DeqPi' Datof' Dmatof'
+                (Datof'' : at-of R (pi C' [y] B' y))
+                (Dmatof'' : matof Datof'' Rm)
+             <- ({x} {d}
+                    mof-resp tm-eq/i (DeqDom x) (Dof x d) (Dmof x d)
+                    (Dof' x d : of M C')
+                    (Dmof' x d : mof (Dof' x d) Mm))
+             <- strengthen-for-cut-of Mm Dof' Dmof'
+                (Dof''  : of M C')
+                (Dmof'' : mof Dof'' Mm)
+             <- ({x}
+                    tpsub-compat ([y] DeqCod x y) tm-eq/i tp-eq/i (Dsub x)
+                    (Dsub' x : tpsub ([y] B' y) M (By x)))
+             <- tpsub-closed Dsub'
+                ([x] DeqRes x : tp-eq (By x) By')
+             <- ({x}
+                    tpsub-compat ([_] tp-eq/i) tm-eq/i (DeqRes x) (Dsub' x)
+                    (Dsub'' x : tpsub ([y] B' y) M By')).
+
+-at       : strengthen-for-cut-of (msing Rm)
+                ([x] [d:vof x A]
+                    of/at
+                    (Datof x d : at-of R (base P)))
+                ([x] [d]
+                    mof/at
+                    (Dmatof x d : matof (Datof x d) Rm))
+%%
+                (of/at (Datof'' aca))
+                (mof/at (Dmatof'' aca))
+%%                
+             <- strengthen-for-cut-atof Rm Datof Dmatof
+                ([x] Deq x : tp-eq (base P) B)
+                (Datof'  : at-of R B)
+                (Dmatof' : matof Datof' Rm)
+             <- ({x} tp-eq-sym 
+                    (Deq x) 
+                    (Deq' x : tp-eq B (base P)))
+             <- ({x} matof-resp 
+                    atm-eq/i
+                    (Deq' x)
+                    Datof'
+                    Dmatof'
+                    (Datof'' x : at-of R (base P))
+                    (Dmatof'' x : matof (Datof'' x) Rm)).
+
+
+-lam      : strengthen-for-cut-of (mpair Mm Cm)
+                ([x] [d:vof x A]
+                    of/lam
+                    (Dkof x d : kof C ktype)
+                    ([y] [e:vof y C] Dof y e x d : of (M y) (B y)))
+                ([x] [d]
+                    mof/lam
+                    ([y] [e] Dmof y e x d : mof (Dof y e x d) Mm)
+                    (Dmkof x d : mkof (Dkof x d) Cm))
+%%
+                (of/lam Dkof' ([y] [e] Dof' y e))
+                (mof/lam ([y] [e] Dmof' y e) Dmkof')
+%%
+             <- strengthen-for-cut-kof Cm Dkof Dmkof
+                (Dkof' : kof C ktype)
+                (Dmkof' : mkof Dkof' Cm)
+             <- ({y} {e}
+                    strengthen-for-cut-of Mm (Dof y e) (Dmof y e)
+                    (Dof' y e : of (M y) (B y))
+                    (Dmof' y e : mof (Dof' y e) Mm)).
+
+-aconst   : strengthen-for-cut-atkof (msing Km)
+                ([x] [d:vof x A]
+                    at-kof/const
+                    (Dwfkind x d : wfkind K)
+                    (Dckof       : ckof P K))
+                ([x] [d]
+                    matkof/const
+                    (Dmwfkind x d : mwfkind (Dwfkind x d) Km))
+%%
+                ([_] kind-eq/i)
+                (at-kof/const Dwfkind' Dckof)
+                (matkof/const Dmwfkind')
+%%
+             <- strengthen-for-cut-wfkind Km Dwfkind Dmwfkind
+                (Dwfkind'  : wfkind K)
+                (Dmwfkind' : mwfkind Dwfkind' Km).
+
+-aapp     : strengthen-for-cut-atkof (mpair Mm Pm)
+                ([x] [d : vof x A]
+                    at-kof/app
+                    (Dksub x    : ksub ([y] K x y) M (Ksub x))
+                    (Dof x d    : of M (B x))
+                    (Datkof x d : at-kof P (kpi (B x) [y] K x y)))
+                ([x] [d]
+                    matkof/app
+                    (Dmatkof x d : matkof (Datkof x d) Pm)
+                    (Dmof    x d : mof (Dof x d) Mm))
+%%
+                ([x] Deq x)
+                (at-kof/app (Dksub'' aca) Dof'' Datkof'')
+                (matkof/app Dmatkof'' Dmof'')
+%%
+             <- strengthen-for-cut-atkof Pm Datkof Dmatkof
+                ([x] DeqKpi x : kind-eq (kpi (B x) [y] K x y) Kpi)
+                (Datkof'      : at-kof P Kpi)
+                (Dmatkof'     : matkof Datkof' Pm)
+             <- kind-eq-kpi-strengthen DeqKpi
+                (DeqKpi' : kind-eq Kpi (kpi B' [y] K' y))
+             <- ({x}
+                    kind-eq-trans (DeqKpi x) DeqKpi'
+                    (DeqKpi'' x 
+                      : kind-eq (kpi (B x) [y] K x y) (kpi B' [y] K' y)))
+             <- ({x}
+                    kpi-inj (DeqKpi'' x)
+                    (DeqDom x : tp-eq (B x) B')
+                    ([y] DeqCod x y : kind-eq (K x y) (K' y)))
+             <- matkof-resp atp-eq/i DeqKpi' Datkof' Dmatkof'
+                (Datkof'' : at-kof P (kpi B' [y] K' y))
+                (Dmatkof'' : matkof Datkof'' Pm)
+             <- ({x} {d}
+                    mof-resp tm-eq/i (DeqDom x) (Dof x d) (Dmof x d)
+                    (Dof' x d : of M B')
+                    (Dmof' x d : mof (Dof' x d) Mm))
+             <- strengthen-for-cut-of Mm Dof' Dmof'
+                (Dof''  : of M B')
+                (Dmof'' : mof Dof'' Mm)
+             <- ({x}
+                    ksub-compat ([y] DeqCod x y) tm-eq/i kind-eq/i (Dksub x)
+                    (Dksub' x : ksub ([y] K' y) M (Ksub x)))
+             <- ksub-closed Dksub'
+                ([x] Deq x : kind-eq (Ksub x) Ksub')
+             <- ({x}
+                    ksub-compat ([_] kind-eq/i) tm-eq/i (Deq x) (Dksub' x)
+                    (Dksub'' x : ksub ([y] K' y) M Ksub')).
+
+-base     : strengthen-for-cut-kof _
+                ([x] [d] kof/base (Datkof x d : at-kof P ktype))
+                ([x] [d] mkof/base (Dmatkof x d : matkof (Datkof x d) Pm))
+%%
+                (kof/base Datkof')
+                (mkof/base Dmatkof')
+%%%
+             <- strengthen-for-cut-atkof _ Datkof Dmatkof 
+                _
+                (Datkof' : at-kof P ktype)
+                (Dmatkof' : matkof Datkof' Pm).
+
+-pi       : strengthen-for-cut-kof (mpair Am2 Am1)
+                ([x] [d] 
+                    kof/pi 
+                    ([y] [e] Dkof2 x d y e : kof (A2 y) ktype)
+                    (Dkof1 x d : kof A1 ktype))
+                ([x] [d]
+                    mkof/pi
+                    ([y] [e] Dmkof2 x d y e : mkof (Dkof2 x d y e) Am2)
+                    (Dmkof1 x d : mkof (Dkof1 x d) Am1))
+%%
+                (kof/pi Dkof2' Dkof1')
+                (mkof/pi ([y] [e] Dmkof2' y e) Dmkof1')
+%%
+             <- strengthen-for-cut-kof Am1 Dkof1 Dmkof1
+                (Dkof1'  : kof A1 ktype)
+                (Dmkof1' : mkof Dkof1' Am1) 
+             <- ({y} {e}
+                    strengthen-for-cut-kof 
+                    Am2
+                    ([x] [d] Dkof2 x d y e)
+                    ([x] [d] Dmkof2 x d y e)
+                    (Dkof2' y e  : kof (A2 y) ktype)
+                    (Dmkof2' y e : mkof (Dkof2' y e) Am2)).
+
+-lam      : strengthen-for-cut-kof (mpair Am2 Am1)
+                ([x] [d]
+                    kof/lam
+                    ([y] [e] Dkof2 x d y e : kof (B y) (K y))
+                    (Dkof1 x d : kof A ktype))
+                ([x] [d]
+                    mkof/lam
+                    ([y] [e] Dmkof2 x d y e : mkof (Dkof2 x d y e) Am2)
+                    (Dmkof1 x d : mkof (Dkof1 x d) Am1))
+%%
+                (kof/lam Dkof2' Dkof1')
+                (mkof/lam Dmkof2' Dmkof1')
+%%                
+             <- strengthen-for-cut-kof Am1 Dkof1 Dmkof1
+                (Dkof1' : kof A ktype)
+                (Dmkof1' : mkof Dkof1' Am1)
+             <- ({y} {e}
+                    strengthen-for-cut-kof Am2
+                    ([x] [d] Dkof2 x d y e)
+                    ([x] [d] Dmkof2 x d y e)
+                    (Dkof2' y e : kof (B y) (K y))
+                    (Dmkof2' y e : mkof (Dkof2' y e) Am2)).
+
+-ktype    : strengthen-for-cut-wfkind munit
+                ([x] [d]
+                    wfkind/tp : wfkind ktype)
+                ([x] [d]
+                    mwfkind/tp : mwfkind wfkind/tp munit)
+%%                
+                wfkind/tp
+                mwfkind/tp.
+
+-kpi      : strengthen-for-cut-wfkind (mpair Km Am)
+                ([x] [d]
+                    wfkind/pi
+                    ([y] [e] Dwfkind x d y e : wfkind (K y))
+                    (Dkof x d : kof A ktype))
+                ([x] [d]
+                    mwfkind/pi
+                    (Dmkof x d : mkof (Dkof x d) Am)
+                    ([y] [e] Dmwfkind x d y e : mwfkind (Dwfkind x d y e) Km))
+%%
+                (wfkind/pi  Dwfkind' Dkof')
+                (mwfkind/pi Dmkof' ([y] [e] Dmwfkind' y e))
+%%%
+             <- strengthen-for-cut-kof Am Dkof Dmkof
+                (Dkof'  : kof A ktype)
+                (Dmkof' : mkof Dkof' Am)
+             <- ({y} {e}
+                    strengthen-for-cut-wfkind
+                    Km
+                    ([x] [d] Dwfkind x d y e)
+                    ([x] [d] Dmwfkind x d y e)
+                    (Dwfkind' y e : wfkind (K y))
+                    (Dmwfkind' y e : mwfkind (Dwfkind' y e) Km)).
+
+
+%worlds (csig | asig | var | bind | ovar)
+  (strengthen-for-cut-atof   _ _ _ _ _ _)
+  (strengthen-for-cut-of     _ _ _ _ _)
+  (strengthen-for-cut-atkof  _ _ _ _ _ _)
+  (strengthen-for-cut-kof    _ _ _ _ _)
+  (strengthen-for-cut-wfkind _ _ _ _ _).
+%total (M1 M2 M3 M4 M5)
+  (strengthen-for-cut-atof   M1 _ _ _ _ _)
+  (strengthen-for-cut-of     M2 _ _ _ _)
+  (strengthen-for-cut-atkof  M3 _ _ _ _ _)
+  (strengthen-for-cut-kof    M4 _ _ _ _)
+  (strengthen-for-cut-wfkind M5 _ _ _ _).
+
+
+
+
+%%% cut %%%
+
+%% these say: if some derivation of well-typedness/formedness
+%% has a metric M in the implicit system under some assumption
+%% about its free variable, then 
+%% 1: there's an equivalent explicit context derivation for any
+%%    context holding the same variable assumption, and
+%% 2: said derivation has the same metric.
+
+cut-at-of : {Rm}
+              {D:{x} vof x A -> at-of (R x) (B x)}
+              ({x} {d} matof (D x d) Rm)
+           -> ({x} lookup (G x) x A)
+%%
+           -> {D':{x} at-ofe (G x) (R x) (B x)}
+              ({x} matofe (D' x) Rm)
+           -> type.
+%mode cut-at-of +X2 +X3 +X4 +X5 -X6 -X7.
+
+cut-of : {Mm}
+             {D:{x} vof x A -> of (M x) (B x)}
+             ({x} {d} mof (D x d) Mm)
+          -> ({x} lookup (G x) x A)
+%%
+          -> {D':{x} ofe (G x) (M x) (B x)}
+             ({x} mofe (D' x) Mm)
+          -> type.
+%mode cut-of +X2 +X3 +X4 +X5 -X6 -X7.
+
+cut-at-kof : {Pm}
+                 {D:{x} vof x A -> at-kof (P x) (K x)}
+                 ({x} {d} matkof (D x d) Pm)
+              -> ({x} lookup (G x) x A)
+%%
+              -> {D':{x} at-kofe (G x) (P x) (K x)}
+                 ({x} matkofe (D' x) Pm)
+              -> type.
+%mode cut-at-kof +X2 +X3 +X4 +X5 -X6 -X7.
+
+cut-kof : {Bm}
+              {D:{x} vof x A -> kof (B x) (K x)}
+              ({x} {d} mkof (D x d) Bm)
+           -> ({x} lookup (G x) x A)
+%%
+           -> {D':{x} kofe (G x) (B x) (K x)}
+              ({x} mkofe (D' x) Bm)
+           -> type.
+%mode cut-kof +X2 +X3 +X4 +X5 -X6 -X7.
+
+cut-wfkind : {Km}
+                 {D:{x} vof x A -> wfkind (K x)}
+                 ({x} {d} mwfkind (D x d) Km)
+              -> ({x} lookup (G x) x A)
+%%
+              -> {D':{x} wfkinde (G x) (K x)}
+                 ({x} mwfkinde (D' x) Km)
+              -> type.
+%mode cut-wfkind +X2 +X3 +X4 +X5 -X6 -X7.
+
+cut-at-ofe : {Rm}
+              {D:{x} vof x A -> at-ofe (G x) (R x) (B x)}
+              ({x} {d} matofe (D x d) Rm)
+           -> ({x} lookup (G x) x A)
+%%
+           -> {D':{x} at-ofe (G x) (R x) (B x)}
+              ({x} matofe (D' x) Rm)
+           -> type.
+%mode cut-at-ofe +X2 +X3 +X4 +X5 -X6 -X7.
+
+cut-ofe : {Mm}
+             {D:{x} vof x A -> ofe (G x) (M x) (B x)}
+             ({x} {d} mofe (D x d) Mm)
+          -> ({x} lookup (G x) x A)
+%%
+          -> {D':{x} ofe (G x) (M x) (B x)}
+             ({x} mofe (D' x) Mm)
+          -> type.
+%mode cut-ofe +X2 +X3 +X4 +X5 -X6 -X7.
+
+cut-at-kofe : {Pm}
+                 {D:{x} vof x A -> at-kofe (G x) (P x) (K x)}
+                 ({x} {d} matkofe (D x d) Pm)
+              -> ({x} lookup (G x) x A)
+%%
+              -> {D':{x} at-kofe (G x) (P x) (K x)}
+                 ({x} matkofe (D' x) Pm)
+              -> type.
+%mode cut-at-kofe +X2 +X3 +X4 +X5 -X6 -X7.
+
+cut-kofe : {Bm}
+              {D:{x} vof x A -> kofe (G x) (B x) (K x)}
+              ({x} {d} mkofe (D x d) Bm)
+           -> ({x} lookup (G x) x A)
+%%
+           -> {D':{x} kofe (G x) (B x) (K x)}
+              ({x} mkofe (D' x) Bm)
+           -> type.
+%mode cut-kofe +X2 +X3 +X4 +X5 -X6 -X7.
+
+cut-wfkinde : {Km}
+                 {D:{x} vof x A -> wfkinde (G x) (K x)}
+                 ({x} {d} mwfkinde (D x d) Km)
+              -> ({x} lookup (G x) x A)
+%%
+              -> {D':{x} wfkinde (G x) (K x)}
+                 ({x} mwfkinde (D' x) Km)
+              -> type.
+%mode cut-wfkinde +X2 +X3 +X4 +X5 -X6 -X7.
+
+
+%% proof of cut lemmas %%
+
+
+-const : cut-at-of (msing Bm)
+             ([x] [d:vof x A] 
+                 at-of/const 
+                 (Dkof x d : kof (B x) ktype) 
+                 (Dcof x : cof C (B x)))
+             ([x] [d] matof/const (Dmkof x d))
+             ([x] Dlookup x : lookup (G x) x A)
+%%
+             ([x] at-ofe/const (Dkofe x) (Dcof x))
+             ([x] matofe/const (Dmkofe x))
+%%%
+          <- cut-kof Bm Dkof Dmkof Dlookup
+              (Dkofe : {x} kofe (G x) (B x) ktype)
+              (Dmkofe : {x} mkofe (Dkofe x) Bm).
+
+-varsam : cut-at-of (msing Am)
+              ([x] [d:vof x A]
+                  at-of/var 
+                  (Dkof x d : kof A ktype) 
+                  d)
+              ([x] [d]
+                  matof/var
+                  (Dmkof x d : mkof (Dkof x d) Am))
+              ([x] Dlookup x : lookup (G x) x A)
+%%
+              ([x] at-ofe/var (Dkofe x) (Dlookup x))
+              ([x] matofe/var (Dmkofe x))
+%%%              
+           <- cut-kof Am Dkof Dmkof Dlookup
+                (Dkofe : {x} kofe (G x) A ktype)
+                (Dmkofe : {x} mkofe (Dkofe x) Am).
+
+-varoth : cut-at-of (msing Bm)
+              ([x] [d:vof x A]
+                  at-of/var
+                  (Dkof x d : kof B ktype)
+                  (Dvof : vof Y B))
+              ([x] [d]
+                  matof/var
+                  (Dmkof x d : mkof (Dkof x d) Bm))
+              ([x] Dlookup x : lookup (G x) x A)
+%%
+              ([x] at-ofe/closed (at-of/var Dkof' Dvof))
+              ([x] matofe/closed (matof/var Dmkof'))
+%%%
+           <- strengthen-for-cut-kof _ Dkof Dmkof 
+              (Dkof' : kof B ktype)
+              (Dmkof' : mkof Dkof' Bm).
+
+-app : cut-at-of (mpair Mm Rm)
+           ([x] [d:vof x A]
+               at-of/app
+               (Dsub x : tpsub ([y] C x y) (M x) (C' x))
+               (DofM x d : of (M x) (B x))
+               (DatofR x d : at-of (R x) (pi (B x) ([y] C x y))))
+           ([x] [d]
+               matof/app
+               (DmatofR x d : matof (DatofR x d) Rm)
+               (DmofM x d : mof (DofM x d) Mm))
+           ([x] Dlookup x : lookup (G x) x A)
+%%
+           ([x] at-ofe/app (Dsub x) (Dofe x) (Datofe x))
+           ([x] matofe/app (Dmatofe x) (Dmofe x))
+%%%
+        <- cut-at-of Rm DatofR DmatofR Dlookup
+           (Datofe : {x} at-ofe (G x) (R x) (pi (B x) ([y] C x y)))
+           (Dmatofe : {x} matofe (Datofe x) Rm)
+        <- cut-of Mm DofM DmofM Dlookup
+           (Dofe : {x} ofe (G x) (M x) (B x))
+           (Dmofe : {x} mofe (Dofe x) Mm).
+
+-at : cut-of (msing Rm)
+          ([x] [d:vof x A]
+              of/at
+              (Datof x d : at-of (R x) (base (P x))))
+          ([x] [d]
+              mof/at
+              (Dmatof x d : matof (Datof x d) Rm))
+          ([x] Dlookup x : lookup (G x) x A)
+%%
+          ([x] ofe/at (Datofe x))
+          ([x] mofe/at (Dmatofe x))
+       <- cut-at-of Rm Datof Dmatof Dlookup
+          (Datofe : {x} at-ofe (G x) (R x) (base (P x)))
+          (Dmatofe : {x} matofe (Datofe x) Rm).
+
+-lam : cut-of
+           (mpair Mm Bm)
+           ([x] [d:vof x A]
+               of/lam
+               (Dkof x d : kof (B x) ktype)
+               (Dof x d : {y} vof y (B x) -> of (M x y) (C x y)))
+           ([x] [d]
+               mof/lam
+               (Dmof x d : {y} {e} mof (Dof x d y e) Mm)
+               (Dmkof x d : mkof (Dkof x d) Bm))
+           ([x] Dlookup x : lookup (G x) x A)
+%%
+           ([x] ofe/lam (Dkofe x) (Dofe' x))
+           ([x] mofe/lam (Dmofe' x) (Dmkofe x))
+%%%
+        <- cut-kof Bm Dkof Dmkof Dlookup
+           (Dkofe : {x} kofe (G x) (B x) ktype)
+           (Dmkofe : {x} mkofe (Dkofe x) Bm)
+        <- ({x} {y}
+               weaken-lookup (Dlookup x)
+               y (B x)
+                (Dlookup' x y : lookup (cons (G x) y (B x)) x A))
+        <- ({x} {d:vof x A}
+               cut-of 
+                  Mm 
+                  ([y] [e] Dof x d y e) 
+                  ([y] [e] Dmof x d y e)
+                  ([y] lookup/hit)
+                  (Dofe x d : {y} ofe (cons (G x) y (B x)) (M x y) (C x y))
+                  (Dmofe x d : {y} mofe (Dofe x d y) Mm))
+        <- ({y}
+               cut-ofe
+                  Mm
+                  ([x] [d] Dofe x d y)
+                  ([x] [d] Dmofe x d y)
+                  ([x] Dlookup' x y)
+                  ([x] Dofe' x y : ofe (cons (G x) y (B x)) (M x y) (C x y))
+                  ([x] Dmofe' x y : mofe (Dofe' x y) Mm)).
+
+-tconst : cut-at-kof (msing Km)
+              ([x] [d:vof x A]
+                  at-kof/const
+                  (Dwfkind x d : wfkind (K x))
+                  (Dckof x : ckof C (K x)))
+              ([x] [d] matkof/const (Dmwfkind x d))
+              ([x] Dlookup x : lookup (G x) x A)
+%%
+              ([x] at-kofe/const (Dwfkinde x) (Dckof x))
+              ([x] matkofe/const (Dmwfkinde x))
+%%%
+           <- cut-wfkind Km Dwfkind Dmwfkind Dlookup
+                (Dwfkinde : {x} wfkinde (G x) (K x))
+                (Dmwfkinde : {x} mwfkinde (Dwfkinde x) Km).
+
+-tapp : cut-at-kof
+            (mpair Mm Pm)
+            ([x] [d:vof x A]
+                at-kof/app
+                (Dksub x : ksub ([y] K x y) (M x) (K' x))
+                (Dof x d : of (M x) (B x))
+                (Datkof x d : at-kof (P x) (kpi (B x) ([y] K x y))))
+            ([x] [d]
+                matkof/app
+                (Dmatkof x d : matkof (Datkof x d) Pm)
+                (Dmof x d : mof (Dof x d) Mm))
+            ([x] Dlookup x : lookup (G x) x A)
+%%
+            ([x] at-kofe/app (Dksub x) (Dofe x) (Datkofe x))
+            ([x] matkofe/app (Dmatkofe x) (Dmofe x))
+%%%
+         <- cut-at-kof Pm Datkof Dmatkof Dlookup
+            (Datkofe : {x} at-kofe (G x) (P x) (kpi (B x) ([y] K x y)))
+            (Dmatkofe : {x} matkofe (Datkofe x) Pm)
+         <- cut-of Mm Dof Dmof Dlookup
+            (Dofe : {x} ofe (G x) (M x) (B x))
+            (Dmofe : {x} mofe (Dofe x) Mm).
+
+-base : cut-kof (msing Pm)
+            ([x] [d:vof x A]
+                kof/base
+                (Datkof x d : at-kof (P x) ktype))
+            ([x] [d]
+                mkof/base
+                (Dmatkof x d : matkof (Datkof x d) Pm))
+            ([x] Dlookup x : lookup (G x) x A)
+%%
+            ([x] kofe/base (Datkofe x))
+            ([x] mkofe/base (Dmatkofe x))
+         <- cut-at-kof Pm Datkof Dmatkof Dlookup
+            (Datkofe : {x} at-kofe (G x) (P x) ktype)
+            (Dmatkofe : {x} matkofe (Datkofe x) Pm).
+
+-pi   : cut-kof (mpair Cm Bm)
+            ([x] [d:vof x A]
+                kof/pi
+                (DkofC x d : {y} vof y (B x) -> kof (C x y) ktype)
+                (DkofB x d : kof (B x) ktype))
+            ([x] [d]
+                mkof/pi
+                (DmkofC x d : {y} {e} mkof (DkofC x d y e) Cm)
+                (DmkofB x d : mkof (DkofB x d) Bm))
+            ([x] Dlookup x : lookup (G x) x A)
+%%
+            ([x] kofe/pi (DkofeC' x) (DkofeB x))
+            ([x] mkofe/pi (DmkofeB x) (DmkofeC' x))
+%%           
+         <- cut-kof Bm DkofB DmkofB Dlookup
+            (DkofeB : {x} kofe (G x) (B x) ktype)
+            (DmkofeB : {x} mkofe (DkofeB x) Bm)
+         <- ({x} {y}
+                weaken-lookup (Dlookup x) y (B x)
+                (Dlookup' x y : lookup (cons (G x) y (B x)) x A))
+         <- ({x} {d:vof x A}
+                cut-kof
+                Cm
+                ([y] [e] DkofC x d y e)
+                ([y] [e] DmkofC x d y e)
+                ([y] lookup/hit)
+                (DkofeC x d : {y} kofe (cons (G x) y (B x)) (C x y) ktype)
+                (DmkofeC x d : {y} mkofe (DkofeC x d y) Cm))
+         <- ({y}
+                cut-kofe
+                Cm
+                ([x] [d] DkofeC x d y)
+                ([x] [d] DmkofeC x d y)
+                ([x] Dlookup' x y)
+                ([x] DkofeC' x y : kofe (cons (G x) y (B x)) (C x y) ktype)
+                ([x] DmkofeC' x y : mkofe (DkofeC' x y) Cm)).
+
+-alam  : cut-kof (mpair Cm Bm)
+             ([x] [d:vof x A]
+                 kof/lam
+                 ([y] [e] DofC x d y e : kof (C x y) (K x y))
+                 (DofB x d : kof (B x) ktype))
+             ([x] [d]
+                 mkof/lam
+                 ([y] [e] DmofC x d y e : mkof (DofC x d y e) Cm)
+                 (DmofB x d : mkof (DofB x d) Bm))
+             ([x] Dlookup x : lookup (G x) x A)
+%%
+             ([x] kofe/lam (DofeC' x) (DofeB x))
+             ([x] mkofe/lam (DmofeC' x) (DmofeB x))
+%%
+          <- cut-kof Bm DofB DmofB Dlookup
+             ([x] DofeB x : kofe (G x) (B x) ktype)
+             ([x] DmofeB x : mkofe (DofeB x) Bm)
+          <- ({x} {y}
+                 weaken-lookup (Dlookup x) y (B x)
+                 (Dlookup' x y : lookup (cons (G x) y (B x)) x A))
+          <- ({x} {d:vof x A}
+                 cut-kof Cm ([y] [e] DofC x d y e) ([y] [e] DmofC x d y e)
+                 ([y] lookup/hit)
+                 ([y] DofeC x d y : kofe (cons (G x) y (B x)) (C x y) (K x y))
+                 ([y] DmofeC x d y : mkofe (DofeC x d y) Cm))
+          <- ({y}
+                 cut-kofe Cm ([x] [d] DofeC x d y) ([x] [d] DmofeC x d y)
+                 ([x] Dlookup' x y)
+                 ([x] DofeC' x y : kofe (cons (G x) y (B x)) (C x y) (K x y))
+                 ([x] DmofeC' x y : mkofe (DofeC' x y) Cm)).
+
+%%
+
+-ktype : cut-wfkind munit
+             ([x] [d:vof x A] wfkind/tp)
+             ([x] [d] mwfkind/tp)
+             ([x] Dlookup x : lookup (G x) x A)
+%%
+             ([x] wfkinde/tp)
+             ([x] mwfkinde/tp).
+
+-kpi : cut-wfkind (mpair Km Bm)
+           ([x] [d:vof x A]
+               wfkind/pi
+               (Dwfkind x d : {y} vof y (B x) -> wfkind (K x y))
+               (Dkof x d : kof (B x) ktype))
+           ([x] [d]
+               mwfkind/pi
+               (Dmkof x d : mkof (Dkof x d) Bm)
+               (Dmwfkind x d : {y} {e} mwfkind (Dwfkind x d y e) Km))
+           ([x] Dlookup x : lookup (G x) x A)
+%%
+           ([x] wfkinde/pi (Dwfkinde' x) (Dkofe x))
+           ([x] mwfkinde/pi (Dmkofe x) (Dmwfkinde' x))
+%%%
+        <- cut-kof Bm Dkof Dmkof Dlookup
+           (Dkofe : {x} kofe (G x) (B x) ktype)
+           (Dmkofe : {x} mkofe (Dkofe x) Bm)
+        <- ({x} {y}
+               weaken-lookup (Dlookup x) y (B x)
+               (Dlookup' x y : lookup (cons (G x) y (B x)) x A))
+        <- ({x} {d:vof x A}
+               cut-wfkind
+               Km
+               ([y] [e] Dwfkind x d y e)
+               ([y] [e] Dmwfkind x d y e)
+               ([y] lookup/hit)
+               (Dwfkinde x d : {y} wfkinde (cons (G x) y (B x)) (K x y))
+               (Dmwfkinde x d : {y} mwfkinde (Dwfkinde x d y) Km))
+        <- ({y}
+               cut-wfkinde
+               Km
+               ([x] [d] Dwfkinde x d y)
+               ([x] [d] Dmwfkinde x d y)
+               ([x] Dlookup' x y)
+               ([x] Dwfkinde' x y : wfkinde (cons (G x) y (B x)) (K x y))
+               ([x] Dmwfkinde' x y : mwfkinde (Dwfkinde' x y) Km)).
+
+
+-closed : cut-at-ofe
+              Rm
+              ([x] [d:vof x A]
+                  at-ofe/closed
+                  (Datof x d : at-of (R x) (B x)))
+              ([x] [d]
+                  matofe/closed 
+                  (Dmatof x d : matof (Datof x d) Rm))
+              ([x] Dlookup x : lookup (G x) x A)
+%%
+              Datofe
+              Dmatofe
+%%%
+           <- cut-at-of Rm Datof Dmatof Dlookup
+              (Datofe : {x} at-ofe (G x) (R x) (B x))
+              (Dmatofe : {x} matofe (Datofe x) Rm).
+
+-const  : cut-at-ofe
+              (msing Bm)
+              ([x] [d:vof x A]
+                  at-ofe/const
+                  (Dkofe x d : kofe (G x) (B x) ktype)
+                  (Dcof x : cof C (B x)))
+              ([x] [d] matofe/const (Dmkofe x d))
+              ([x] Dlookup x : lookup (G x) x A)
+%%
+              ([x] at-ofe/const (Dkofe' x) (Dcof x))
+              ([x] matofe/const (Dmkofe' x))
+%%%
+           <- cut-kofe Bm Dkofe Dmkofe Dlookup
+              (Dkofe' : {x} kofe (G x) (B x) ktype)
+              (Dmkofe' : {x} mkofe (Dkofe' x) Bm).
+
+-var    : cut-at-ofe (msing Bm)
+              ([x] [d:vof x A]
+                  at-ofe/var
+                  (DkofeB x d : kofe (G x) (B x) ktype)
+                  (DlookupY x : lookup (G x) (Y x) (B x)))
+              ([x] [d]
+                  matofe/var
+                  (DmkofeB x d : mkofe (DkofeB x d) Bm))
+              ([x] DlookupX x : lookup (G x) x A)
+%%
+              ([x] at-ofe/var (DkofeB' x) (DlookupY x))
+              ([x] matofe/var (DmkofeB' x))
+%%%
+           <- cut-kofe Bm DkofeB DmkofeB DlookupX
+              (DkofeB' : {x} kofe (G x) (B x) ktype)
+              (DmkofeB' : {x} mkofe (DkofeB' x) Bm).
+
+-app : cut-at-ofe
+           (mpair Mm Rm)
+           ([x] [d:vof x A]
+               at-ofe/app
+               (Dsub x : tpsub ([y] C x y) (M x) (C' x))
+               (Dofe x d : ofe (G x) (M x) (B x))
+               (Datofe x d : at-ofe (G x) (R x) (pi (B x) ([y] C x y))))
+           ([x] [d]
+               matofe/app
+               (Dmatofe x d : matofe (Datofe x d) Rm)
+               (Dmofe x d : mofe (Dofe x d) Mm))
+           ([x] Dlookup x : lookup (G x) x A)
+%%
+           ([x] at-ofe/app (Dsub x) (Dofe' x) (Datofe' x))
+           ([x] matofe/app (Dmatofe' x) (Dmofe' x))
+%%%
+        <- cut-at-ofe Rm Datofe Dmatofe Dlookup
+           (Datofe' : {x} at-ofe (G x) (R x) (pi (B x) ([y] C x y)))
+           (Dmatofe' : {x} matofe (Datofe' x) Rm)
+        <- cut-ofe Mm Dofe Dmofe Dlookup
+           (Dofe' : {x} ofe (G x) (M x) (B x))
+           (Dmofe' : {x} mofe (Dofe' x) Mm).
+
+
+-at : cut-ofe
+          (msing Rm)
+          ([x] [d:vof x A]
+              ofe/at
+              (Datofe x d : at-ofe (G x) (R x) (base (P x))))
+          ([x] [d]
+              mofe/at
+              (Dmatofe x d : matofe (Datofe x d) Rm))
+          ([x] Dlookup x : lookup (G x) x A)
+%%
+          ([x] ofe/at (Datofe' x))
+          ([x] mofe/at (Dmatofe' x))
+       <- cut-at-ofe Rm Datofe Dmatofe Dlookup
+          (Datofe' : {x} at-ofe (G x) (R x) (base (P x)))
+          (Dmatofe' : {x} matofe (Datofe' x) Rm).
+
+-lam : cut-ofe
+           (mpair Mm Bm)
+           ([x] [d:vof x A]
+               ofe/lam
+               (Dkofe x d : kofe (G x) (B x) ktype)
+               (Dofe x d : {y} ofe (cons (G x) y (B x)) (M x y) (C x y)))
+           ([x] [d]
+               mofe/lam
+               (Dmofe x d : {y} mofe (Dofe x d y) Mm)
+               (Dmkofe x d : mkofe (Dkofe x d) Bm))
+           ([x] Dlookup x : lookup (G x) x A)
+%%
+           ([x] ofe/lam (Dkofe' x) (Dofe' x))
+           ([x] mofe/lam (Dmofe' x) (Dmkofe' x))
+%%           
+        <- cut-kofe Bm Dkofe Dmkofe Dlookup
+           (Dkofe' : {x} kofe (G x) (B x) ktype)
+           (Dmkofe' : {x} mkofe (Dkofe' x) Bm)
+        <- ({x} {y}
+               weaken-lookup (Dlookup x) y (B x)
+               (Dlookup' x y : lookup (cons (G x) y (B x)) x A))
+        <- ({y}
+               cut-ofe
+               Mm
+               ([x] [d] Dofe x d y)
+               ([x] [d] Dmofe x d y)
+               ([x] Dlookup' x y)
+               ([x] Dofe' x y : ofe (cons (G x) y (B x)) (M x y) (C x y))
+               ([x] Dmofe' x y : mofe (Dofe' x y) Mm)).
+
+-tconst : cut-at-kofe (msing Km)
+              ([x] [d:vof x A]
+                  at-kofe/const
+                  (Dwfkinde x d : wfkinde (G x) (K x))
+                  (Dckof x : ckof C (K x)))
+              ([x] [d]
+                  matkofe/const
+                  (Dmwfkinde x d : mwfkinde (Dwfkinde x d) Km))
+              ([x] Dlookup x : lookup (G x) x A)
+%%
+              ([x] at-kofe/const (Dwfkinde' x) (Dckof x))
+              ([x] matkofe/const (Dmwfkinde' x))
+%%%              
+           <- cut-wfkinde Km Dwfkinde Dmwfkinde Dlookup
+              (Dwfkinde' : {x} wfkinde (G x) (K x))
+              (Dmwfkinde' : {x} mwfkinde (Dwfkinde' x) Km).
+
+-tclosed : cut-at-kofe Pm
+               ([x] [d:vof x A]
+                   at-kofe/closed
+                   (Datkof x d : at-kof (P x) (K x)))
+               ([x] [d]
+                   matkofe/closed
+                   (Dmatkof x d : matkof (Datkof x d) Pm))
+               ([x] Dlookup x : lookup (G x) x A)
+%%
+               Datkofe
+               Dmatkofe
+%%%
+            <- cut-at-kof Pm Datkof Dmatkof Dlookup
+               (Datkofe : {x} at-kofe (G x) (P x) (K x))
+               (Dmatkofe : {x} matkofe (Datkofe x) Pm).
+
+-tapp : cut-at-kofe
+            (mpair Mm Pm)
+            ([x] [d:vof x A]
+                at-kofe/app
+                (Dksub x : ksub ([y] K x y) (M x) (K' x))
+                (Dofe x d : ofe (G x) (M x) (B x))
+                (Datkofe x d : at-kofe (G x) (P x) (kpi (B x) ([y] K x y))))
+            ([x] [d]
+                matkofe/app
+                (Dmatkofe x d : matkofe (Datkofe x d) Pm)
+                (Dmofe x d : mofe (Dofe x d) Mm))
+            ([x] Dlookup x : lookup (G x) x A)
+%%
+            ([x] at-kofe/app (Dksub x) (Dofe' x) (Datkofe' x))
+            ([x] matkofe/app (Dmatkofe' x) (Dmofe' x))
+%%%
+         <- cut-at-kofe Pm Datkofe Dmatkofe Dlookup
+            (Datkofe' : {x} at-kofe (G x) (P x) (kpi (B x) ([y] K x y)))
+            (Dmatkofe' : {x} matkofe (Datkofe' x) Pm)
+         <- cut-ofe Mm Dofe Dmofe Dlookup
+            (Dofe' : {x} ofe (G x) (M x) (B x))
+            (Dmofe' : {x} mofe (Dofe' x) Mm).
+
+-base : cut-kofe
+            (msing Pm)
+            ([x] [d:vof x A]
+                kofe/base
+                (Datkofe x d : at-kofe (G x) (P x) ktype))
+            ([x] [d]
+                mkofe/base
+                (Dmatkofe x d : matkofe (Datkofe x d) Pm))
+            ([x] Dlookup x : lookup (G x) x A)
+%%           
+            ([x] kofe/base (Datkofe' x))
+            ([x] mkofe/base (Dmatkofe' x))
+         <- cut-at-kofe Pm Datkofe Dmatkofe Dlookup
+            (Datkofe' : {x} at-kofe (G x) (P x) ktype)
+            (Dmatkofe' : {x} matkofe (Datkofe' x) Pm).
+
+-pi   : cut-kofe
+            (mpair Cm Bm)
+            ([x] [d:vof x A]
+                kofe/pi
+                (DkofeC x d : {y} kofe (cons (G x) y (B x)) (C x y) ktype)
+                (DkofeB x d : kofe (G x) (B x) ktype))
+            ([x] [d]
+                mkofe/pi
+                (DmkofeB x d : mkofe (DkofeB x d) Bm)
+                (DmkofeC x d : {y} mkofe (DkofeC x d y) Cm))
+            ([x] Dlookup x : lookup (G x) x A)
+%%
+            ([x] kofe/pi (DkofeC' x) (DkofeB' x))
+            ([x] mkofe/pi (DmkofeB' x) (DmkofeC' x))
+%%
+         <- cut-kofe Bm DkofeB DmkofeB Dlookup
+            (DkofeB' : {x} kofe (G x) (B x) ktype)
+            (DmkofeB' : {x} mkofe (DkofeB' x) Bm)
+         <- ({x} {y}
+                weaken-lookup (Dlookup x) y (B x)
+                (Dlookup' x y : lookup (cons (G x) y (B x)) x A))
+         <- ({y}
+                cut-kofe
+                Cm
+                ([x] [d] DkofeC x d y)
+                ([x] [d] DmkofeC x d y)
+                ([x] Dlookup' x y)
+                ([x] DkofeC' x y : kofe (cons (G x) y (B x)) (C x y) ktype)
+                ([x] DmkofeC' x y : mkofe (DkofeC' x y) Cm)).
+
+-alam  : cut-kofe (mpair Cm Bm)
+             ([x] [d:vof x A]
+                 kofe/lam
+                 ([y] DofeC x d y
+                   : kofe (cons (G x) y (B x)) (C x y) (K x y))
+                 (DofeB x d : kofe (G x) (B x) ktype))
+             ([x] [d]
+                 mkofe/lam
+                 ([y] DmofeC x d y : mkofe (DofeC x d y) Cm)
+                 (DmofeB x d : mkofe (DofeB x d) Bm))
+             ([x] Dlookup x : lookup (G x) x A)
+%%
+             ([x] kofe/lam (DofeC' x) (DofeB' x))
+             ([x] mkofe/lam (DmofeC' x) (DmofeB' x))
+%%
+          <- cut-kofe Bm DofeB DmofeB Dlookup
+             ([x] DofeB' x : kofe (G x) (B x) ktype)
+             ([x] DmofeB' x : mkofe (DofeB' x) Bm)
+          <- ({x} {y}
+                 weaken-lookup (Dlookup x) y (B x)
+                 (Dlookup' x y : lookup (cons (G x) y (B x)) x A))
+          <- ({y}
+                 cut-kofe Cm ([x] [d] DofeC x d y) ([x] [d] DmofeC x d y)
+                 ([x] Dlookup' x y)
+                 ([x] DofeC' x y : kofe (cons (G x) y (B x)) (C x y) (K x y))
+                 ([x] DmofeC' x y : mkofe (DofeC' x y) Cm)).
+
+-ktype : cut-wfkinde
+             munit
+             ([x] [d:vof x A] wfkinde/tp)
+             ([x] [d] mwfkinde/tp)
+             ([x] Dlookup x : lookup (G x) x A)
+%%
+             ([x] wfkinde/tp)
+             ([x] mwfkinde/tp).
+
+-kpi   : cut-wfkinde
+             (mpair Km Bm)
+             ([x] [d:vof x A]
+                 wfkinde/pi
+                 (Dwfkinde x d : {y} wfkinde (cons (G x) y (B x)) (K x y))
+                 (Dkofe x d : kofe (G x) (B x) ktype))
+             ([x] [d]
+                 mwfkinde/pi
+                 (Dmkofe x d : mkofe (Dkofe x d) Bm)
+                 (Dmwfkinde x d : {y} mwfkinde (Dwfkinde x d y) Km))
+             ([x] Dlookup x : lookup (G x) x A)
+%%
+             ([x] wfkinde/pi (Dwfkinde' x) (Dkofe' x))
+             ([x] mwfkinde/pi (Dmkofe' x) (Dmwfkinde' x))
+%%%
+          <- cut-kofe Bm Dkofe Dmkofe Dlookup
+             (Dkofe' : {x} kofe (G x) (B x) ktype)
+             (Dmkofe' : {x} mkofe (Dkofe' x) Bm)
+          <- ({x} {y}
+                 weaken-lookup (Dlookup x) y (B x)
+                 (Dlookup' x y : lookup (cons (G x) y (B x)) x A))
+          <- ({y}
+                 cut-wfkinde
+                 Km
+                 ([x] [d] Dwfkinde x d y)
+                 ([x] [d] Dmwfkinde x d y)
+                 ([x] Dlookup' x y)
+                 ([x] Dwfkinde' x y : wfkinde (cons (G x) y (B x)) (K x y))
+                 ([x] Dmwfkinde' x y : mwfkinde (Dwfkinde' x y) Km)).
+
+%worlds (csig | asig | var | bind) 
+  (cut-at-of   _ _ _ _ _ _)
+  (cut-of      _ _ _ _ _ _)
+  (cut-at-kof  _ _ _ _ _ _)
+  (cut-kof     _ _ _ _ _ _)
+  (cut-at-ofe  _ _ _ _ _ _)
+  (cut-wfkind  _ _ _ _ _ _)
+  (cut-ofe     _ _ _ _ _ _)
+  (cut-at-kofe _ _ _ _ _ _)
+  (cut-kofe    _ _ _ _ _ _)
+  (cut-wfkinde _ _ _ _ _ _).
+%total (M1 M2 M3 M4 M5 M6 M7 M8 M9 M0) 
+  (cut-at-of   M1 _ _ _ _ _)
+  (cut-of      M2 _ _ _ _ _)
+  (cut-at-kof  M3 _ _ _ _ _)
+  (cut-kof     M4 _ _ _ _ _)
+  (cut-at-ofe  M5 _ _ _ _ _)
+  (cut-wfkind  M6 _ _ _ _ _)
+  (cut-ofe     M7 _ _ _ _ _)
+  (cut-at-kofe M8 _ _ _ _ _)
+  (cut-kofe    M9 _ _ _ _ _)
+  (cut-wfkinde M0 _ _ _ _ _).
+
+
+%%% translation to implicit form %%%
+
+wfkindi : ctx -> kind -> type.
+
+wfkindi/nil : wfkindi nil K
+               <- wfkind K.
+
+wfkindi/cons : wfkindi (cons G X A) K
+                <- (vof X A -> wfkindi G K).
+
+
+at-kofi : ctx -> atp -> kind -> type.
+
+at-kofi/nil : at-kofi nil P K
+               <- at-kof P K.
+
+at-kofi/cons : at-kofi (cons G X A) P K
+                <- (vof X A -> at-kofi G P K).
+
+
+kofi : ctx -> tp -> kind -> type.
+
+kofi/nil : kofi nil A K
+            <- kof A K.
+
+kofi/cons : kofi (cons G X A) B K
+             <- (vof X A -> kofi G B K).
+
+
+at-ofi : ctx -> atm -> tp -> type.
+
+at-ofi/nil : at-ofi nil R A
+              <- at-of R A.
+
+at-ofi/cons : at-ofi (cons G X A) R B
+               <- (vof X A -> at-ofi G R B).
+
+
+ofi : ctx -> tm -> tp -> type.
+
+ofi/nil : ofi nil M A
+           <- of M A.
+
+ofi/cons : ofi (cons G X A) M B
+            <- (vof X A -> ofi G M B).
+
+
+atof-to-atofi : {G} at-of R A -> at-ofi G R A -> type.
+%mode atof-to-atofi +X1 +X2 -X3.
+
+- : atof-to-atofi nil D (at-ofi/nil D).
+- : atof-to-atofi (cons G X A) D (at-ofi/cons ([_] D'))
+     <- atof-to-atofi G D D'.
+
+%worlds (csig | asig | bind | var | ofblock) (atof-to-atofi _ _ _).
+%total G (atof-to-atofi G _ _).
+
+
+atkof-to-atkofi : {G} at-kof P K -> at-kofi G P K -> type.
+%mode atkof-to-atkofi +X1 +X2 -X3.
+
+- : atkof-to-atkofi nil D (at-kofi/nil D).
+- : atkof-to-atkofi (cons G X A) D (at-kofi/cons ([_] D'))
+     <- atkof-to-atkofi G D D'.
+
+%worlds (csig | asig | bind | var | ofblock) (atkof-to-atkofi _ _ _).
+%total G (atkof-to-atkofi G _ _).
+
+
+wfkindi-t : {G} wfkindi G ktype -> type.
+%mode wfkindi-t +X1 -X2.
+
+- : wfkindi-t nil (wfkindi/nil wfkind/tp).
+- : wfkindi-t (cons G X A) (wfkindi/cons D)
+     <- ({d} wfkindi-t G (D d)).
+
+%worlds (csig | asig | bind | var | ofblock) (wfkindi-t _ _).
+%total G (wfkindi-t G _).
+
+wfkindi-pi : kofi G A ktype -> ({x} wfkindi (cons G x A) (K x)) 
+              -> wfkindi G (kpi A K) -> type.
+%mode wfkindi-pi +X1 +X2 -X3.
+
+- : wfkindi-pi (kofi/nil Dkof) ([x] wfkindi/cons ([d] wfkindi/nil (Dwfkind x d)))
+        (wfkindi/nil (wfkind/pi Dwfkind Dkof)).
+
+- : wfkindi-pi 
+        (kofi/cons [e] Dkofi e) 
+        ([x] wfkindi/cons ([d] wfkindi/cons ([e] Dwfkindi x d e)))
+        (wfkindi/cons [e] D e)
+     <- ({e} wfkindi-pi (Dkofi e) ([x] wfkindi/cons ([d] Dwfkindi x d e)) (D e)).
+
+%worlds (csig | asig | bind | var | ofblock) (wfkindi-pi _ _ _).
+%total D (wfkindi-pi D _ _).
+
+
+kofi-base : at-kofi G P ktype -> kofi G (base P) ktype -> type.
+%mode kofi-base +X1 -X2.
+
+-       : kofi-base (at-kofi/nil Datkof) (kofi/nil (kof/base Datkof)).
+
+-       : kofi-base (at-kofi/cons ([d:vof X A] Datkofi d)) 
+              (kofi/cons Dkofi)
+           <- ({d} kofi-base (Datkofi d) (Dkofi d)).
+
+%worlds (csig | asig | bind | var | ofblock) (kofi-base _ _).
+%total D (kofi-base D _).
+
+
+kofi-pi   : ({x} kofi (cons G x A) (B x) ktype) -> kofi G A ktype
+             -> kofi G (pi A [x] B x) ktype -> type.
+%mode kofi-pi +X1 +X2 -X3.
+
+-       : kofi-pi 
+              ([x] kofi/cons ([d] kofi/nil (DkofB x d : kof (B x) ktype)))
+              (kofi/nil (DkofA : kof A ktype))
+              (kofi/nil (kof/pi DkofB DkofA)).
+
+-       : kofi-pi
+              ([x] kofi/cons ([d] kofi/cons ([e] DkofB x d e)))
+              (kofi/cons ([e] DkofA e))
+              (kofi/cons D)
+           <- ({e} kofi-pi ([x] kofi/cons ([d] DkofB x d e)) (DkofA e) (D e)).
+
+%worlds (csig | asig | bind | var | ofblock) (kofi-pi _ _ _).
+%total D (kofi-pi _ D _).
+
+
+atkofi-const : wfkindi G K -> ckof A K -> at-kofi G (aconst A) K -> type.
+%mode atkofi-const +X1 +X2 -X3.
+
+-       : atkofi-const (wfkindi/nil Dwfkind) Dckof
+              (at-kofi/nil (at-kof/const Dwfkind Dckof)).
+
+-       : atkofi-const (wfkindi/cons ([d] Dwfkindi d)) Dckof
+              (at-kofi/cons [d] D d)
+           <- ({d} atkofi-const (Dwfkindi d) Dckof (D d)).
+
+%worlds (csig | asig | bind | var | ofblock) (atkofi-const _ _ _).
+%total D (atkofi-const D _ _).
+
+
+atkofi-app : ksub ([x] K x) M K' -> ofi G M B -> at-kofi G P (kpi B ([x] K x))
+              -> at-kofi G (aapp P M) K' -> type.
+%mode atkofi-app +X1 +X2 +X3 -X4.
+
+-       : atkofi-app Dksub (ofi/nil Dof) (at-kofi/nil Datkof)
+              (at-kofi/nil (at-kof/app Dksub Dof Datkof)).
+
+-       : atkofi-app Dksub (ofi/cons ([d] Dofi d)) (at-kofi/cons ([d] Datkofi d))
+              (at-kofi/cons D)
+           <- ({d} atkofi-app Dksub (Dofi d) (Datkofi d) (D d)).
+
+%worlds (csig | asig | bind | var | ofblock) (atkofi-app _ _ _ _).
+%total D (atkofi-app _ D _ _).
+
+
+atofi-var : (kof A ktype -> at-of R A) -> kofi G A ktype 
+             -> at-ofi G R A -> type.
+%mode atofi-var +X1 +X2 -X3.
+
+-       : atofi-var Datof (kofi/nil Dkof) (at-ofi/nil (Datof Dkof)).
+
+-       : atofi-var (Datof : kof A ktype -> at-of R A) 
+              (kofi/cons (Dkof : vof Y B -> kofi G A ktype))
+%%
+              (at-ofi/cons Datofi)
+%%
+           <- ({d:vof Y B}
+                  atofi-var Datof (Dkof d)
+                  (Datofi d : at-ofi G R A)).
+
+%worlds (csig | asig | bind | var | ofblock) (atofi-var _ _ _).
+%total D (atofi-var _ D _).
+
+
+atofi-const : kofi G A ktype -> cof C A -> at-ofi G (const C) A -> type.
+%mode atofi-const +X1 +X2 -X3.
+
+-       : atofi-const (kofi/nil Dkof) Dcof 
+              (at-ofi/nil (at-of/const Dkof Dcof)).
+
+-       : atofi-const (kofi/cons ([d:vof X A] Dkof d : kofi G B ktype)) Dcof
+              (at-ofi/cons Datofi)
+           <- ({d:vof X A}
+                  atofi-const (Dkof d) Dcof
+                  (Datofi d : at-ofi G (const C) B)).
+
+%worlds (csig | asig | bind | var | ofblock) (atofi-const _ _ _).
+%total D (atofi-const D _ _).
+
+
+atofi-lookup : lookup G X A -> kofi G A ktype -> at-ofi G X A -> type.
+%mode atofi-lookup +X1 +X2 -X3.
+
+-       : atofi-lookup
+              (lookup/hit : lookup (cons G X A) X A)
+              (kofi/cons
+                  (Dkof : vof X A -> kofi G A ktype)
+                : kofi (cons G X A) A ktype)
+%%              
+              (at-ofi/cons Datofi)
+%%
+           <- ({d:vof X A}
+                  atofi-var ([d_kof] at-of/var d_kof d) (Dkof d)
+                  (Datofi d : at-ofi G X A)).
+
+-       : atofi-lookup
+              (lookup/miss
+                  (Dlook : lookup G X A)
+                : lookup (cons G Y B) X A)
+              (kofi/cons
+                  (Dkof : vof Y B -> kofi G A ktype)
+                : kofi (cons G Y B) A ktype)
+%%
+              (at-ofi/cons D)
+%%
+           <- ({d:vof Y B}
+                  atofi-lookup Dlook (Dkof d)
+                  (D d : at-ofi G X A)).
+
+%worlds (csig | asig | bind | var | ofblock) (atofi-lookup _ _ _).
+%total D (atofi-lookup D _ _).
+
+
+atofi-app : at-ofi G R (pi A B)
+             -> ofi G M A
+             -> tpsub B M B'
+%%
+             -> at-ofi G (app R M) B' -> type.
+%mode atofi-app +X1 +X2 +X3 -X5.
+
+-     : atofi-app (at-ofi/nil Datof) (ofi/nil Dof) Dtpsub 
+            (at-ofi/nil (at-of/app Dtpsub Dof Datof)).
+
+-     : atofi-app (at-ofi/cons Datofi) (ofi/cons Dofi) Dtpsub
+            (at-ofi/cons D)
+         <- ({d} atofi-app (Datofi d) (Dofi d) Dtpsub (D d)).
+
+%worlds (csig | asig | bind | var | ofblock) (atofi-app _ _ _ _).
+%total D (atofi-app D _ _ _).
+
+
+ofi-at : at-ofi G R (base P) -> ofi G (at R) (base P) -> type.
+%mode ofi-at +X1 -X2.
+
+-     : ofi-at (at-ofi/nil D) (ofi/nil (of/at D)).
+-     : ofi-at (at-ofi/cons D) (ofi/cons D')
+         <- ({d} ofi-at (D d) (D' d)).
+
+%worlds (bind | var | ofblock | csig | asig) (ofi-at _ _).
+%total D (ofi-at D _).
+
+
+ofi-lam : kofi G A ktype -> ({x} ofi (cons G x A) (M x) (B x))
+           -> ofi G (lam M) (pi A B) -> type.
+%mode ofi-lam +X1 +X2 -X3.
+
+-     : ofi-lam (kofi/nil D1) ([x] ofi/cons ([d] ofi/nil (D2 x d)))
+            (ofi/nil (of/lam D1 D2)).
+
+-     : ofi-lam (kofi/cons D1) ([x] ofi/cons ([d] ofi/cons ([e] D2 x d e)))
+            (ofi/cons D)
+         <- ({e} ofi-lam (D1 e) ([x] ofi/cons ([d] D2 x d e)) (D e)).
+
+%worlds (csig | asig | bind | var | ofblock) (ofi-lam _ _ _).
+%total D (ofi-lam D _ _).
+
+
+kofi-lam : kofi G A ktype -> ({x} kofi (cons G x A) (B x) (K x))
+           -> kofi G (alam B) (kpi A K) -> type.
+%mode kofi-lam +X1 +X2 -X3.
+
+-     : kofi-lam (kofi/nil D1) ([x] kofi/cons ([d] kofi/nil (D2 x d)))
+            (kofi/nil (kof/lam D2 D1)).
+
+-     : kofi-lam (kofi/cons D1) ([x] kofi/cons ([d] kofi/cons ([e] D2 x d e)))
+            (kofi/cons D)
+         <- ({e} kofi-lam (D1 e) ([x] kofi/cons ([d] D2 x d e)) (D e)).
+
+%worlds (csig | asig | bind | var | ofblock) (kofi-lam _ _ _).
+%total D (kofi-lam D _ _).
+
+
+
+
+atofe-to-atofi : at-ofe G R A -> at-ofi G R A -> type.
+%mode atofe-to-atofi +X1 -X2.
+
+ofe-to-ofi : ofe G M A -> ofi G M A -> type.
+%mode ofe-to-ofi +X1 -X2.
+
+kofe-to-kofi : kofe G A K -> kofi G A K -> type.
+%mode kofe-to-kofi +X1 -X2.
+
+atkofe-to-atkofi : at-kofe G P K -> at-kofi G P K -> type.
+%mode atkofe-to-atkofi +X1 -X2.
+
+wfkinde-to-wfkindi : wfkinde G K -> wfkindi G K -> type.
+%mode wfkinde-to-wfkindi +X1 -X2.
+
+-at   : ofe-to-ofi (ofe/at D) D''
+         <- atofe-to-atofi D D'
+         <- ofi-at D' D''.
+
+-lam  : ofe-to-ofi 
+            (ofe/lam 
+                (Dkofe : kofe G A ktype) 
+                ([x] Dofe x : ofe (cons G x A) (M x) (B x)))
+            D
+         <- kofe-to-kofi Dkofe 
+            (Dkofi : kofi G A ktype)
+         <- ({x}
+                ofe-to-ofi (Dofe x)
+                (Dofi x : ofi (cons G x A) (M x) (B x)))
+         <- ofi-lam Dkofi Dofi D.
+
+-closed : atofe-to-atofi (at-ofe/closed D) D'
+           <- atof-to-atofi _ D D'.
+
+-const  : atofe-to-atofi (at-ofe/const Dkofe Dcof) D
+           <- kofe-to-kofi Dkofe
+              (Dkofi : kofi G A ktype)
+           <- atofi-const Dkofi Dcof D.
+
+-var    : atofe-to-atofi (at-ofe/var Dkofe Dlook) Datofi
+           <- kofe-to-kofi Dkofe Dkofi
+           <- atofi-lookup Dlook Dkofi Datofi.
+
+-app    : atofe-to-atofi (at-ofe/app Dsub Dofe Datofe) D
+           <- atofe-to-atofi Datofe Datofi
+           <- ofe-to-ofi Dofe Dofi
+           <- atofi-app Datofi Dofi Dsub D.
+
+-base   : kofe-to-kofi (kofe/base Datkofe) D
+           <- atkofe-to-atkofi Datkofe Datkofi
+           <- kofi-base Datkofi D.
+
+-pi     : kofe-to-kofi (kofe/pi ([x] DkofeB x) DkofeA) D
+           <- kofe-to-kofi DkofeA DkofiA
+           <- ({x} kofe-to-kofi (DkofeB x) (DkofiB x))
+           <- kofi-pi DkofiB DkofiA D.
+
+-alam   : kofe-to-kofi (kofe/lam ([x] DkofeB x) DkofeA) D
+           <- kofe-to-kofi DkofeA
+              (DkofiA : kofi G A ktype)
+           <- ({x}
+                  kofe-to-kofi (DkofeB x)
+                  (DkofiB x : kofi (cons G x A) (B x) (K x)))
+           <- kofi-lam DkofiA DkofiB D.
+
+-closed : atkofe-to-atkofi (at-kofe/closed Datkof) Datkofi
+           <- atkof-to-atkofi _ Datkof Datkofi.
+
+-const  : atkofe-to-atkofi (at-kofe/const Dwfkinde Dckof) D
+           <- wfkinde-to-wfkindi Dwfkinde Dwfkindi
+           <- atkofi-const Dwfkindi Dckof D.
+
+-app    : atkofe-to-atkofi (at-kofe/app Dksub Dofe Datkofe) D
+           <- ofe-to-ofi Dofe Dofi
+           <- atkofe-to-atkofi Datkofe Datkofi
+           <- atkofi-app Dksub Dofi Datkofi D.
+
+-tp      : wfkinde-to-wfkindi wfkinde/tp D
+            <- wfkindi-t _ D.
+
+-pi      : wfkinde-to-wfkindi (wfkinde/pi ([x] Dwfkinde x) Dkofe) D
+            <- kofe-to-kofi Dkofe Dkofi
+            <- ({x} wfkinde-to-wfkindi (Dwfkinde x) (Dwfkindi x))
+            <- wfkindi-pi Dkofi Dwfkindi D.
+
+%worlds (var | bind | csig | asig)
+  (ofe-to-ofi _ _) 
+  (atofe-to-atofi _ _)
+  (kofe-to-kofi _ _)
+  (atkofe-to-atkofi _ _)
+  (wfkinde-to-wfkindi _ _).
+%total (D1 D2 D3 D4 D5) 
+  (atofe-to-atofi D1 _) 
+  (ofe-to-ofi D2 _)
+  (kofe-to-kofi D3 _)
+  (atkofe-to-atkofi D4 _)
+  (wfkinde-to-wfkindi D5 _).
+
+atofe-to-atof : at-ofe nil M A -> at-of M A -> type.
+%mode atofe-to-atof +X1 -X2.
+
+-     : atofe-to-atof D D'
+         <- atofe-to-atofi D (at-ofi/nil D').
+
+%worlds (var | bind | csig | asig) (atofe-to-atof _ _).
+%total {} (atofe-to-atof _ _).
+
+
+ofe-to-of : ofe nil M A -> of M A -> type.
+%mode ofe-to-of +X1 -X2.
+
+-     : ofe-to-of D D'
+         <- ofe-to-ofi D (ofi/nil D').
+
+%worlds (csig | asig | var | bind) (ofe-to-of _ _).
+%total {} (ofe-to-of _ _).
+
+kofe-to-kof : kofe nil A K -> kof A K -> type.
+%mode kofe-to-kof +X1 -X2.
+
+-     : kofe-to-kof D D'
+         <- kofe-to-kofi D (kofi/nil D').
+
+%worlds (csig | asig | var | bind) (kofe-to-kof _ _).
+%total {} (kofe-to-kof _ _).
+
+atkofe-to-atkof : at-kofe nil M A -> at-kof M A -> type.
+%mode atkofe-to-atkof +X1 -X2.
+
+-     : atkofe-to-atkof D D'
+         <- atkofe-to-atkofi D (at-kofi/nil D').
+
+%worlds (csig | asig | var | bind) (atkofe-to-atkof _ _).
+%total {} (atkofe-to-atkof _ _).
+
+
+wfkinde-to-wfkind : wfkinde nil K -> wfkind K -> type.
+%mode wfkinde-to-wfkind +X1 -X2.
+
+-     : wfkinde-to-wfkind D D'
+         <- wfkinde-to-wfkindi D (wfkindi/nil D').
+
+%worlds (csig | asig | var | bind) (wfkinde-to-wfkind _ _).
+%total {} (wfkinde-to-wfkind _ _).
+
+
+%%% translation to explicit form %%%
+
+of1-to-ofe : ({x} vof x A -> of (M x) (B x))
+%%                 
+              -> ({x} ofe (cons nil x A) (M x) (B x)) -> type.
+%mode of1-to-ofe +X2 -X3.
+
+- : of1-to-ofe 
+        ([x] [d:vof x A] Dof x d : of (M x) (B x))
+        ([x] Dofe x)
+     <- ({x} {d:vof x A} 
+            can-mof (Dof x d) (Dmof x d : mof (Dof x d) Mm))
+     <- cut-of Mm Dof Dmof ([_] lookup/hit)
+        (Dofe : {x} ofe (cons nil x A) (M x) (B x))
+        _.
+
+%worlds (csig | asig | var | ovar | bind) (of1-to-ofe _ _).
+%total {} (of1-to-ofe _ _).
+
+
+atof1-to-atofe : ({x} vof x A -> at-of (R x) (B x))
+%%
+                  -> ({x} at-ofe (cons nil x A) (R x) (B x)) -> type.
+%mode atof1-to-atofe +X1 -X2.
+
+- : atof1-to-atofe
+        (Datof : {x} vof x A -> at-of (R x) (B x))
+        ([x] Datofe x)
+%%%
+     <- ({x} {d:vof x A}
+            can-matof (Datof x d) (Dmatof x d : matof (Datof x d) Mm))
+     <- cut-at-of Mm Datof Dmatof ([_] lookup/hit)
+        ([x] Datofe x : at-ofe (cons nil x A) (R x) (B x))
+        _.
+
+%worlds (csig | asig | var | bind) (atof1-to-atofe _ _).
+%total {} (atof1-to-atofe _ _).
+
+
+kof1-to-kofe : ({x} vof x A -> kof (B x) (K x))
+%%
+                -> ({x} kofe (cons nil x A) (B x) (K x)) -> type.
+%mode kof1-to-kofe +X1 -X2.
+
+- : kof1-to-kofe
+        (Dkof : {x} vof x A -> kof (B x) (K x))
+        ([x] Dkofe x)
+%%%
+     <- ({x} {d:vof x A}
+            can-mkof (Dkof x d) (Dmkof x d : mkof (Dkof x d) Bm))
+     <- cut-kof Bm Dkof Dmkof ([_] lookup/hit)
+        ([x] Dkofe x : kofe (cons nil x A) (B x) (K x))
+        _.
+
+%worlds (csig | asig | var | bind) (kof1-to-kofe _ _).
+%total {} (kof1-to-kofe _ _).
+
+
+atkof1-to-atkofe : ({x} vof x A -> at-kof (P x) (K x))
+%%
+                    -> ({x} at-kofe (cons nil x A) (P x) (K x)) -> type.
+%mode atkof1-to-atkofe +X1 -X2.
+
+- : atkof1-to-atkofe
+        (Datkof : {x} vof x A -> at-kof (P x) (K x))
+        ([x] Datkofe x)
+%%%
+     <- ({x} {d:vof x A}
+            can-matkof (Datkof x d) (Dmatkof x d : matkof (Datkof x d) Pm))
+     <- cut-at-kof Pm Datkof Dmatkof ([_] lookup/hit)
+        ([x] Datkofe x : at-kofe (cons nil x A) (P x) (K x))
+        _.
+
+%worlds (csig | asig | var | bind) (atkof1-to-atkofe _ _).
+%total {} (atkof1-to-atkofe _ _).
+
+
+wfkind1-to-wfkinde : ({x} vof x A -> wfkind (K x))
+%%
+                      -> ({x} wfkinde (cons nil x A) (K x)) -> type.
+%mode wfkind1-to-wfkinde +X1 -X2.
+
+- : wfkind1-to-wfkinde
+        (Dwfkind : {x} vof x A -> wfkind (K x))
+        ([x] Dwfkinde x)
+%%%
+     <- ({x} {d:vof x A}
+            can-mwfkind (Dwfkind x d) (Dmwfkind x d : mwfkind (Dwfkind x d) Km))
+     <- cut-wfkind Km Dwfkind Dmwfkind ([_] lookup/hit)
+        ([x] Dwfkinde x : wfkinde (cons nil x A) (K x))
+        _.
+
+%worlds (csig | asig | var | bind) (wfkind1-to-wfkinde _ _).
+%total {} (wfkind1-to-wfkinde _ _).
+
+
+
+atof-to-atofe : at-of R A -> at-ofe nil R A -> type.
+%mode atof-to-atofe +X1 -X2.
+
+- : atof-to-atofe Datof (at-ofe/closed Datof).
+
+%worlds (csig | asig | var | bind | ovar) (atof-to-atofe _ _).
+%total {} (atof-to-atofe _ _).
+
+
+atkof-to-atkofe : at-kof P K
+%%
+                   -> at-kofe nil P K -> type.
+%mode atkof-to-atkofe +X1 -X2.
+
+- : atkof-to-atkofe Datkof (at-kofe/closed Datkof).
+
+%worlds (csig | asig | var | bind) (atkof-to-atkofe _ _).
+%total {} (atkof-to-atkofe _ _).
+
+
+kof-to-kofe : kof A K
+%%
+               -> kofe nil A K -> type.
+%mode kof-to-kofe +X1 -X2.
+
+-base  : kof-to-kofe (kof/base Datkof) (kofe/base Datkofe)
+          <- atkof-to-atkofe Datkof Datkofe.
+
+-pi    : kof-to-kofe (kof/pi ([x] [d] D2 x d) D1) (kofe/pi D2' D1')
+          <- kof-to-kofe D1 D1'
+          <- kof1-to-kofe D2 D2'.
+
+-alam  : kof-to-kofe (kof/lam ([x] [d] D2 x d) D1) (kofe/lam D2' D1')
+          <- kof-to-kofe D1 D1'
+          <- kof1-to-kofe D2 D2'.
+
+%worlds (csig | asig | var | bind) (kof-to-kofe _ _).
+%total D (kof-to-kofe D _).
+
+
+wfkind-to-wfkinde : wfkind K -> wfkinde nil K -> type.
+%mode wfkind-to-wfkinde +X1 -X2.
+
+-type : wfkind-to-wfkinde wfkind/tp wfkinde/tp.
+
+-kpi  : wfkind-to-wfkinde (wfkind/pi ([x] [d] Dwfkind x d) Dkof)
+            (wfkinde/pi Dwfkinde Dkofe)
+         <- kof-to-kofe Dkof Dkofe
+         <- wfkind1-to-wfkinde Dwfkind Dwfkinde.
+
+%worlds (csig | asig | var | bind) (wfkind-to-wfkinde _ _).
+%total D (wfkind-to-wfkinde D _).
+
+
+of-to-ofe : of M A -> ofe nil M A -> type.
+%mode of-to-ofe +X1 -X2.
+
+- : of-to-ofe (of/at DofR) (ofe/at (at-ofe/closed DofR)).
+
+- : of-to-ofe (of/lam Dkof Dof) (ofe/lam Dkofe Dofe)
+     <- of1-to-ofe Dof Dofe
+     <- kof-to-kofe Dkof Dkofe.
+
+%worlds (csig | asig | var | bind | ovar) (of-to-ofe _ _).
+%total D (of-to-ofe D _).
+
+of2-to-ofe : ({x} vof x A -> {y} vof y (B x) -> of (M x y) (C x y))
+%%                 
+              -> ({x} {y} ofe (cons (cons nil x A) y (B x)) (M x y) (C x y))
+              -> type.
+%mode of2-to-ofe +X1 -X2.
+
+- : of2-to-ofe
+        (Dof : {x} vof x A -> {y} vof y (B x) -> of (M x y) (C x y))
+%%        
+        Dofe'
+%%
+     <- ({x} {d:vof x A} {y} {e:vof y (B x)}
+          can-mof (Dof x d y e) (Dmof x d y e : mof (Dof x d y e) Mm))
+     <- ({x} {d:vof x A}
+            cut-of Mm ([y] [e] Dof x d y e) ([y] [e] Dmof x d y e)
+            ([y] lookup/hit)
+            ([y] Dofe x d y : ofe (cons (cons nil x A) y (B x)) (M x y) (C x y))
+            ([y] Dmofe x d y : mofe (Dofe x d y) Mm))
+     <- ({y}
+            cut-ofe Mm ([x] [d] Dofe x d y) ([x] [d] Dmofe x d y)
+            ([x] lookup/miss lookup/hit)
+            ([x] Dofe' x y : ofe (cons (cons nil x A) y (B x)) (M x y) (C x y))
+            _).
+
+%worlds (csig | asig | var | bind) (of2-to-ofe _ _).
+%total {} (of2-to-ofe _ _).
+
+kof2-to-kofe : ({x} vof x A -> {y} vof y (B x) -> kof (M x y) (C x y))
+%%                 
+              -> ({x} {y} kofe (cons (cons nil x A) y (B x)) (M x y) (C x y))
+              -> type.
+%mode kof2-to-kofe +X1 -X2.
+
+- : kof2-to-kofe
+        (Dof : {x} vof x A -> {y} vof y (B x) -> kof (M x y) (C x y))
+%%        
+        Dofe'
+%%
+     <- ({x} {d:vof x A} {y} {e:vof y (B x)}
+          can-mkof (Dof x d y e) (Dmof x d y e : mkof (Dof x d y e) Mm))
+     <- ({x} {d:vof x A}
+            cut-kof Mm ([y] [e] Dof x d y e) ([y] [e] Dmof x d y e)
+            ([y] lookup/hit)
+            ([y] Dofe x d y : kofe (cons (cons nil x A) y (B x)) (M x y) (C x y))
+            ([y] Dmofe x d y : mkofe (Dofe x d y) Mm))
+     <- ({y}
+            cut-kofe Mm ([x] [d] Dofe x d y) ([x] [d] Dmofe x d y)
+            ([x] lookup/miss lookup/hit)
+            ([x] Dofe' x y : kofe (cons (cons nil x A) y (B x)) (M x y) (C x y))
+            _).
+
+%worlds (csig | asig | var | bind) (kof2-to-kofe _ _).
+%total {} (kof2-to-kofe _ _).
+
+
+
+append-bounded-contra : append (cons G1 X A) G2 G -> bounded G X -> false -> type.
+%mode append-bounded-contra +X1 +X2 -X3. 
+
+-       : append-bounded-contra append/nil (bounded/cons _ Dprecedes) Dfalse
+           <- precedes-antisymm Dprecedes Dfalse.
+-       : append-bounded-contra (append/cons Dapp) (bounded/cons Dbounded Dprecedes)
+              Dfalse
+           <- bounded-increase-bound Dbounded Dprecedes Dbounded'
+           <- append-bounded-contra Dapp Dbounded' Dfalse.
+
+%worlds (csig | asig | bind | ovar | var) (append-bounded-contra _ _ _).
+%total D (append-bounded-contra D _ _).
+
+
+
+strengthen-bounded : ({x} isvar x I -> bounded G Y) -> bounded G Y -> type.
+%mode strengthen-bounded +X1 -X2.
+
+- : strengthen-bounded ([x] [d] bounded/nil D) (bounded/nil D).
+
+- : strengthen-bounded
+        ([x] [d] bounded/cons (Dbound x d) Dprec)
+        (bounded/cons Dbound' Dprec)
+     <- strengthen-bounded Dbound Dbound'.
+
+%worlds (csig | asig | var | bind | ovar) (strengthen-bounded _ _).
+%total D (strengthen-bounded D _).
+
+strengthen-ordered  : ({x} isvar x I -> ordered G) -> ordered G -> type.
+%mode strengthen-ordered +X1 -X2.
+
+- : strengthen-ordered ([x] [d] ordered/nil) ordered/nil.
+- : strengthen-ordered ([x] [d] ordered/cons (Dbound x d))
+        (ordered/cons Dbound')
+     <- strengthen-bounded Dbound Dbound'.
+
+%worlds (csig | asig | var | bind | ovar) (strengthen-ordered _ _).
+%total {} (strengthen-ordered _ _).
+
+
+bounded-increase-bound : bounded G X -> precedes X Y -> bounded G Y -> type.
+%mode bounded-increase-bound +X1 +X2 -X3.
+
+- : bounded-increase-bound (bounded/nil _) (precedes/i _ D _) (bounded/nil D).
+- : bounded-increase-bound (bounded/cons Dbounded Dprecedes) Dprecedes'
+        (bounded/cons Dbounded Dprecedes'')
+     <- precedes-trans Dprecedes Dprecedes' Dprecedes''.
+
+%worlds (csig | asig | bind | var | ovar) (bounded-increase-bound _ _ _).
+%total {} (bounded-increase-bound _ _ _).
+
+bounded-is-ordered : bounded G X -> ordered G -> type.
+%mode bounded-is-ordered +X1 -X2.
+
+-   : bounded-is-ordered (bounded/nil _) ordered/nil.
+-   : bounded-is-ordered (bounded/cons D _) (ordered/cons D).
+
+%worlds (csig | asig | var | bind | ovar) (bounded-is-ordered _ _).
+%total {} (bounded-is-ordered _ _).
+
+bounded-is-ordered-strengthen : ({x} isvar x I -> bounded G x)
+                                 -> ordered G -> type.
+%mode bounded-is-ordered-strengthen +X1 -X2.
+
+- : bounded-is-ordered-strengthen ([x] [d] bounded/nil d) ordered/nil.
+- : bounded-is-ordered-strengthen 
+        ([x] [d] bounded/cons (D x d) (precedes/i Dlt d Disvar))
+        (ordered/cons D')
+     <- strengthen-bounded D D'.
+
+%worlds (csig | asig | var | bind | ovar) (bounded-is-ordered-strengthen _ _).
+%total {} (bounded-is-ordered-strengthen _ _).
+
+csub-closed : {G} {M} csub ([x] G) M G -> type.
+%mode csub-closed +G +M -X1.
+
+-nil  : csub-closed nil _ csub/nil.
+
+-cons : csub-closed (cons G X A) M
+            (csub/cons DsubA DsubG)
+         <- tpsub-absent _ _
+            (DsubA : tpsub ([x] A) M A)
+         <- csub-closed G M
+            (DsubG : csub ([x] G) M G).
+
+%worlds (csig | asig | var) (csub-closed _ _ _).
+%total G (csub-closed G _ _).
+
+csub-bounded : ({x} isvar x I -> bounded (G x) Y) -> csub ([x] G x) M G'
+                -> bounded G' Y -> type.
+%mode csub-bounded +X1 +X2 -X3.
+
+- : csub-bounded ([x] [d] bounded/cons (Dbound x d) (Dprec x d)) csub/base
+        Dbound''
+     <- ({x} {d}
+            bounded-increase-bound (Dbound x d) (Dprec x d) (Dbound' x d))
+     <- strengthen-bounded Dbound' Dbound''.
+
+- : csub-bounded 
+        ([x] [d] bounded/cons (Dbound x d) Dprec) 
+        (csub/cons Dsub Dcsub)
+        (bounded/cons Dbound' Dprec)
+     <- csub-bounded Dbound Dcsub Dbound'.
+
+- : csub-bounded
+        ([x] [d] Dbound x d : bounded nil Y)
+        csub/nil
+        Dbound'
+     <- strengthen-bounded Dbound Dbound'.
+
+%worlds (csig | asig | bind | var | ovar) (csub-bounded _ _ _).
+%total D (csub-bounded D _ _).
+
+
+csub-ordered : ({x} isvar x I -> ordered (G x)) -> csub ([x] G x) M G'
+                -> ordered G' -> type.
+%mode csub-ordered +X1 +X2 -X3.
+
+- : csub-ordered ([x] [d] ordered/cons (Dbound x d)) csub/base Dord
+     <- bounded-is-ordered-strengthen Dbound Dord.
+
+- : csub-ordered ([x] [d] ordered/cons (Dbound x d)) (csub/cons Dtsub Dcsub)
+        (ordered/cons Dbound')
+     <- csub-bounded Dbound Dcsub Dbound'.
+
+- : csub-ordered ([x] [d] ordered/nil) csub/nil ordered/nil.
+
+%worlds (csig | asig | bind | var | ovar) (csub-ordered _ _ _).
+%total {} (csub-ordered _ _ _).
+
+
+csub-lookup : csub G M G' -> ({x} lookup (G x) Y (A x)) 
+               -> tpsub A M A'
+               -> lookup G' Y A' -> type.
+%mode csub-lookup +X1 +X2 -X3 -X4.
+
+- : csub-lookup (csub/cons Dtsub Dcsub) ([_] lookup/hit) Dtsub lookup/hit.
+
+- : csub-lookup (csub/cons _ Dcsub) ([x] lookup/miss (Dlookup x)) 
+        Dtsub
+        (lookup/miss Dlookup')
+     <- csub-lookup Dcsub ([x] Dlookup x) Dtsub Dlookup'.
+
+- : csub-lookup csub/base ([x] lookup/miss (Dlookup x : lookup G Y (A x))) 
+        Dtsub'
+        Dlookup'
+     <- strengthen-lookup ([x] Dlookup x) 
+        (Dlookup' : lookup G Y A')
+        ([x] Deq x : tp-eq (A x) A')
+     <- ({x} tp-eq-sym (Deq x) (Deq' x : tp-eq A' (A x)))
+     <- tpsub-absent _ _ 
+        (Dtsub : tpsub ([_] A') M A')
+     <- tpsub-compat Deq' tm-eq/i tp-eq/i Dtsub
+        (Dtsub' : tpsub ([x] A x) M A').
+
+%worlds (csig | asig | var | bind | ovar) (csub-lookup _ _ _ _).
+%total D (csub-lookup _ D _ _).
+
+csub-append! : append (cons G1 X A) G2 G -> append G1 G' G -> type.
+%mode csub-append! +X1 -X2. 
+
+- : csub-append! append/nil (append/cons append/nil).
+
+- : csub-append! (append/cons D) (append/cons D')
+     <- csub-append! D D'.
+
+%worlds (csig | asig | var | ovar) (csub-append! _ _).
+%total D (csub-append! D _).
+
+strengthen-append : ({x:atm} append (G1 x) (G2 x) G)
+                     -> ({x} ctx-eq (G1 x) G1')
+                     -> ({x} ctx-eq (G2 x) G2') -> type.
+%mode strengthen-append +X1 -X2 -X3.
+
+-nil  : strengthen-append ([x] append/nil) ([_] ctx-eq/i) ([_] ctx-eq/i).
+
+-cons : strengthen-append
+            ([x] append/cons 
+                (Dappend x : append (G1 x) (G2 x) G))
+            Deq1
+            Deq2'
+         <- strengthen-append Dappend
+            ([x] Deq1 x : ctx-eq (G1 x) G1')
+            ([x] Deq2 x : ctx-eq (G2 x) G2')
+         <- ({x}
+                cons-compat (Deq2 x) atm-eq/i tp-eq/i
+                (Deq2' x : ctx-eq (cons (G2 x) Y A) (cons G2' Y A))).
+
+%worlds (csig | asig | var | ovar) (strengthen-append _ _ _).
+%total D (strengthen-append D _ _).
+
+cons-closed-contra  : ({x} ctx-eq (cons G x A) G') -> false -> type.
+%mode cons-closed-contra +X1 -X2.
+
+%worlds (csig | asig | var | ovar) (cons-closed-contra _ _).
+%total {} (cons-closed-contra _ _).
+
+csub-append : csub G M G' -> ({x} append (cons G1 x A) (G2 x) (G x))
+               -> append G1 G2' G' -> type.
+%mode csub-append +X1 +X2 -X3.
+
+- : csub-append csub/base ([x] append/nil) append/nil.
+
+- : csub-append (csub/cons _ Dsub) ([x] append/cons (Dappend x)) 
+        (append/cons Dappend') 
+     <- csub-append Dsub Dappend Dappend'.
+
+- : csub-append csub/base ([x] append/cons (Dappend x)) D
+     <- csub-append! (Dappend aca) D.
+
+%worlds (csig | asig | var | ovar) (csub-append _ _ _).
+%total D (csub-append D _ _).
+
+
+weaken-ofe-csub : ({x} isvar x I -> ordered (G x))
+                   -> ({x} append (cons G1 x A) (G2 x) (G x))
+                   -> csub G M G'
+                   -> ofe G1 M A
+%%                      
+                   -> ofe G' M A -> type.
+%mode weaken-ofe-csub +X1 +X2 +X3 +X4 -X5.
+
+-nil  : weaken-ofe-csub _ ([x] append/nil) _ D D.
+
+-cons : weaken-ofe-csub 
+            ([x] [d] ordered/cons (Dbound x d))
+            ([x] append/cons (Dapp x))
+            (csub/cons _ Dsub)
+            Dof
+%%            
+            Dof''
+%%
+         <- ({x} {d:isvar x I}
+                bounded-is-ordered (Dbound x d) (Dord x d))
+         <- weaken-ofe-csub Dord Dapp Dsub Dof Dof'
+         <- csub-ordered Dord Dsub Dord'
+         <- weaken-ofe Dof' _ _ Dof''.
+
+-bad  : weaken-ofe-csub
+            ([x] [d] ordered/cons (Dbound x d))
+            ([x] append/cons (Dapp x))
+            csub/base
+            _
+%%
+            D
+%%
+         <- ({x} {d}
+                append-bounded-contra (Dapp x) (Dbound x d) Dfalse)
+         <- false-implies-ofe Dfalse D.
+
+%worlds (csig | asig | bind | var | ovar) (weaken-ofe-csub _ _ _ _ _).
+%total D (weaken-ofe-csub _ D _ _ _).
+
+
+%%% for expand.thm %%%
+
+weaken-kofe-insert1 : ordered G
+                       -> ({y} kofe (cons G y B) (C y) (K y))
+                       -> {A}
+%%
+                       ({x} {y} kofe (cons (cons G x A) y B) (C y) (K y)) -> type.
+%mode weaken-kofe-insert1 +X1 +X2 +X3 -X4.
+
+-     : weaken-kofe-insert1
+            (Dord : ordered G)
+            ([y] DofC y : kofe (cons G y B) (C y) (K y))
+            A
+%%
+            DofC''
+%%
+         <- ({x} {y}
+                weakeng-kofe (append/cons append/nil) (append/cons append/nil)
+                (DofC y)
+                (DofC'' x y : kofe (cons (cons G x A) y B) (C y) (K y))).
+
+%worlds (csig | asig | var | bind | ovar) (weaken-kofe-insert1 _ _ _ _).
+%total {} (weaken-kofe-insert1 _ _ _ _).

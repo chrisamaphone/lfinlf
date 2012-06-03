@@ -1,0 +1,301 @@
+%%%%
+
+eof-lam-invert : eof (elam A M) C
+                   -> eqtp C (epi A B) ektype
+                   -> ({x} evof x A -> eof (M x) (B x)) -> type.
+%mode eof-lam-invert +X1 -X2 -X3.
+
+%% Reduction implies equivalence %%
+
+reduce-equiv  : eof M A -> reduce M N -> eqtm M N A -> type.
+%mode reduce-equiv +X1 +X2 -X3.
+
+tpreduce-equiv : ekof A K -> tpreduce A B -> eqtp A B K -> type.
+%mode tpreduce-equiv +X1 +X2 -X3.
+
+%% cases of lam inversion
+
+-lam      : eof-lam-invert (eof/lam DofA DofM) 
+                (eqtp/refl DofPi) DofM
+             <- eof-reg (eof/lam DofA DofM)
+                (DofPi).
+
+-eqtp     : eof-lam-invert
+                (eof/eqtp
+                    (Deqtp : eqtp C C' ektype)
+                    (DofLam : eof (elam A M) C))
+                (eqtp/trans DeqCPi (eqtp/sym Deqtp))
+                DofM
+             <- eof-lam-invert DofLam
+                (DeqCPi : eqtp C (epi A B) ektype)
+                ([x] [d:evof x A] DofM x d : eof (M x) (B x)).
+
+-ext      : eof-lam-invert
+                (eof/ext
+                    ([x] [d:evof x A] DofApp x d
+                      : eof (eapp (elam A' M) x) (B x))
+                    (DofLam' : eof (elam A' M) (epi A B')))
+                (eqtp/pi ([x] [d] eqtp/refl (DofB x d)) DeqAA')
+                DofM*
+             <- eof-lam-invert DofLam'
+                (DeqPi : eqtp (epi A B') (epi A' B'') ektype)
+                ([x] [d:evof x A'] DofM' x d : eof (M x) (B'' x))
+                %%
+             <- eqtp-pi-invert DeqPi
+                (DeqAA' : eqtp A A' ektype)
+                ([x] [d:evof x A] DeqB'B'' x d : eqtp (B' x) (B'' x) ektype)
+             <- eqtp-reg DeqAA' DofA DofA' _
+                %%
+             <- ({x} {d:evof x A}
+                    reduce-equiv (DofApp x d) reduce/beta
+                    (DeqApp x d : eqtm _ (M x) (B x)))
+             <- ({x} {d:evof x A}
+                    eqtm-reg (DeqApp x d)
+                    _
+                    (DofM x d : eof (M x) (B x))
+                    (DofB x d : ekof (B x) ektype))
+             <- ({x} {d:evof x A'}
+                    esubst DofM
+                    (eof/eqtp (eqtp/sym DeqAA') (eof/var DofA' d))
+                    (DofM* x d : eof (M x) (B x))).
+
+%% cases of reduce-equiv
+
+-const    : reduce-equiv Deof reduce/refl (eqtm/refl Deof).
+
+-ext      : reduce-equiv
+                (eof/ext
+                    ([x] [d:evof x A]
+                        DofApp x d : eof (eapp M x) (C x))
+                    (DofM : eof M (epi A B)))
+                (DredM : reduce M M')
+                (eqtm/extw DeqApp Deqtm)
+             <- reduce-equiv DofM DredM
+                (Deqtm : eqtm M M' (epi A B))
+             <- ({x} {d:evof x A}
+                    reduce-equiv (DofApp x d) (reduce/app reduce/refl DredM)
+                    (DeqApp x d : eqtm (eapp M x) (eapp M' x) (C x))).
+
+-eqtp     : reduce-equiv
+                (eof/eqtp
+                    (Deqtp : eqtp A B ektype)
+                    (DofM : eof M A))
+                (DredM : reduce M M')
+                (eqtm/typecon Deqtp Deqtm)
+             <- reduce-equiv DofM DredM
+                (Deqtm : eqtm M M' A).
+
+-lam      : reduce-equiv
+                (eof/lam
+                    (DofA : ekof A ektype)
+                    ([x] [d:evof x A] DofM x d : eof (M x) (B x)))
+                (reduce/lam
+                    ([x] [dv:variable x] DreduceM x dv : reduce (M x) (M' x))
+                    (DreduceA : tpreduce A A'))
+%%                
+                (eqtm/lam DeqM DeqA)
+%%                    
+             <- tpreduce-equiv DofA DreduceA
+                (DeqA : eqtp A A' ektype)
+             <- ({x} {d:evof x A} {dv:variable x}
+                    reduce-equiv (DofM x d) (DreduceM x dv)
+                    (DeqM x d : eqtm (M x) (M' x) (B x))).
+
+-app    : reduce-equiv
+              (eof/app
+                  (DofN : eof N A)
+                  (DofM : eof M (epi A ([x] B x))))
+              (reduce/app
+                  (DreduceN : reduce N N')
+                  (DreduceM : reduce M M'))
+%%
+              (eqtm/app DeqtmN DeqtmM)
+%%
+           <- reduce-equiv DofN DreduceN DeqtmN
+           <- reduce-equiv DofM DreduceM DeqtmM.
+
+-beta   : reduce-equiv
+              (eof/app
+                  (DofN : eof N A)
+                  (DofLam : eof (elam A' M) (epi A B))
+                : eof (eapp (elam A' M) N) (B N))
+              (reduce/beta : reduce (eapp (elam A' M) N) (M N))
+              (eqtm/beta
+                  (eof/eqtp DeqA DofN)
+                  ([x] [d] eof/eqtp (eqtp/sym (DeqB* x d)) (DofM x d)))
+           <- eof-lam-invert DofLam
+              (DeqPi : eqtp (epi A B) (epi A' B') ektype)
+              ([x] [d:evof x A'] DofM x d : eof (M x) (B' x))
+           <- eqtp-pi-invert DeqPi
+              (DeqA : eqtp A A' ektype)
+              ([x] [d:evof x A] DeqB x d : eqtp (B x) (B' x) ektype)
+              %%
+           <- eqtp-reg DeqA _ DofA' _
+           <- ({x} {d:evof x A'}
+                  esubst-eqtp DeqB
+                  (eof/eqtp (eqtp/sym DeqA) (eof/var DofA' d))
+                  (DeqB* x d : eqtp (B x) (B' x) ektype)).
+
+
+%%%%
+
+%%
+
+-const    : tpreduce-equiv Dekof Dreduce (eqtp/refl Dekof).
+
+-pi       : tpreduce-equiv
+                (ekof/pi
+                    ([x] [d:evof x A] DofB x d : ekof (B x) ektype)
+                    (DofA : ekof A ektype))
+                (tpreduce/pi
+                    ([x] [dv:variable x] DreduceB x dv : tpreduce (B x) (B' x))
+                    (DreduceA : tpreduce A A'))
+                (eqtp/pi DeqB DeqA)
+             <- tpreduce-equiv DofA DreduceA
+                (DeqA : eqtp A A' ektype)
+             <- ({x} {d:evof x A} {dv:variable x}
+                    tpreduce-equiv (DofB x d) (DreduceB x dv)
+                    (DeqB x d : eqtp (B x) (B' x) ektype)).
+
+-lam      : tpreduce-equiv
+                (ekof/lam
+                    (DofA : ekof A ektype)
+                    ([x] [d:evof x A] DofB x d : ekof (B x) (K x)))
+                (tpreduce/lam
+                    ([x] [dv:variable x] DreduceB x dv : tpreduce (B x) (B' x))
+                    (DreduceA : tpreduce A A'))
+%%                
+                (eqtp/lam DeqB DeqA)
+%%                    
+             <- tpreduce-equiv DofA DreduceA
+                (DeqA : eqtp A A' ektype)
+             <- ({x} {d:evof x A} {dv:variable x}
+                    tpreduce-equiv (DofB x d) (DreduceB x dv)
+                    (DeqB x d : eqtp (B x) (B' x) (K x))).
+
+-app    : tpreduce-equiv
+              (ekof/app
+                  (DofN : eof N A)
+                  (DofB : ekof B (ekpi A ([x] K x))))
+              (tpreduce/app
+                  (DreduceN : reduce N N')
+                  (DreduceB : tpreduce B B'))
+%%
+              (eqtp/app DeqN DeqB)
+%%
+           <- reduce-equiv DofN DreduceN
+              (DeqN   : eqtm N N' A)
+           <- tpreduce-equiv DofB DreduceB
+              (DeqB   : eqtp B B' (ekpi A ([x] K x))).
+
+-eqkind : tpreduce-equiv
+              (ekof/eqkind
+                  (Deqkind : eqkind K K')
+                  (DofA : ekof A K))
+              (Dreduce : tpreduce A A')
+%%
+              (eqtp/kcon Deqkind DeqA)
+%%
+           <- tpreduce-equiv DofA Dreduce
+              (DeqA : eqtp A A' K).
+
+-ext    : tpreduce-equiv
+              (ekof/ext
+                  ([x] [d:evof x A]
+                      DofApp x d : ekof (eaapp B x) (K x))
+                  (DofB : ekof B (ekpi A K')))
+              (Dreduce : tpreduce B B')
+              (eqtp/extw DeqApp Deqtp)
+           <- tpreduce-equiv DofB Dreduce
+              (Deqtp : eqtp B B' (ekpi A K'))
+           <- ({x} {d:evof x A}
+                  tpreduce-equiv (DofApp x d)
+                  (tpreduce/app reduce/refl Dreduce)
+                  (DeqApp x d : eqtp (eaapp B x) (eaapp B' x) (K x))).
+
+%worlds (ecsig | easig | ebind | evbind)
+  (reduce-equiv _ _ _)
+  (tpreduce-equiv _ _ _)
+  (eof-lam-invert _ _ _).
+%total (D1 D2 D3) 
+  (reduce-equiv D1 _ _)
+  (tpreduce-equiv D2 _ _)
+  (eof-lam-invert D3 _ _).
+
+kreduce-equiv : ewfkind K -> kreduce K K' -> eqkind K K' -> type.
+%mode kreduce-equiv +X1 +X2 -X3.
+
+-type   : kreduce-equiv ewfkind/tp kreduce/type
+              (eqkind/refl ewfkind/tp).
+
+-pi     : kreduce-equiv
+              (ewfkind/pi DofB DofA)
+              (kreduce/pi DreduceB DreduceA)
+%%                
+              (eqkind/pi DeqB DeqA)
+%%                    
+             <- tpreduce-equiv DofA DreduceA
+                (DeqA : eqtp A A' ektype)
+             <- ({x} {d:evof x A} {dv:variable x}
+                    kreduce-equiv (DofB x d) (DreduceB x dv)
+                    (DeqB x d : eqkind (B x) (B' x))).
+
+%worlds (ecsig | easig | ebind | evbind)  (kreduce-equiv _ _ _).
+%total {D E} (kreduce-equiv E D _).
+
+reduce*-equiv : eof M A -> reduce* M N -> eqtm M N A -> type.
+%mode reduce*-equiv +X1 +X2 -X3.
+
+-refl   : reduce*-equiv Dof reduce*/refl (eqtm/refl Dof).
+
+-trans  : reduce*-equiv DofM
+              (reduce*/trans
+                  (Dred* : reduce* M' N)
+                  (Dred : reduce M M'))
+              (eqtm/trans DeqM'N DeqM)
+           <- reduce-equiv DofM Dred
+              (DeqM : eqtm M M' A)
+           <- eqtm-reg DeqM _ DofM' _
+           <- reduce*-equiv DofM' Dred*
+              (DeqM'N : eqtm M' N A).
+
+%worlds (ecsig | easig | ebind | evbind) (reduce*-equiv _ _ _).
+%total D (reduce*-equiv _ D _).
+
+tpreduce*-equiv : ekof M A -> tpreduce* M N -> eqtp M N A -> type.
+%mode tpreduce*-equiv +X1 +X2 -X3.
+
+-refl   : tpreduce*-equiv Dof tpreduce*/refl (eqtp/refl Dof).
+
+-trans  : tpreduce*-equiv DofM
+              (tpreduce*/trans
+                  (Dred* : tpreduce* M' N)
+                  (Dred : tpreduce M M'))
+              (eqtp/trans DeqM'N DeqM)
+           <- tpreduce-equiv DofM Dred
+              (DeqM : eqtp M M' A)
+           <- eqtp-reg DeqM _ DofM' _
+           <- tpreduce*-equiv DofM' Dred*
+              (DeqM'N : eqtp M' N A).
+
+%worlds (ecsig | easig | ebind | evbind) (tpreduce*-equiv _ _ _).
+%total D (tpreduce*-equiv _ D _).
+
+kreduce*-equiv : ewfkind M -> kreduce* M N -> eqkind M N -> type.
+%mode kreduce*-equiv +X1 +X2 -X3.
+
+-refl   : kreduce*-equiv Dof kreduce*/refl (eqkind/refl Dof).
+
+-trans  : kreduce*-equiv DofM
+              (kreduce*/trans
+                  (Dred* : kreduce* M' N)
+                  (Dred : kreduce M M'))
+              (eqkind/trans DeqM'N DeqM)
+           <- kreduce-equiv DofM Dred
+              (DeqM : eqkind M M')
+           <- eqkind-reg DeqM _ DofM'
+           <- kreduce*-equiv DofM' Dred*
+              (DeqM'N : eqkind M' N).
+
+%worlds (ecsig | easig | ebind | evbind) (kreduce*-equiv _ _ _).
+%total D (kreduce*-equiv _ D _).

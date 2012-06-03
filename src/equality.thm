@@ -1,0 +1,1662 @@
+%%%% equalities %%%%
+
+kind-eq   : kind -> kind -> type.
+kind-eq/i : kind-eq K K.
+
+tp-eq   : tp -> tp -> type.
+tp-eq/i : tp-eq A A.
+
+atp-eq   : atp -> atp -> type.
+atp-eq/i : atp-eq P P.
+
+tm-eq   : tm -> tm -> type.
+tm-eq/i : tm-eq M M.
+
+atm-eq   : atm -> atm -> type.
+atm-eq/i : atm-eq R R.
+
+ctp-eq   : ctp -> ctp -> type.
+ctp-eq/i : ctp-eq A A.
+
+ctm-eq   : ctm -> ctm -> type.
+ctm-eq/i : ctm-eq C C.
+
+ctx-eq : ctx -> ctx -> type.
+ctx-eq/i : ctx-eq G G.
+
+stp-eq   : stp -> stp -> type.
+stp-eq/i : stp-eq T T.
+
+skind-eq : skind -> skind -> type.
+skind-eq/i : skind-eq K K.
+
+sctx-eq   : sctx -> sctx -> type.
+sctx-eq/i : sctx-eq G G.
+
+
+%%%% symmetry %%%%
+
+kind-eq-sym : kind-eq K1 K2 -> kind-eq K2 K1 -> type.
+%mode kind-eq-sym +X1 -X2.
+
+- : kind-eq-sym kind-eq/i kind-eq/i.
+
+%worlds (csig | asig | var) (kind-eq-sym _ _).
+%total {} (kind-eq-sym _ _).
+
+
+tp-eq-sym : tp-eq A1 A2 -> tp-eq A2 A1 -> type.
+%mode tp-eq-sym +X1 -X2.
+
+- : tp-eq-sym tp-eq/i tp-eq/i.
+
+
+%worlds (csig | asig | var) (tp-eq-sym _ _).
+%total {} (tp-eq-sym _ _).
+
+
+atp-eq-sym : atp-eq P1 P2 -> atp-eq P2 P1 -> type.
+%mode atp-eq-sym +X1 -X2.
+
+- : atp-eq-sym atp-eq/i atp-eq/i.
+
+%worlds (csig | asig | var) (atp-eq-sym _ _).
+%total {} (atp-eq-sym _ _).
+
+
+tm-eq-sym : tm-eq A1 A2 -> tm-eq A2 A1 -> type.
+%mode tm-eq-sym +X1 -X2.
+
+- : tm-eq-sym tm-eq/i tm-eq/i.
+
+%worlds (csig | asig | var) (tm-eq-sym _ _).
+%total {} (tm-eq-sym _ _).
+
+
+atm-eq-sym : atm-eq P1 P2 -> atm-eq P2 P1 -> type.
+%mode atm-eq-sym +X1 -X2.
+
+- : atm-eq-sym atm-eq/i atm-eq/i.
+
+%worlds (csig | asig | var) (atm-eq-sym _ _).
+%total {} (atm-eq-sym _ _).
+
+stp-eq-sym : stp-eq T1 T2 -> stp-eq T2 T1 -> type.
+%mode stp-eq-sym +X1 -X2.
+
+- : stp-eq-sym stp-eq/i stp-eq/i.
+
+%worlds (csig | asig | var | evar) (stp-eq-sym _ _).
+%total {} (stp-eq-sym _ _).
+
+skind-eq-sym : skind-eq K1 K2 -> skind-eq K2 K1 -> type.
+%mode skind-eq-sym +X1 -X2.
+
+- : skind-eq-sym skind-eq/i skind-eq/i.
+
+%worlds (csig | asig | var | evar) (skind-eq-sym _ _).
+%total {} (skind-eq-sym _ _).
+
+
+%%%% transitivity %%%%
+
+tm-eq-trans : tm-eq M N -> tm-eq N O -> tm-eq M O -> type.
+%mode tm-eq-trans +X1 +X2 -X3.
+
+- : tm-eq-trans tm-eq/i tm-eq/i tm-eq/i.
+
+%worlds (csig | asig | var) (tm-eq-trans _ _ _).
+%total {} (tm-eq-trans _ _ _).
+
+tp-eq-trans : tp-eq A B -> tp-eq B C -> tp-eq A C -> type.
+%mode tp-eq-trans +X1 +X2 -X3.
+
+- : tp-eq-trans tp-eq/i tp-eq/i tp-eq/i.
+
+%worlds (csig | asig | var) (tp-eq-trans _ _ _).
+%total {} (tp-eq-trans _ _ _).
+
+kind-eq-trans : kind-eq K1 K2 -> kind-eq K2 K3 -> kind-eq K1 K3 -> type.
+%mode kind-eq-trans +X1 +X2 -X3.
+
+- : kind-eq-trans kind-eq/i kind-eq/i kind-eq/i.
+
+%worlds (csig | asig | var) (kind-eq-trans _ _ _).
+%total {} (kind-eq-trans _ _ _).
+
+
+stp-eq-trans : stp-eq T1 T2 -> stp-eq T2 T3 -> stp-eq T1 T3 -> type.
+%mode stp-eq-trans +X1 +X2 -X3.
+
+- : stp-eq-trans stp-eq/i stp-eq/i stp-eq/i.
+
+%worlds (csig | asig | var | evar) (stp-eq-trans _ _ _).
+%total {} (stp-eq-trans _ _ _).
+
+skind-eq-trans : skind-eq T1 T2 -> skind-eq T2 T3 -> skind-eq T1 T3 -> type.
+%mode skind-eq-trans +X1 +X2 -X3.
+
+- : skind-eq-trans skind-eq/i skind-eq/i skind-eq/i.
+
+%worlds (csig | asig | var | evar) (skind-eq-trans _ _ _).
+%total {} (skind-eq-trans _ _ _).
+
+
+
+
+
+%%%% compatibility %%%%
+
+%% atp-eq
+
+aapp-compat : atp-eq P P' 
+               -> tm-eq M M'
+               -> atp-eq (aapp P M) (aapp P' M') 
+               -> type.
+%mode aapp-compat +X1 +X2 -X3.
+
+- : aapp-compat atp-eq/i tm-eq/i atp-eq/i.
+
+%worlds (csig | asig | var) (aapp-compat _ _ _).
+%total {} (aapp-compat _ _ _).
+
+%% kind-eq
+
+kpi-compat : tp-eq A A' 
+              -> ({x} kind-eq (K x) (K' x)) 
+              -> kind-eq (kpi A ([x] K x)) (kpi A' ([y] K' y)) 
+              -> type.
+%mode kpi-compat +X1 +X2 -X3.
+
+- : kpi-compat tp-eq/i ([_] kind-eq/i) kind-eq/i.
+
+%worlds (csig | asig | var) (kpi-compat _ _ _).
+%total {} (kpi-compat _ _ _).
+
+
+%% tp-eq
+
+base-compat : atp-eq P P' -> tp-eq (base P) (base P') -> type.
+%mode base-compat +X1 -X2.
+
+- : base-compat atp-eq/i tp-eq/i.
+
+%worlds (csig | asig | var) (base-compat _ _).
+%total {} (base-compat _ _).
+
+
+pi-compat : tp-eq A A' 
+             -> ({x} tp-eq (B x) (B' x)) 
+             -> tp-eq (pi A ([x] B x)) (pi A' ([y] B' y)) 
+             -> type.
+%mode pi-compat +X1 +X2 -X3.
+
+- : pi-compat tp-eq/i ([_] tp-eq/i) tp-eq/i.
+
+%worlds (csig | asig | var) (pi-compat _ _ _).
+%total {} (pi-compat _ _ _).
+
+alam-compat : ({x} tp-eq (B x) (B' x))
+               -> tp-eq (alam ([x] B x)) (alam ([x] B' x))
+               -> type.
+%mode alam-compat +X1 -X2.
+
+- : alam-compat ([_] tp-eq/i) tp-eq/i.
+
+%worlds (csig | asig | var) (alam-compat _ _).
+%total {} (alam-compat _ _).
+
+
+%% atm-eq
+
+app-compat : atm-eq R R' -> tm-eq M M' 
+              -> atm-eq (app R M) (app R' M') -> type.
+%mode app-compat +X1 +X2 -X3.
+
+- : app-compat atm-eq/i tm-eq/i atm-eq/i.
+
+%worlds (csig | asig | var) (app-compat _ _ _).
+%total {} (app-compat _ _ _).
+
+
+%% tm-eq
+
+lam-compat : ({x : atm} tm-eq (M x) (M' x)) 
+              -> tm-eq (lam [x] M x) (lam [x] M' x) -> type.
+%mode lam-compat +X1 -X2.
+
+- : lam-compat ([_] tm-eq/i) tm-eq/i.
+
+%worlds (csig | asig | var) (lam-compat _ _).
+%total {} (lam-compat _ _).
+
+
+at-compat : atm-eq R R' -> tm-eq (at R) (at R') -> type.
+%mode at-compat +X1 -X2.
+
+- : at-compat atm-eq/i tm-eq/i.
+
+%worlds (csig | asig | var) (at-compat _ _).
+%total {} (at-compat _ _).
+
+
+%% stp
+
+stp-compat-stp : {T:stp -> stp} stp-eq T1 T2 -> stp-eq (T T1) (T T2) -> type.
+%mode stp-compat-stp +X1 +X2 -X3.
+
+- : stp-compat-stp _ stp-eq/i stp-eq/i.
+
+%worlds (csig | asig | evar) (stp-compat-stp _ _ _).
+%total {} (stp-compat-stp _ _ _).
+
+%% skind
+
+skind-compat-skind : {T:stp -> skind} stp-eq T1 T2 
+                      -> skind-eq (T T1) (T T2) -> type.
+%mode skind-compat-skind +X1 +X2 -X3.
+
+- : skind-compat-skind _ stp-eq/i skind-eq/i.
+
+%worlds (csig | asig | evar) (skind-compat-skind _ _ _).
+%total {} (skind-compat-skind _ _ _).
+
+skind-compat-skind' : {T:skind -> skind} skind-eq K1 K2
+                      -> skind-eq (T K1) (T K2) -> type.
+%mode skind-compat-skind' +X1 +X2 -X3.
+
+- : skind-compat-skind' _ skind-eq/i skind-eq/i.
+
+%worlds (csig | asig | evar) (skind-compat-skind' _ _ _).
+%total {} (skind-compat-skind' _ _ _).
+
+
+%% sctx
+
+sctx-compat-cons : {X} sctx-eq G1 G2 -> stp-eq T1 T2 
+                    -> sctx-eq (scons G1 X T1) (scons G2 X T2) -> type.
+%mode sctx-compat-cons +X +X1 +X2 -X3.
+
+- : sctx-compat-cons _ sctx-eq/i stp-eq/i sctx-eq/i.
+
+%worlds (csig | asig | var | evar) (sctx-compat-cons _ _ _ _).
+%total {} (sctx-compat-cons _ _ _ _).
+
+
+%%%% respects lemmas %%%%
+
+%% typing compatibility
+
+cof-resp : tp-eq A A' -> cof C A -> cof C A' -> type.
+%mode cof-resp +X1 +X2 -X3.
+
+- : cof-resp tp-eq/i D D.
+
+%worlds (csig | asig | var) (cof-resp _ _ _).
+%total {} (cof-resp _ _ _).
+
+ckof-resp : kind-eq K K' -> ckof P K -> ckof P K' -> type.
+%mode ckof-resp +X1 +X2 -X3.
+
+- : ckof-resp kind-eq/i D D.
+
+%worlds (csig | asig | var) (ckof-resp _ _ _).
+%total {} (ckof-resp _ _ _).
+
+
+atkof-resp : atp-eq P P' -> kind-eq K K' -> at-kof P K -> at-kof P' K' -> type.
+%mode atkof-resp +X1 +X2 +X3 -X4.
+
+- : atkof-resp atp-eq/i kind-eq/i D D.
+
+%worlds (csig | asig | var | bind) (atkof-resp _ _ _ _).
+%total {} (atkof-resp _ _ _ _).
+
+kof-resp : tp-eq A A' -> kind-eq K K' -> kof A K -> kof A' K' -> type.
+%mode kof-resp +X1 +X2 +X2-5 -X3.
+
+- : kof-resp tp-eq/i kind-eq/i D D.
+
+%worlds (csig | asig | var | bind) (kof-resp _ _ _ _).
+%total {} (kof-resp _ _ _ _).
+
+
+wfkind-resp : kind-eq K K' -> wfkind K -> wfkind K' -> type.
+%mode wfkind-resp +X1 +X2 -X3.
+
+- : wfkind-resp kind-eq/i D D.
+
+%worlds (csig | asig | var | bind) (wfkind-resp _ _ _).
+%total {} (wfkind-resp _ _ _).
+
+
+atof-resp : atm-eq R R' -> tp-eq A A' -> at-of R A -> at-of R' A' -> type.
+%mode atof-resp +X1 +X2 +X3 -X4.
+
+- : atof-resp atm-eq/i tp-eq/i D D.
+
+%worlds (csig | asig | var | bind) (atof-resp _ _ _ _).
+%total {} (atof-resp _ _ _ _).
+
+
+of-resp : tm-eq M M' -> tp-eq A A' -> of M A -> of M' A' -> type.
+%mode of-resp +X0 +X1 +X2 -X3.
+
+- : of-resp tm-eq/i tp-eq/i D D.
+
+%worlds (csig | asig | var | bind) (of-resp _ _ _ _).
+%total {} (of-resp _ _ _ _).
+
+of-bind-resp1 : ({y:atm} tp-eq (A y) (A' y))
+                 -> ({y} {x} vof x (A y) -> of (M x y) (B x y))
+%%
+                 -> ({y} {x} vof x (A' y) -> of (M x y) (B x y)) -> type.
+%mode of-bind-resp1 +X1 +X2 -X3.
+
+- : of-bind-resp1 ([_] tp-eq/i) D D.
+
+%worlds (csig | asig | var | bind) (of-bind-resp1 _ _ _).
+%total {} (of-bind-resp1 _ _ _).
+%reduces D = D' (of-bind-resp1 _ D D').
+
+
+atkof-resp-1 : ({x:atm} atp-eq (P x) (P' x))
+                -> ({x:atm} kind-eq (K x) (K' x))
+                -> ({x} {d:vof x A} at-kof (P x) (K x)) 
+%%                   
+                -> ({x} {d:vof x A} at-kof (P' x) (K' x)) -> type.
+%mode atkof-resp-1 +X1 +X2 +X3 -X4.
+
+- : atkof-resp-1 ([_] atp-eq/i) ([_] kind-eq/i) D D.
+
+%worlds (csig | asig | var | bind) (atkof-resp-1 _ _ _ _).
+%total {} (atkof-resp-1 _ _ _ _).
+%reduces D = D' (atkof-resp-1 _ _ D D').
+
+
+kof-bind-resp1 : ({y:atm} tp-eq (A y) (A' y))
+                  -> ({y} {x} vof x (A y) -> kof (B x y) (K x y))
+%%
+                  -> ({y} {x} vof x (A' y) -> kof (B x y) (K x y)) -> type.
+%mode kof-bind-resp1 +X1 +X2 -X3.
+
+- : kof-bind-resp1 ([_] tp-eq/i) D D.
+
+%worlds (csig | asig | var | bind) (kof-bind-resp1 _ _ _).
+%total {} (kof-bind-resp1 _ _ _).
+%reduces D = D' (kof-bind-resp1 _ D D').
+
+atkofes-resp : sctx-eq G G' -> atp-eq P P' -> skind-eq K K' -> at-kofes G P K
+                -> at-kofes G' P' K' -> type.
+%mode atkofes-resp +X1 +X2 +X3 +X4 -X5.
+
+- : atkofes-resp sctx-eq/i atp-eq/i skind-eq/i D D.
+
+%worlds (csig | asig | var | bind | evar) (atkofes-resp _ _ _ _ _).
+%total {} (atkofes-resp _ _ _ _ _).
+
+kofes-resp : sctx-eq G G' -> tp-eq A A' -> skind-eq K K' -> kofes G A K
+              -> kofes G' A' K' -> type.
+%mode kofes-resp +X1 +X2 +X3 +X4 -X5.
+
+- : kofes-resp sctx-eq/i tp-eq/i skind-eq/i D D.
+
+%worlds (csig | asig | var | bind | evar) (kofes-resp _ _ _ _ _).
+%reduces D2 = D1 (kofes-resp _ _ _ D1 D2).
+%total {} (kofes-resp _ _ _ _ _).
+
+kofes-resp' : ({x:atm} sctx-eq (G x) (G' x)) -> ({x:atm} tp-eq (A x) (A' x))
+               -> skind-eq K K'
+               -> ({x:atm} kofes (G x) (A x) K)
+               -> ({x:atm} kofes (G' x) (A' x) K') -> type.
+%mode kofes-resp' +X0 +X1 +X2 +X3 -X4.
+
+- : kofes-resp' ([_] sctx-eq/i) ([_] tp-eq/i) skind-eq/i ([x] D x) D.
+
+%worlds (csig | asig | var | bind | evar) (kofes-resp' _ _ _ _ _).
+%reduces D2 = D1 (kofes-resp' _ _ _ D1 D2).
+%total {} (kofes-resp' _ _ _ _ _).
+
+
+wfkindes-resp' : ({x:atm} sctx-eq (G x) (G' x)) -> ({x:atm} kind-eq (K x) (K' x))
+              -> ({x:atm} wfkindes (G x) (K x))
+              -> ({x:atm} wfkindes (G' x) (K' x)) -> type.
+%mode wfkindes-resp' +X1 +X2 +X3 -X4.
+
+- : wfkindes-resp' ([_] sctx-eq/i) ([_] kind-eq/i) ([x] D x) D.
+
+%worlds (csig | asig | var | bind | evar) (wfkindes-resp' _ _ _ _).
+%reduces D2 = D1 (wfkindes-resp' _ _ D1 D2).
+%total {} (wfkindes-resp' _ _ _ _).
+
+kofe-resp : ctx-eq G G' -> tp-eq A A' -> kind-eq K K' -> kofe G A K
+             -> kofe G' A' K' -> type.
+%mode kofe-resp +X1 +X2 +X3 +X4 -X5.
+
+- : kofe-resp ctx-eq/i tp-eq/i kind-eq/i D D.
+
+%worlds (csig | asig | var | bind) (kofe-resp _ _ _ _ _).
+%total {} (kofe-resp _ _ _ _ _).
+
+atofe-resp : ctx-eq G G' -> atm-eq R R' -> tp-eq A A' -> at-ofe G R A
+               -> at-ofe G' R' A' -> type.
+%mode atofe-resp +X1 +X2 +X3 +X4 -X5.
+
+- : atofe-resp ctx-eq/i atm-eq/i tp-eq/i D D.
+
+%worlds (csig | asig | var | bind | evar) (atofe-resp _ _ _ _ _).
+%total {} (atofe-resp _ _ _ _ _).
+
+
+atofes-resp : sctx-eq G G' -> atm-eq R R' -> stp-eq A A' -> at-ofes G R A
+               -> at-ofes G' R' A' -> type.
+%mode atofes-resp +X1 +X2 +X3 +X4 -X5.
+
+- : atofes-resp sctx-eq/i atm-eq/i stp-eq/i D D.
+
+%worlds (csig | asig | var | bind | evar) (atofes-resp _ _ _ _ _).
+%total {} (atofes-resp _ _ _ _ _).
+
+
+ofe-resp : ctx-eq G G' -> tm-eq M M' -> tp-eq A A' -> ofe G M A
+             -> ofe G' M' A' -> type.
+%mode ofe-resp +X1 +X2 +X3 +X4 -X5.
+
+- : ofe-resp ctx-eq/i tm-eq/i tp-eq/i D D.
+
+%worlds (csig | asig | var | ovar | bind) (ofe-resp _ _ _ _ _).
+%total {} (ofe-resp _ _ _ _ _).
+
+
+ofes-resp : sctx-eq G G' -> tm-eq M M' -> stp-eq T T' -> ofes G M T
+             -> ofes G' M' T' -> type.
+%mode ofes-resp +X1 +X2 +X3 +X4 -X5.
+
+- : ofes-resp sctx-eq/i tm-eq/i stp-eq/i D D.
+
+%worlds (csig | asig | var | ovar | bind | evar) (ofes-resp _ _ _ _ _).
+%total {} (ofes-resp _ _ _ _ _).
+
+
+
+%%%% injectivity lemmas %%%%
+
+app-inj-1 : atm-eq (app R _) (app R' _) -> atm-eq R R' -> type.
+%mode app-inj-1 +X1 -X2.
+
+- : app-inj-1 atm-eq/i atm-eq/i.
+
+%worlds (csig | asig | var) (app-inj-1 _ _).
+%total {} (app-inj-1 _ _).
+
+
+app-inj-2 : atm-eq (app _ M) (app _ M') -> tm-eq M M' -> type.
+%mode app-inj-2 +X1 -X2.
+
+- : app-inj-2 atm-eq/i tm-eq/i.
+
+%worlds (csig | asig | var) (app-inj-2 _ _).
+%total {} (app-inj-2 _ _).
+
+
+lam-inj : tm-eq (lam [x] M x) (lam [y] M' y) 
+            -> ({z : atm} tm-eq (M z) (M' z)) -> type.
+%mode lam-inj +X1 -X2.
+
+- : lam-inj tm-eq/i ([_] tm-eq/i).
+
+%worlds (csig | asig | var) (lam-inj _ _).
+%total {} (lam-inj _ _).
+
+alam-inj : tp-eq (alam [x] A x) (alam [y] A' y) 
+            -> ({z : atm} tp-eq (A z) (A' z)) -> type.
+%mode alam-inj +X1 -X2.
+
+- : alam-inj tp-eq/i ([_] tp-eq/i).
+
+%worlds (csig | asig | var) (alam-inj _ _).
+%total {} (alam-inj _ _).
+
+
+
+pi-inj : tp-eq (pi A [x] B x) (pi A' [x] B' x) 
+          -> tp-eq A A' 
+          -> ({x} tp-eq (B x) (B' x)) -> type.
+%mode pi-inj +X1 -X2 -X3.
+
+- : pi-inj tp-eq/i tp-eq/i ([_] tp-eq/i).
+
+%worlds (csig | asig | var) (pi-inj _ _ _).
+%total {} (pi-inj _ _ _).
+
+arrow-compat  : stp-eq S S' -> stp-eq T T' 
+                 -> stp-eq (arrow S T) (arrow S' T') -> type.
+%mode arrow-compat +X1 +X2 -X3.
+
+- : arrow-compat stp-eq/i stp-eq/i stp-eq/i.
+
+%worlds (csig | asig | var) (arrow-compat _ _ _).
+%total {} (arrow-compat _ _ _).
+
+karrow-compat  : stp-eq S S' -> skind-eq T T' 
+                 -> skind-eq (karrow S T) (karrow S' T') -> type.
+%mode karrow-compat +X1 +X2 -X3.
+
+- : karrow-compat stp-eq/i skind-eq/i skind-eq/i.
+
+%worlds (csig | asig | var) (karrow-compat _ _ _).
+%total {} (karrow-compat _ _ _).
+
+
+arrow-inj : stp-eq (arrow S T) (arrow S' T')
+             -> stp-eq S S'
+             -> stp-eq T T' -> type.
+%mode arrow-inj +X1 -X2 -X3.
+
+- : arrow-inj stp-eq/i stp-eq/i stp-eq/i.
+
+%worlds (csig | asig | var) (arrow-inj _ _ _).
+%total {} (arrow-inj _ _ _).
+
+
+tp-eq-pi-strengthen : ({x:atm} tp-eq (pi (A x) ([y] B x y)) C)
+                       -> tp-eq C (pi A' B') -> type.
+%mode tp-eq-pi-strengthen +X1 -X2.
+
+- : tp-eq-pi-strengthen ([x] tp-eq/i) tp-eq/i.
+
+%worlds (csig | asig | var) (tp-eq-pi-strengthen _ _).
+%total {} (tp-eq-pi-strengthen _ _).
+
+
+kpi-inj : kind-eq (kpi A [x] K x) (kpi A' [x] K' x)
+                   -> tp-eq A A' -> ({x} kind-eq (K x) (K' x)) -> type.
+%mode kpi-inj +X1 -X2 -X3.
+
+- : kpi-inj kind-eq/i tp-eq/i ([_] kind-eq/i).
+
+%worlds (csig | asig | var) (kpi-inj _ _ _).
+%total {} (kpi-inj _ _ _).
+
+kind-eq-kpi-strengthen : ({x:atm} kind-eq (kpi (A x) ([y] K x y)) J)
+                          -> kind-eq J (kpi A' K') -> type.
+%mode kind-eq-kpi-strengthen +X1 -X2.
+
+- : kind-eq-kpi-strengthen ([x] kind-eq/i) kind-eq/i.
+
+%worlds (csig | asig | var) (kind-eq-kpi-strengthen _ _).
+%total {} (kind-eq-kpi-strengthen _ _).
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% More compat lemmas     %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+rrsub-compat : ({x} atm-eq (R x) (R' x)) -> tm-eq M M' -> atm-eq S S'
+                -> rrsub R M S
+%%                   
+                -> rrsub R' M' S' -> type.
+%mode rrsub-compat +X1 +X2 +X3 +X4 -X5.
+
+-  : rrsub-compat ([_] atm-eq/i) (tm-eq/i) (atm-eq/i) D D.
+
+%worlds (csig | asig | var) (rrsub-compat _ _ _ _ _).
+%total {} (rrsub-compat _ _ _ _ _).
+
+rmsub-compat : ({x} atm-eq (R x) (R' x)) -> tm-eq M M' -> tm-eq N N'
+                -> rmsub R M N
+%%
+                -> rmsub R' M' N' -> type.
+%mode rmsub-compat +X1 +X2 +X3 +X4 -X5.
+
+-  : rmsub-compat ([_] atm-eq/i) (tm-eq/i) (tm-eq/i) D D.
+
+%worlds (csig | asig | var) (rmsub-compat _ _ _ _ _).
+%total {} (rmsub-compat _ _ _ _ _).
+
+sub-compat : ({x} tm-eq (O x) (O' x)) -> tm-eq M M' -> tm-eq N N'
+            -> sub O M N -> sub O' M' N' -> type.
+%mode sub-compat +X1 +X2 +X3 +X4 -X5.
+
+- : sub-compat ([_] tm-eq/i) tm-eq/i tm-eq/i D D.
+
+%worlds (csig | asig | var) (sub-compat _ _ _ _ _).
+%reduces D1 = D2 (sub-compat _ _ _ D1 D2).
+%total {} (sub-compat _ _ _ _ _).
+
+
+sub-compat1 : ({x:atm} {y} tm-eq (O x y) (O' x y))
+               -> ({x} tm-eq (M x) (M' x))
+               -> ({x} tm-eq (N x) (N' x))
+               -> ({x} sub (O x) (M x) (N x))
+%%                  
+               -> ({x} sub (O' x) (M' x) (N' x)) -> type.
+%mode sub-compat1 +X1 +X2 +X3 +X4 -X5.
+
+- : sub-compat1 ([_] [_] tm-eq/i) ([_] tm-eq/i) ([_] tm-eq/i) D D.
+
+%worlds (csig | asig | var) (sub-compat1 _ _ _ _ _).
+%total {} (sub-compat1 _ _ _ _ _).
+%reduces D = D' (sub-compat1 _ _ _ D D').
+
+
+atpsub-compat : ({x} atp-eq (P x) (P' x)) 
+                -> tm-eq M M' 
+                -> atp-eq Q Q' 
+                -> atpsub ([x] P x) M Q
+%%
+                -> atpsub ([x] P' x) M' Q' -> type.
+%mode atpsub-compat +X1 +X2 +X3 +X4 -X5.
+
+- : atpsub-compat ([_] atp-eq/i) tm-eq/i atp-eq/i D D.
+
+%worlds (csig | asig | var) (atpsub-compat _ _ _ _ _).
+%total {} (atpsub-compat _ _ _ _ _).
+
+tpsub-compat : ({x} tp-eq (A x) (A' x)) 
+                -> tm-eq M M' 
+                -> tp-eq B B' 
+                -> tpsub ([x] A x) M B
+%%
+                -> tpsub ([x] A' x) M' B' -> type.
+%mode tpsub-compat +X1 +X2 +X3 +X4 -X5.
+
+- : tpsub-compat ([_] tp-eq/i) tm-eq/i tp-eq/i D D.
+
+%worlds (csig | asig | var) (tpsub-compat _ _ _ _ _).
+%total {} (tpsub-compat _ _ _ _ _).
+
+ksub-compat : ({x} kind-eq (K x) (K' x))
+               -> tm-eq M M'
+               -> kind-eq Kx Kx'
+               -> ksub ([x] K x) M Kx 
+%%
+               -> ksub ([x] K' x) M' Kx' -> type.
+%mode ksub-compat +X1 +X2 +X3 +X4 -X5.
+
+- : ksub-compat ([_] kind-eq/i) tm-eq/i kind-eq/i D D.
+
+%worlds (csig | asig | var) (ksub-compat _ _ _ _ _).
+%total {} (ksub-compat _ _ _ _ _).
+
+simp-compat : tp-eq A A' -> stp-eq T T' -> simp A T -> simp A' T' -> type.
+%mode simp-compat +X1 +X2 +X3 -X4.
+
+- : simp-compat tp-eq/i stp-eq/i D D.
+
+%worlds (csig | asig | var | evar) (simp-compat _ _ _ _).
+%total {} (simp-compat _ _ _ _).
+
+
+ksimp-compat : kind-eq K K' -> skind-eq H H' -> ksimp K H -> ksimp K' H' -> type.
+%mode ksimp-compat +X1 +X2 +X3 -X4.
+
+- : ksimp-compat kind-eq/i skind-eq/i D D.
+
+%worlds (csig | asig | var | evar) (ksimp-compat _ _ _ _).
+%total {} (ksimp-compat _ _ _ _).
+
+
+lookup-compat : ctx-eq G G' -> atm-eq X X' -> tp-eq A A' -> lookup G X A
+                  -> lookup G' X' A' -> type.
+%mode lookup-compat +X1 +X2 +X3 +X4 -X5.
+
+- : lookup-compat ctx-eq/i atm-eq/i tp-eq/i D D.
+
+%worlds (csig | asig | var) (lookup-compat _ _ _ _ _).
+%total {} (lookup-compat _ _ _ _ _).
+
+
+slookup-compat : sctx-eq G G' -> atm-eq X X' -> stp-eq T T' -> slookup G X T
+                  -> slookup G' X' T' -> type.
+%mode slookup-compat +X1 +X2 +X3 +X4 -X5.
+
+- : slookup-compat sctx-eq/i atm-eq/i stp-eq/i D D.
+
+%worlds (csig | asig | var | evar) (slookup-compat _ _ _ _ _).
+%total {} (slookup-compat _ _ _ _ _).
+
+stp-leq-compat : stp-eq S S' -> stp-eq T T' -> stp-leq S T -> 
+                     stp-leq S' T' -> type.
+%mode stp-leq-compat +X1 +X2 +X3 -X4.
+
+- : stp-leq-compat stp-eq/i stp-eq/i D D.
+
+%worlds (csig | asig | evar) (stp-leq-compat _ _ _ _).
+%total {} (stp-leq-compat _ _ _ _).
+
+%% functionality %%
+
+tm-eq-fun : tm-eq M M1 -> tm-eq M M2 -> tm-eq M1 M2 -> type.
+%mode tm-eq-fun +X1 +X2 -X3.
+
+- : tm-eq-fun tm-eq/i tm-eq/i tm-eq/i.
+
+%worlds (csig | asig | var | bind | ovar) (tm-eq-fun _ _ _).
+%total {} (tm-eq-fun _ _ _).
+
+stp-eq-leq : stp-eq S T -> stp-leq S T -> type.
+%mode stp-eq-leq +X1 -X2.
+
+- : stp-eq-leq stp-eq/i stp-leq/eq.
+
+%worlds (csig | asig | var | bind | ovar | evar) (stp-eq-leq _ _).
+%total {} (stp-eq-leq _ _).
+
+
+%%% for expansion %%%
+
+expand-resp : atm-eq R R' -> stp-eq T T' -> tm-eq M M'
+               -> expand R T M
+               -> expand R' T' M' -> type.
+%mode expand-resp +X1 +X2 +X3 +X4 -X5.
+
+- : expand-resp atm-eq/i stp-eq/i tm-eq/i D D.
+
+%worlds (csig | asig | var | evar) (expand-resp _ _ _ _ _).
+%total {} (expand-resp _ _ _ _ _).
+%reduces D = D' (expand-resp _ _ _ D D').
+
+tpexpand-resp : atp-eq P P' -> skind-eq H H' -> tp-eq A A'
+                 -> tpexpand P H A -> tpexpand P' H' A' -> type.
+%mode tpexpand-resp +X1 +X2 +X3 +X4 -X5.
+
+- : tpexpand-resp atp-eq/i skind-eq/i tp-eq/i D D.
+
+%worlds (csig | asig | var | evar) (tpexpand-resp _ _ _ _ _).
+%total {} (tpexpand-resp _ _ _ _ _).
+%reduces D = D' (tpexpand-resp _ _ _ D D').
+
+
+expand-resp-1 : ({x:atm} atm-eq (R x) (R' x)) 
+                 -> stp-eq T T' 
+                 -> ({x} tm-eq (M x) (M' x))
+                 -> ({x} expand (R x) T (M x))
+                 -> ({x} expand (R' x) T' (M' x)) -> type.
+%mode expand-resp-1 +X1 +X2 +X3 +X4 -X5.
+
+- : expand-resp-1 ([_] atm-eq/i) stp-eq/i ([_] tm-eq/i) D D.
+
+%worlds (csig | asig | var) (expand-resp-1 _ _ _ _ _).
+%total {} (expand-resp-1 _ _ _ _ _).
+%reduces D = D' (expand-resp-1 _ _ _ D D').
+
+expand-resp-2 : ({x:atm} {y:atm} atm-eq (R x y) (R' x y)) 
+                 -> stp-eq T T'
+                 -> ({x} {y} tm-eq (M x y) (M' x y))
+                 -> ({x} {y} expand (R x y) T (M x y))
+                 -> ({x} {y} expand (R' x y) T' (M' x y)) -> type.
+%mode expand-resp-2 +X1 +X2 +X3 +X4 -X5.
+
+- : expand-resp-2 ([_] [_] atm-eq/i) stp-eq/i ([_] [_] tm-eq/i) D D.
+
+%worlds (csig | asig | var) (expand-resp-2 _ _ _ _ _).
+%total {} (expand-resp-2 _ _ _ _ _).
+%reduces D = D' (expand-resp-2 _ _ _ D D').
+
+
+%% Noncanonical LF %%
+
+etm-eq : etm -> etm -> type.
+etm-eq/i : etm-eq EM EM.
+
+etp-eq : etp -> etp -> type.
+etp-eq/i : etp-eq EA EA.
+
+ekind-eq : ekind -> ekind -> type.
+ekind-eq/i : ekind-eq EK EK.
+
+
+etm-eq-sym : etm-eq A A' -> etm-eq A' A -> type.
+%mode etm-eq-sym +X1 -X2.
+
+- : etm-eq-sym etm-eq/i etm-eq/i.
+
+%worlds (ecsig | easig | evar) (etm-eq-sym _ _).
+%total {} (etm-eq-sym _ _).
+
+
+
+etp-eq-sym : etp-eq A A' -> etp-eq A' A -> type.
+%mode etp-eq-sym +X1 -X2.
+
+- : etp-eq-sym etp-eq/i etp-eq/i.
+
+%worlds (ecsig | easig | evar) (etp-eq-sym _ _).
+%total {} (etp-eq-sym _ _).
+
+
+ekind-eq-sym : ekind-eq A A' -> ekind-eq A' A -> type.
+%mode ekind-eq-sym +X1 -X2.
+
+- : ekind-eq-sym ekind-eq/i ekind-eq/i.
+
+%worlds (ecsig | easig | evar) (ekind-eq-sym _ _).
+%total {} (ekind-eq-sym _ _).
+
+
+etp-eq-trans : etp-eq A A' -> etp-eq A' A'' -> etp-eq A A'' -> type.
+%mode etp-eq-trans +X1 +X2 -X3.
+
+- : etp-eq-trans etp-eq/i etp-eq/i etp-eq/i.
+
+%worlds (ecsig | easig | evar) (etp-eq-trans _ _ _).
+%total {} (etp-eq-trans _ _ _).
+
+
+ekind-eq-trans : ekind-eq A A' -> ekind-eq A' A'' -> ekind-eq A A'' -> type.
+%mode ekind-eq-trans +X1 +X2 -X3.
+
+- : ekind-eq-trans ekind-eq/i ekind-eq/i ekind-eq/i.
+
+%worlds (ecsig | easig | evar) (ekind-eq-trans _ _ _).
+%total {} (ekind-eq-trans _ _ _).
+
+
+%% compatibility and injectivity %%
+
+elam-compat : etp-eq A A' -> ({x} etm-eq (M x) (M' x))
+                -> etm-eq (elam A ([x] M x)) (elam A' ([x] M' x)) 
+                -> type.
+%mode elam-compat +X1 +X2 -X3.
+
+- : elam-compat etp-eq/i ([x] etm-eq/i) etm-eq/i.
+
+%worlds (ecsig | easig | evar) (elam-compat _ _ _).
+%total {} (elam-compat _ _ _).
+
+eapp-compat : etm-eq A A' -> etm-eq M M'
+                -> etm-eq (eapp A M) (eapp A' M') -> type.
+%mode eapp-compat +X1 +X2 -X3.
+
+- : eapp-compat etm-eq/i etm-eq/i etm-eq/i.
+
+%worlds (ecsig | easig | evar) (eapp-compat _ _ _).
+%total {} (eapp-compat _ _ _).
+
+
+
+eaapp-compat : etp-eq A A' -> etm-eq M M'
+                -> etp-eq (eaapp A M) (eaapp A' M') -> type.
+%mode eaapp-compat +X1 +X2 -X3.
+
+- : eaapp-compat etp-eq/i etm-eq/i etp-eq/i.
+
+%worlds (ecsig | easig | evar) (eaapp-compat _ _ _).
+%total {} (eaapp-compat _ _ _).
+
+ealam-compat : etp-eq A A' -> ({x} etp-eq (B x) (B' x))
+                -> etp-eq (ealam A ([x] B x)) (ealam A' ([x] B' x)) 
+                -> type.
+%mode ealam-compat +X1 +X2 -X3.
+
+- : ealam-compat etp-eq/i ([x] etp-eq/i) etp-eq/i.
+
+%worlds (ecsig | easig | evar) (ealam-compat _ _ _).
+%total {} (ealam-compat _ _ _).
+
+
+epi-compat : etp-eq A A' -> ({x} etp-eq (B x) (B' x))
+               -> etp-eq (epi A ([x] B x)) (epi A' ([x] B' x)) -> type.
+%mode epi-compat +X1 +X2 -X3.
+
+- : epi-compat etp-eq/i ([x] etp-eq/i) etp-eq/i.
+
+%worlds (ecsig | easig | evar) (epi-compat _ _ _).
+%total {} (epi-compat _ _ _).
+
+ekpi-compat : etp-eq A A' -> ({x} ekind-eq (K x) (K' x))
+               -> ekind-eq (ekpi A ([x] K x)) (ekpi A' ([x] K' x)) -> type.
+%mode ekpi-compat +X1 +X2 -X3.
+
+- : ekpi-compat etp-eq/i ([x] ekind-eq/i) ekind-eq/i.
+
+%worlds (ecsig | easig | evar) (ekpi-compat _ _ _).
+%total {} (ekpi-compat _ _ _).
+
+
+eaapp-inj : etp-eq (eaapp A M) (eaapp A' M')
+             -> etp-eq A A'
+             -> etm-eq M M' -> type.
+%mode eaapp-inj +X1 -X2 -X3.
+
+- : eaapp-inj etp-eq/i etp-eq/i etm-eq/i.
+
+%worlds (ecsig | easig | evar) (eaapp-inj _ _ _).
+%total {} (eaapp-inj _ _ _).
+
+epi-inj : etp-eq (epi A ([x] K x)) (epi A' ([x] K' x))
+            -> etp-eq A A'
+            -> ({x} etp-eq (K x) (K' x)) -> type.
+%mode epi-inj +X1 -X2 -X3.
+
+- : epi-inj etp-eq/i etp-eq/i ([x] etp-eq/i).
+
+%worlds (ecsig | easig | evar) (epi-inj _ _ _).
+%total {} (epi-inj _ _ _).
+
+ealam-inj : etp-eq (ealam A ([x] K x)) (ealam A' ([x] K' x))
+            -> etp-eq A A'
+            -> ({x} etp-eq (K x) (K' x)) -> type.
+%mode ealam-inj +X1 -X2 -X3.
+
+- : ealam-inj etp-eq/i etp-eq/i ([x] etp-eq/i).
+
+%worlds (ecsig | easig | evar) (ealam-inj _ _ _).
+%total {} (ealam-inj _ _ _).
+
+ealam-inj-str : ({x:etm} etp-eq (ealam (A x) (B x)) C)
+                 -> ({x} etp-eq (A x) A')
+                 -> ({x} {y} etp-eq (B x y) (B' y)) -> type.
+%mode ealam-inj-str +X1 -X2 -X3.
+
+- : ealam-inj-str ([x] etp-eq/i) ([x] etp-eq/i) ([x] [y] etp-eq/i).
+
+%worlds (ecsig | easig | evar) (ealam-inj-str _ _ _).
+%total {} (ealam-inj-str _ _ _).
+
+
+ekind-eq-pi-strengthen : ({x:etm} ekind-eq C (ekpi (A x) ([y] B x y)))
+                        -> ({x} etp-eq A' (A x))
+                        -> ({x} {y} ekind-eq (B' y) (B x y)) -> type.
+%mode ekind-eq-pi-strengthen +X1 -X2 -X3.
+
+- : ekind-eq-pi-strengthen ([x] ekind-eq/i) ([x] etp-eq/i) ([x] [y] ekind-eq/i).
+
+%worlds (ecsig | easig | evar) (ekind-eq-pi-strengthen _ _ _).
+%total {} (ekind-eq-pi-strengthen _ _ _).
+
+etp-eq-pi-strengthen : ({x:etm} etp-eq C (epi (A x) ([y] B x y)))
+                        -> ({x} etp-eq A' (A x))
+                        -> ({x} {y} etp-eq (B' y) (B x y)) -> type.
+%mode etp-eq-pi-strengthen +X1 -X2 -X3.
+
+- : etp-eq-pi-strengthen ([x] etp-eq/i) ([x] etp-eq/i) ([x] [y] etp-eq/i).
+
+%worlds (ecsig | easig | evar) (etp-eq-pi-strengthen _ _ _).
+%total {} (etp-eq-pi-strengthen _ _ _).
+
+etm-eq-app-strengthen : ({x:etm} etm-eq O (eapp (M x) (N x)))
+                         -> ({x} etm-eq M' (M x))
+                         -> ({x} etm-eq N' (N x)) -> type.
+%mode etm-eq-app-strengthen +X1 -X2 -X3.
+
+- : etm-eq-app-strengthen ([x] etm-eq/i) ([x] etm-eq/i) ([x] etm-eq/i).
+
+%worlds (ecsig | easig | evar) (etm-eq-app-strengthen _ _ _).
+%total {} (etm-eq-app-strengthen _ _ _).
+
+
+ekpi-inj : ekind-eq (ekpi A ([x] K x)) (ekpi A' ([x] K' x))
+            -> etp-eq A A'
+            -> ({x} ekind-eq (K x) (K' x)) -> type.
+%mode ekpi-inj +X1 -X2 -X3.
+
+- : ekpi-inj ekind-eq/i etp-eq/i ([x] ekind-eq/i).
+
+%worlds (ecsig | easig | evar) (ekpi-inj _ _ _).
+%total {} (ekpi-inj _ _ _).
+
+
+ekof-resp : ekof EA EK -> etp-eq EA EA' -> ekind-eq EK EK'
+             -> ekof EA' EK' -> type.
+%mode ekof-resp +X1 +X2 +X3 -X4.
+
+- : ekof-resp D etp-eq/i ekind-eq/i D.
+
+%worlds (ecsig | easig | evar | ebind | eovar) (ekof-resp _ _ _ _).
+%total {} (ekof-resp _ _ _ _).
+%reduces D = D' (ekof-resp D _ _ D').
+
+ewfkind-resp : ewfkind EK -> ekind-eq EK EK'
+             -> ewfkind EK' -> type.
+%mode ewfkind-resp +X1 +X2 -X3.
+
+- : ewfkind-resp D ekind-eq/i D.
+
+%worlds (ecsig | easig | evar | ebind | eovar) (ewfkind-resp _ _ _).
+%total {} (ewfkind-resp _ _ _).
+%reduces D = D' (ewfkind-resp D _ D').
+
+
+ekof-resp-underbind : ({x} evof x A -> ekof (B x) (K x))
+                       -> etp-eq A A'
+                       -> ({x} etp-eq (B x) (B' x))
+                       -> ({x} ekind-eq (K x) (K' x))
+%%
+                       -> ({x} evof x A' -> ekof (B' x) (K' x)) -> type.
+%mode ekof-resp-underbind +X1 +X2 +X3 +X4 -X5.
+
+- : ekof-resp-underbind 
+        ([x] [d] D x d) etp-eq/i ([x] etp-eq/i) ([x] ekind-eq/i)
+        ([x] [d] D x d).
+
+%worlds (ecsig | easig | ebind | evar) (ekof-resp-underbind _ _ _ _ _).
+%total {} (ekof-resp-underbind _ _ _ _ _).
+%reduces D = D' (ekof-resp-underbind D _ _ _ D').
+
+ekof-resp-underbind-1  : ({x:etm} 
+                             {y} evof y (A x) -> ekof (B x y) (K x y))
+                          -> ({x} etp-eq (A x) (A' x))
+                          -> ({x} {y} etp-eq (B x y) (B' x y))
+                          -> ({x} {y} ekind-eq (K x y) (K' x y))
+%%
+                          -> ({x} 
+                                 {y} evof y (A' x)
+                              -> ekof (B' x y) (K' x y))
+                          -> type.
+%mode ekof-resp-underbind-1 +X1 +X2 +X3 +X4 -X5.
+
+- : ekof-resp-underbind-1 
+        D ([x] etp-eq/i) ([x] [y] etp-eq/i) ([x] [y] ekind-eq/i)
+        D.
+
+%worlds (ecsig | easig | ebind | evar) (ekof-resp-underbind-1 _ _ _ _ _).
+%total {} (ekof-resp-underbind-1 _ _ _ _ _).
+%reduces D = D' (ekof-resp-underbind-1 D _ _ _ D').
+
+ewfkind-resp-underbind-1  : ({x:etm} {y} evof y (A x) -> ewfkind (K x y))
+                          -> ({x} etp-eq (A x) (A' x))
+                          -> ({x} {y} ekind-eq (K x y) (K' x y))
+%%
+                          -> ({x} {y} evof y (A' x) -> ewfkind (K' x y))
+                          -> type.
+%mode ewfkind-resp-underbind-1 +X1 +X2 +X3 -X5.
+
+- : ewfkind-resp-underbind-1 D ([x] etp-eq/i) ([x] [y] ekind-eq/i) D.
+
+%worlds (ecsig | easig | ebind | evar) (ewfkind-resp-underbind-1 _ _ _ _).
+%total {} (ewfkind-resp-underbind-1 _ _ _ _).
+%reduces D = D' (ewfkind-resp-underbind-1 D _ _ D').
+
+
+eqkind-resp : eqkind EK1 EK2 -> ekind-eq EK1 EK1' -> ekind-eq EK2 EK2'
+               -> eqkind EK1' EK2' -> type.
+%mode eqkind-resp +X1 +X2 +X3 -X4.
+
+- : eqkind-resp D ekind-eq/i ekind-eq/i D.
+
+%worlds (ecsig | easig | evar | tbind | ebind) (eqkind-resp _ _ _ _).
+%total {} (eqkind-resp _ _ _ _).
+%reduces D = D' (eqkind-resp D _ _ D').
+
+eqtp-resp : eqtp EA1 EA2 EK -> etp-eq EA1 EA1' -> etp-eq EA2 EA2'
+             -> ekind-eq EK EK'
+%%                
+             -> eqtp EA1' EA2' EK' -> type.
+%mode eqtp-resp +X0 +X1 +X2 +X3 -X4.
+
+- : eqtp-resp D etp-eq/i etp-eq/i ekind-eq/i D.
+
+%worlds (ecsig | easig | tbind | ebind) (eqtp-resp _ _ _ _ _).
+%total {} (eqtp-resp _ _ _ _ _).
+%reduces D = D' (eqtp-resp D _ _ _ D').
+
+eqtm-resp : eqtm EA1 EA2 EK -> etm-eq EA1 EA1' -> etm-eq EA2 EA2'
+             -> etp-eq EK EK'
+%%                
+             -> eqtm EA1' EA2' EK' -> type.
+%mode eqtm-resp +X0 +X1 +X2 +X3 -X4.
+
+- : eqtm-resp D etm-eq/i etm-eq/i etp-eq/i D.
+
+%worlds (ecsig | easig | tbind | eofblock | ebind) (eqtm-resp _ _ _ _ _).
+%total {} (eqtm-resp _ _ _ _ _).
+%reduces D = D' (eqtm-resp D _ _ _ D').
+
+eqtp-resp-underbind-1  : ({x:etm} {y} evof y (A x) -> eqtp (C x y) (B x y) (K x y))
+                          -> ({x} etp-eq (A x) (A' x))
+                          -> ({x} {y} etp-eq (C x y) (C' x y))
+                          -> ({x} {y} etp-eq (B x y) (B' x y))
+                          -> ({x} {y} ekind-eq (K x y) (K' x y))
+%%
+                          -> ({x} {y} evof y (A' x)
+                              -> eqtp (C' x y) (B' x y) (K' x y))
+                          -> type.
+%mode eqtp-resp-underbind-1 +X1 +X2 +X3 +X4 +X5 -X6.
+
+- : eqtp-resp-underbind-1 
+        D 
+        ([x] etp-eq/i) ([x] [y] etp-eq/i) 
+        ([x] [y] etp-eq/i) ([x] [y] ekind-eq/i)
+        D.
+
+%worlds (ecsig | easig | ebind | evar) (eqtp-resp-underbind-1 _ _ _ _ _ _).
+%total {} (eqtp-resp-underbind-1 _ _ _ _ _ _).
+%reduces D = D' (eqtp-resp-underbind-1 D _ _ _ _ D').
+
+
+eqtm-resp-underbind-1  : ({x:etm} {y} evof y (A x) -> eqtm (C x y) (B x y) (K x y))
+                          -> ({x} etp-eq (A x) (A' x))
+                          -> ({x} {y} etm-eq (C x y) (C' x y))
+                          -> ({x} {y} etm-eq (B x y) (B' x y))
+                          -> ({x} {y} etp-eq (K x y) (K' x y))
+%%
+                          -> ({x} {y} evof y (A' x)
+                              -> eqtm (C' x y) (B' x y) (K' x y))
+                          -> type.
+%mode eqtm-resp-underbind-1 +X1 +X2 +X3 +X4 +X5 -X6.
+
+- : eqtm-resp-underbind-1 
+        D 
+        ([x] etp-eq/i) ([x] [y] etm-eq/i) 
+        ([x] [y] etm-eq/i) ([x] [y] etp-eq/i)
+        D.
+
+%worlds (ecsig | easig | ebind | evar) (eqtm-resp-underbind-1 _ _ _ _ _ _).
+%total {} (eqtm-resp-underbind-1 _ _ _ _ _ _).
+%reduces D = D' (eqtm-resp-underbind-1 D _ _ _ _ D').
+
+eqkind-resp-underbind-1  : ({x:etm} {y} evof y (A x) -> eqkind (C x y) (B x y))
+                          -> ({x} etp-eq (A x) (A' x))
+                          -> ({x} {y} ekind-eq (C x y) (C' x y))
+                          -> ({x} {y} ekind-eq (B x y) (B' x y))
+%%
+                          -> ({x} {y} evof y (A' x)
+                              -> eqkind (C' x y) (B' x y))
+                          -> type.
+%mode eqkind-resp-underbind-1 +X1 +X2 +X3 +X4 -X5.
+
+- : eqkind-resp-underbind-1 
+        D ([x] etp-eq/i) ([x] [y] ekind-eq/i) ([x] [y] ekind-eq/i)
+        D.
+
+%worlds (ecsig | easig | ebind | evar) (eqkind-resp-underbind-1 _ _ _ _ _).
+%total {} (eqkind-resp-underbind-1 _ _ _ _ _).
+%reduces D = D' (eqkind-resp-underbind-1 D _ _ _ D').
+
+
+% XXX needed? reproven elsewhere?
+eqkind-ekind-eq : eqkind EK ektype -> ekind-eq EK ektype -> type.
+%mode eqkind-ekind-eq +X1 -X2.
+
+eqkind-ekind-eq' : eqkind ektype EK -> ekind-eq EK ektype -> type.
+%mode eqkind-ekind-eq' +X1 -X2.
+
+- : eqkind-ekind-eq eqkind/tp ekind-eq/i.
+
+- : eqkind-ekind-eq (eqkind/sym (Deqkind : eqkind ektype EK))
+        Deq
+     <- eqkind-ekind-eq' Deqkind
+        (Deq : ekind-eq EK ektype).
+
+- : eqkind-ekind-eq 
+        (eqkind/trans
+            (D1 : eqkind EK2 ektype)
+            (D2 : eqkind EK1 EK2))
+        D'
+     <- eqkind-ekind-eq D1
+        (D3 : ekind-eq EK2 ektype)
+     <- eqkind-resp D2 ekind-eq/i D3
+        (D : eqkind EK1 ektype)
+     <- eqkind-ekind-eq D
+        (D' : ekind-eq EK1 ektype).
+
+- : eqkind-ekind-eq (eqkind/refl _) ekind-eq/i.
+
+%%
+
+- : eqkind-ekind-eq' eqkind/tp ekind-eq/i.
+
+- : eqkind-ekind-eq' (eqkind/sym (D: eqkind EK1 ektype))
+        D'
+     <- eqkind-ekind-eq D
+        (D' : ekind-eq EK1 ektype).
+
+- : eqkind-ekind-eq'
+        (eqkind/trans
+            (D1 : eqkind EK2 EK1)
+            (D2 : eqkind ektype EK2))
+        D
+     <- eqkind-ekind-eq' D2
+        (D3 : ekind-eq EK2 ektype)
+     <- eqkind-resp D1 D3 ekind-eq/i
+        (D4 : eqkind ektype EK1)
+     <- eqkind-ekind-eq' D4
+        (D : ekind-eq EK1 ektype).
+
+- : eqkind-ekind-eq' (eqkind/refl _) ekind-eq/i.
+
+%worlds (ecsig | easig | bind) (eqkind-ekind-eq _ _) (eqkind-ekind-eq' _ _).
+%total (D1 D2) (eqkind-ekind-eq D1 _) (eqkind-ekind-eq' D2 _).
+
+
+%% EL explicit contexts stuff %%
+
+ectx-eq : ectx -> ectx -> type.
+ectx-eq/i : ectx-eq G G.
+
+ectx-eq-sym : ectx-eq G G' -> ectx-eq G' G -> type.
+%mode ectx-eq-sym +X1 -X2.
+
+- : ectx-eq-sym ectx-eq/i ectx-eq/i.
+
+%worlds (ecsig | easig | evar | eovar) (ectx-eq-sym _ _).
+%total {} (ectx-eq-sym _ _).
+
+econs-compat : ectx-eq G G' -> etm-eq X X' -> etp-eq A A'
+                -> ectx-eq (econs G X A) (econs G' X' A') -> type.
+%mode econs-compat +X1 +X2 +X3 -X4.
+
+- : econs-compat ectx-eq/i etm-eq/i etp-eq/i ectx-eq/i.
+
+%worlds (ecsig | easig | evar | eovar) (econs-compat _ _ _ _).
+%total {} (econs-compat _ _ _ _).
+
+ecsub-resp : ecsub G M Gx
+              -> ({x} ectx-eq (G x) (G' x))
+              -> etm-eq M M'
+              -> ectx-eq Gx Gx'
+%%
+              -> ecsub G' M' Gx' -> type.
+%mode ecsub-resp +X1 +X2 +X3 +X4 -X5.
+
+- : ecsub-resp D ([x] ectx-eq/i) etm-eq/i ectx-eq/i D.
+
+%worlds (ecsig | easig | evar | eovar) (ecsub-resp _ _ _ _ _).
+%total {} (ecsub-resp _ _ _ _ _).
+
+eappend-resp : ectx-eq G1 G1' -> ectx-eq G2 G2' -> ectx-eq G G'
+               -> eappend G1 G2 G
+               -> eappend G1' G2' G' -> type.
+%mode eappend-resp +X1 +X2 +X3 +X4 -X5.
+
+- : eappend-resp ectx-eq/i ectx-eq/i ectx-eq/i D D.
+
+%worlds (ecsig | easig | evar | eovar) (eappend-resp _ _ _ _ _).
+%total {} (eappend-resp _ _ _ _ _).
+
+
+eqtpe-resp : ectx-eq G G' -> etp-eq A A' -> etp-eq B B' -> ekind-eq K K'
+              -> eqtpe G A B K -> eqtpe G' A' B' K' -> type.
+%mode eqtpe-resp +X1 +X2 +X3 +X4 +X5 -X6.
+
+- : eqtpe-resp ectx-eq/i etp-eq/i etp-eq/i ekind-eq/i D D.
+
+%worlds (ecsig | easig | evar | ebind | eovar) (eqtpe-resp _ _ _ _ _ _).
+%total {} (eqtpe-resp _ _ _ _ _ _).
+
+eqkinde-resp : ectx-eq G G' -> ekind-eq K K' -> ekind-eq L L'
+                -> eqkinde G K L -> eqkinde G' K' L' -> type.
+%mode eqkinde-resp +X1 +X2 +X3 +X4 -X5.
+
+- : eqkinde-resp ectx-eq/i ekind-eq/i ekind-eq/i D D.
+
+%worlds (ecsig | easig | evar | ebind | eovar) (eqkinde-resp _ _ _ _ _).
+%total {} (eqkinde-resp _ _ _ _ _).
+%reduces D = D' (eqkinde-resp _ _ _ D D').
+
+
+eqtme-resp : ectx-eq G G' -> etm-eq A A' -> etm-eq B B' -> etp-eq K K'
+              -> eqtme G A B K -> eqtme G' A' B' K' -> type.
+%mode eqtme-resp +X1 +X2 +X3 +X4 +X5 -X6.
+
+- : eqtme-resp ectx-eq/i etm-eq/i etm-eq/i etp-eq/i D D.
+
+%worlds (ecsig | easig | evar | ebind | eovar) (eqtme-resp _ _ _ _ _ _).
+%total {} (eqtme-resp _ _ _ _ _ _).
+
+
+ewfkinde-resp : ectx-eq G G' -> ekind-eq K K' -> ewfkinde G K 
+              -> ewfkinde G' K' -> type.
+%mode ewfkinde-resp +X1 +X2 +X3 -X5.
+
+- : ewfkinde-resp ectx-eq/i ekind-eq/i D D.
+
+%worlds (ecsig | easig | evar | ebind | eovar) (ewfkinde-resp _ _ _ _).
+%total {} (ewfkinde-resp _ _ _ _).
+
+
+ekofe-resp : ectx-eq G G' -> etp-eq A A' -> ekind-eq K K' -> ekofe G A K 
+              -> ekofe G' A' K' -> type.
+%mode ekofe-resp +X1 +X2 +X3 +X4 -X5.
+
+- : ekofe-resp ectx-eq/i etp-eq/i ekind-eq/i D D.
+
+%worlds (ecsig | easig | evar | ebind | eovar) (ekofe-resp _ _ _ _ _).
+%total {} (ekofe-resp _ _ _ _ _).
+
+eof-resp : etm-eq M M' -> etp-eq A A' -> eof M A -> eof M' A' -> type.
+%mode eof-resp +X2 +X3 +X4 -X5.
+
+- : eof-resp etm-eq/i etp-eq/i D D.
+
+%worlds (ecsig | easig | evar | ebind | eovar) (eof-resp _ _ _ _).
+%total {} (eof-resp _ _ _ _).
+
+eof-resp-underbind-1   : ({x:etm} 
+                             {y} evof y (A x) -> eof (B x y) (K x y))
+                          -> ({x} etp-eq (A x) (A' x))
+                          -> ({x} {y} etm-eq (B x y) (B' x y))
+                          -> ({x} {y} etp-eq (K x y) (K' x y))
+%%
+                          -> ({x} 
+                                 {y} evof y (A' x)
+                              -> eof (B' x y) (K' x y))
+                          -> type.
+%mode eof-resp-underbind-1 +X1 +X2 +X3 +X4 -X5.
+
+- : eof-resp-underbind-1 
+        D ([x] etp-eq/i) ([x] [y] etm-eq/i) ([x] [y] etp-eq/i)
+        D.
+
+%worlds (ecsig | easig | ebind | evar) (eof-resp-underbind-1 _ _ _ _ _).
+%total {} (eof-resp-underbind-1 _ _ _ _ _).
+%reduces D = D' (eof-resp-underbind-1 D _ _ _ D').
+
+
+eofe-resp : ectx-eq G G' -> etm-eq M M' -> etp-eq A A' -> eofe G M A 
+             -> eofe G' M' A' -> type.
+%mode eofe-resp +X1 +X2 +X3 +X4 -X5.
+
+- : eofe-resp ectx-eq/i etm-eq/i etp-eq/i D D.
+
+%worlds (ecsig | easig | evar | ebind | eovar) (eofe-resp _ _ _ _ _).
+%total {} (eofe-resp _ _ _ _ _).
+
+elookup-resp : elookup G X A -> ectx-eq G G' -> etm-eq X X' -> etp-eq A A'
+                -> elookup G' X' A' -> type.
+%mode elookup-resp +X1 +X2 +X3 +X4 -X5.
+
+- : elookup-resp D ectx-eq/i etm-eq/i etp-eq/i D.
+
+%worlds (ecsig | easig | evar | ebind | eovar) (elookup-resp _ _ _ _ _).
+%total {} (elookup-resp _ _ _ _ _).
+
+ecof-resp : etp-eq A A' -> ecof C A -> ecof C A' -> type.
+%mode ecof-resp +X1 +X2 -X3.
+
+- : ecof-resp etp-eq/i D D.
+
+%worlds (ecsig | easig | evar) (ecof-resp _ _ _).
+%total {} (ecof-resp _ _ _).
+
+eckof-resp : ekind-eq A A' -> eckof C A -> eckof C A' -> type.
+%mode eckof-resp +X1 +X2 -X3.
+
+- : eckof-resp ekind-eq/i D D.
+
+%worlds (ecsig | easig | evar) (eckof-resp _ _ _).
+%total {} (eckof-resp _ _ _).
+
+
+cons-compat : ctx-eq G G' -> atm-eq X X' -> tp-eq S S' 
+                -> ctx-eq (cons G X S) (cons G' X' S') -> type.
+%mode cons-compat +X1 +X2 +X3 -X4.
+
+- : cons-compat ctx-eq/i atm-eq/i tp-eq/i ctx-eq/i.
+
+%worlds (csig | asig | var | evar) (cons-compat _ _ _ _).
+%total {} (cons-compat _ _ _ _).
+
+scons-compat : sctx-eq G G' -> atm-eq X X' -> stp-eq S S' 
+                -> sctx-eq (scons G X S) (scons G' X' S') -> type.
+%mode scons-compat +X1 +X2 +X3 -X4.
+
+- : scons-compat sctx-eq/i atm-eq/i stp-eq/i sctx-eq/i.
+
+%worlds (csig | asig | var | evar) (scons-compat _ _ _ _).
+%total {} (scons-compat _ _ _ _).
+
+append-resp : ctx-eq G1 G1' -> ctx-eq G2 G2' -> ctx-eq G G'
+               -> append G1 G2 G
+               -> append G1' G2' G' -> type.
+%mode append-resp +X1 +X2 +X3 +X4 -X5.
+
+- : append-resp ctx-eq/i ctx-eq/i ctx-eq/i D D.
+
+%worlds (csig | asig | var | evar) (append-resp _ _ _ _ _).
+%total {} (append-resp _ _ _ _ _).
+
+simpctx-resp : simpctx G Gs -> ctx-eq G G' -> sctx-eq Gs Gs'
+                -> simpctx G' Gs' -> type.
+%mode simpctx-resp +X1 +X2 +X3 -X4.
+
+- : simpctx-resp D ctx-eq/i sctx-eq/i D.
+
+%worlds (csig | asig | var) (simpctx-resp _ _ _ _).
+%total {} (simpctx-resp _ _ _ _).
+
+vof-resp : vof X A -> atm-eq X X' -> tp-eq A A' -> vof X' A' -> type.
+%mode vof-resp +X1 +X2 +X3 -X4.
+
+- : vof-resp D atm-eq/i tp-eq/i D.
+
+%worlds (csig | asig | var | bind) (vof-resp _ _ _ _).
+%total {} (vof-resp _ _ _ _).
+
+etpsubst-compat : ({x} etp-eq (M x) (M' x)) -> etm-eq N N'
+                 -> etp-eq (M N) (M' N') -> type.
+%mode etpsubst-compat +X1 +X2 -X3.
+
+- : etpsubst-compat ([_] etp-eq/i) etm-eq/i etp-eq/i.
+
+%worlds (ecsig | easig | evar) (etpsubst-compat _ _ _).
+%total {} (etpsubst-compat _ _ _).
+
+
+esubst-compat : ({x} etm-eq (M x) (M' x)) -> etm-eq N N'
+                 -> etm-eq (M N) (M' N') -> type.
+%mode esubst-compat +X1 +X2 -X3.
+
+- : esubst-compat ([_] etm-eq/i) etm-eq/i etm-eq/i.
+
+%worlds (ecsig | easig | evar) (esubst-compat _ _ _).
+%total {} (esubst-compat _ _ _).
+
+eksubst-compat : ({x} ekind-eq (K x) (K' x)) -> etm-eq M M'
+                -> ekind-eq (K M) (K' M') -> type.
+%mode eksubst-compat +X1 +X2 -X3.
+
+- : eksubst-compat ([_] ekind-eq/i) etm-eq/i ekind-eq/i.
+
+%worlds (ecsig | easig | evar) (eksubst-compat _ _ _).
+%total {} (eksubst-compat _ _ _).
+
+evof-resp : evof X A -> etm-eq X X' -> etp-eq A A' -> evof X' A' -> type.
+%mode evof-resp +X1 +X2 +X3 -X4.
+
+- : evof-resp D etm-eq/i etp-eq/i D.
+
+%worlds (ecsig | easig | var | bind | evar | ovar | tbind | eofblock)
+  (evof-resp _ _ _ _).
+%total {} (evof-resp _ _ _ _).
+
+
+%%%% for translation %%%%
+
+trans-resp : trans EM M A -> etm-eq EM EM' -> tm-eq M M' -> tp-eq A A'
+              -> trans EM' M' A' -> type.
+%mode trans-resp +X1 +X2 +X3 +X4 -X5.
+
+- : trans-resp D etm-eq/i tm-eq/i tp-eq/i D.
+
+%worlds (csig | asig | bind | tbind) (trans-resp _ _ _ _ _).
+%total {} (trans-resp _ _ _ _ _).
+
+
+tptrans-resp : tptrans EA A K -> etp-eq EA EA' -> tp-eq A A' -> kind-eq K K'
+              -> tptrans EA' A' K' -> type.
+%mode tptrans-resp +X1 +X2 +X3 +X4 -X5.
+
+- : tptrans-resp D etp-eq/i tp-eq/i kind-eq/i D.
+
+%worlds (csig | asig | var | bind | ovar | tbind) (tptrans-resp _ _ _ _ _).
+%total {} (tptrans-resp _ _ _ _ _).
+
+
+ktrans-resp : ktrans EK K -> ekind-eq EK EK' -> kind-eq K K'
+               -> ktrans EK' K' -> type.
+%mode ktrans-resp +X1 +X2 +X3 -X4.
+
+- : ktrans-resp D ekind-eq/i kind-eq/i D.
+
+%worlds (csig | asig | bind | tbind) (ktrans-resp _ _ _ _).
+%total {} (ktrans-resp _ _ _ _).
+
+
+trans-resp-underbind : tp-eq A A'
+                          -> ({x} vof x A
+                              -> {ex} vtrans ex x
+                              -> trans (EB ex) (B x) (K x))
+                          -> ({x} vof x A' -> {ex} vtrans ex x
+                              -> trans (EB ex) (B x) (K x)) -> type.
+%mode trans-resp-underbind +X1 +X2 -X3.
+
+- : trans-resp-underbind tp-eq/i D D.
+
+%worlds (csig | asig | var | bind | ovar | tbind) (trans-resp-underbind _ _ _).
+%total {} (trans-resp-underbind _ _ _).
+
+
+tptrans-resp-underbind : tp-eq A A'
+                          -> ({x} vof x A
+                              -> {ex} vtrans ex x
+                              -> tptrans (EB ex) (B x) (K x))
+                          -> ({x} vof x A' -> {ex} vtrans ex x
+                              -> tptrans (EB ex) (B x) (K x)) -> type.
+%mode tptrans-resp-underbind +X1 +X2 -X3.
+
+- : tptrans-resp-underbind tp-eq/i D D.
+
+%worlds (csig | asig | var | bind | ovar | tbind) (tptrans-resp-underbind _ _ _).
+%total {} (tptrans-resp-underbind _ _ _).
+
+ktrans-resp-underbind : tp-eq A A'
+                          -> ({x} vof x A
+                              -> {ex} vtrans ex x
+                              -> ktrans (EK ex) (K x))
+                          -> ({x} vof x A' -> {ex} vtrans ex x
+                              -> ktrans (EK ex) (K x)) -> type.
+%mode ktrans-resp-underbind +X1 +X2 -X3.
+
+- : ktrans-resp-underbind tp-eq/i D D.
+
+%worlds (csig | asig | bind | tbind) (ktrans-resp-underbind _ _ _).
+%total {} (ktrans-resp-underbind _ _ _).
+
+
+transe-resp : ctx-eq G G' -> etm-eq EM EM' -> tm-eq M M' -> tp-eq A A'
+               -> transe G EM M A
+               -> transe G' EM' M' A' -> type.
+%mode transe-resp +X1 +X2 +X3 +X4 +X5 -X6.
+
+- : transe-resp ctx-eq/i etm-eq/i tm-eq/i tp-eq/i D D.
+
+%worlds (csig | asig | bind | tbind | tobind) (transe-resp _ _ _ _ _ _).
+%total {} (transe-resp _ _ _ _ _ _).
+%reduces D = D' (transe-resp _ _ _ _ D D').
+
+tptranse-resp : ctx-eq G G' -> etp-eq EA EA' -> tp-eq A A' -> kind-eq K K'
+                 -> tptranse G EA A K
+                 -> tptranse G' EA' A' K' -> type.
+%mode tptranse-resp +X1 +X2 +X3 +X4 +X5 -X6.
+
+- : tptranse-resp ctx-eq/i etp-eq/i tp-eq/i kind-eq/i D D.
+
+%worlds (csig | asig | bind | tbind | tobind) (tptranse-resp _ _ _ _ _ _).
+%total {} (tptranse-resp _ _ _ _ _ _).
+
+%%% for soundness %%%
+
+convert-resp : convert M A EM -> tm-eq M M' -> tp-eq A A' -> etm-eq EM EM'
+                -> convert M' A' EM' -> type.
+%mode convert-resp +X1 +X2 +X3 +X4 -X5.
+
+- : convert-resp D tm-eq/i tp-eq/i etm-eq/i D.
+
+%worlds (csig | asig | tbind | tvar) (convert-resp _ _ _ _ _).
+%total {} (convert-resp _ _ _ _ _).
+%reduces D = D' (convert-resp D _ _ _ D').
+
+tpconvert-resp : tpconvert M A EM -> tp-eq M M' -> kind-eq A A' -> etp-eq EM EM'
+                -> tpconvert M' A' EM' -> type.
+%mode tpconvert-resp +X1 +X2 +X3 +X4 -X5.
+
+- : tpconvert-resp D tp-eq/i kind-eq/i etp-eq/i D.
+
+%worlds (csig | asig | tbind) (tpconvert-resp _ _ _ _ _).
+%total {} (tpconvert-resp _ _ _ _ _).
+%reduces D = D' (tpconvert-resp D _ _ _ D').
+
+kconvert-resp : kconvert M EM -> kind-eq M M' -> ekind-eq EM EM'
+                -> kconvert M' EM' -> type.
+%mode kconvert-resp +X1 +X2 +X3 -X4.
+
+- : kconvert-resp D kind-eq/i ekind-eq/i D.
+
+%worlds (csig | asig | tbind) (kconvert-resp _ _ _ _).
+%total {} (kconvert-resp _ _ _ _).
+%reduces D = D' (kconvert-resp D _ _ D').
+
+
+converte-resp : converte G A K EA 
+                   -> ctx-eq G G' 
+                   -> tm-eq A A' 
+                   -> tp-eq K K' 
+                   -> etm-eq EA EA'
+%%                      
+                   -> converte G' A' K' EA' -> type.
+%mode converte-resp +X1 +X2 +X3 +X4 +X5 -X6.
+
+- : converte-resp D ctx-eq/i tm-eq/i tp-eq/i etm-eq/i D.
+
+%worlds (csig | asig | bind | evvar | tbind | tvar) (converte-resp _ _ _ _ _ _).
+%total {} (converte-resp _ _ _ _ _ _).
+%reduces D = D' (converte-resp D _ _ _ _ D').
+
+tpconverte-resp : tpconverte G A K EA 
+                   -> ctx-eq G G' 
+                   -> tp-eq A A' 
+                   -> kind-eq K K' 
+                   -> etp-eq EA EA'
+%%                      
+                   -> tpconverte G' A' K' EA' -> type.
+%mode tpconverte-resp +X1 +X2 +X3 +X4 +X5 -X6.
+
+- : tpconverte-resp D ctx-eq/i tp-eq/i kind-eq/i etp-eq/i D.
+
+%worlds (csig | asig | bind | tbind | tvar | evvar) (tpconverte-resp _ _ _ _ _ _).
+%total {} (tpconverte-resp _ _ _ _ _ _).
+
+kconverte-resp : kconverte G A EA 
+                   -> ctx-eq G G' 
+                   -> kind-eq A A' 
+                   -> ekind-eq EA EA'
+%%                      
+                   -> kconverte G' A' EA' -> type.
+%mode kconverte-resp +X1 +X2 +X3 +X4 -X5.
+
+- : kconverte-resp D ctx-eq/i kind-eq/i ekind-eq/i D.
+
+%worlds (csig | asig | bind | evvar | tbind | tvar) (kconverte-resp _ _ _ _ _).
+%total {} (kconverte-resp _ _ _ _ _).
+
+reduce*-resp : reduce* M N -> etm-eq M M' -> etm-eq N N'
+                -> reduce* M' N' -> type.
+%mode reduce*-resp +X1 +X2 +X3 -X4.
+
+- : reduce*-resp D etm-eq/i etm-eq/i D.
+
+%worlds (csig | asig | bind | evar | tvar | evvar | tbind) (reduce*-resp _ _ _ _).
+%total {} (reduce*-resp _ _ _ _).
+
+tpreduce*-resp : tpreduce* M N -> etp-eq M M' -> etp-eq N N'
+                -> tpreduce* M' N' -> type.
+%mode tpreduce*-resp +X1 +X2 +X3 -X4.
+
+- : tpreduce*-resp D etp-eq/i etp-eq/i D.
+
+%worlds (csig | asig | bind | evar | tvar | evvar | tbind) (tpreduce*-resp _ _ _ _).
+%total {} (tpreduce*-resp _ _ _ _).
+
+kreduce*-resp : kreduce* M N -> ekind-eq M M' -> ekind-eq N N'
+                -> kreduce* M' N' -> type.
+%mode kreduce*-resp +X1 +X2 +X3 -X4.
+
+- : kreduce*-resp D ekind-eq/i ekind-eq/i D.
+
+%worlds (csig | asig | bind | evar | tvar | evvar | tbind) (kreduce*-resp _ _ _ _).
+%total {} (kreduce*-resp _ _ _ _).
+

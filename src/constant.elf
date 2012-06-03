@@ -1,0 +1,4 @@
+%% Shared syntactic class of term and type constants. %%
+
+ctm : type.
+ctp : type.

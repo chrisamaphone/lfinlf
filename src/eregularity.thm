@@ -1,0 +1,1250 @@
+
+ekof-pi-invert : ekof (epi A [x] B x) K
+                  -> ekof A ektype
+                  -> ({x} evof x A -> ekof (B x) ektype) -> type.
+%mode ekof-pi-invert +X1 -X2 -X3.
+
+-pi     : ekof-pi-invert (ekof/pi D2 D1) D1 D2.
+
+-eqkind : ekof-pi-invert 
+              (ekof/eqkind
+                  (Deqkind : eqkind K L)
+                  (Dof : ekof (epi A [x] B x) K))
+              DofA
+              DofB
+           <- ekof-pi-invert Dof
+              (DofA : ekof A ektype)
+              ([x] [d] DofB x d : ekof (B x) ektype).
+
+-ext    : ekof-pi-invert
+              (ekof/ext
+                  ([x] [d] DofApp x d
+                    : ekof (eaapp (epi A [y] B y) x) (K x))
+                  (DofPi : ekof (epi A [y] B y) (ekpi C [z] J z)))
+              DofA
+              DofB
+           <- ekof-pi-invert DofPi
+              (DofA : ekof A ektype)
+              ([x] [d] DofB x d : ekof (B x) ektype).
+
+%worlds (ecsig | easig | evar | ebind | tbind) (ekof-pi-invert _ _ _).
+%total D (ekof-pi-invert D _ _).
+
+%%%% regularity %%%%
+
+eof-reg : eof M A -> ekof A ektype -> type.
+%mode eof-reg +X1 -X2.
+
+ekof-reg : ekof A K -> ewfkind K -> type.
+%mode ekof-reg +X1 -X2.
+
+eqkind-reg : eqkind K L -> ewfkind K -> ewfkind L -> type.
+%mode eqkind-reg +X1 -X2 -X3.
+
+eqtp-reg : eqtp A B K -> ekof A K -> ekof B K -> ewfkind K -> type.
+%mode eqtp-reg +X1 -X2 -X3 -X4.
+
+eqtm-reg : eqtm M N C -> eof M C -> eof N C -> ekof C ektype -> type.
+%mode eqtm-reg +X1 -X2 -X3 -X4.
+
+%%%%
+
+-const  : ekof-reg (ekof/const D _) D.
+
+-app    : ekof-reg 
+             (ekof/app 
+                 (DofM : eof M B) 
+                 (DofA : ekof A (ekpi B ([x] K x))))
+%%
+             DofKM
+%%
+          <- ekof-reg DofA
+             (ewfkind/pi
+                 ([x] [d:evof x B] DofK x d : ewfkind (K x))
+                 (DofB : ekof B ektype))
+          <- esubst-wfkind DofK DofM
+             (DofKM : ewfkind (K M)).
+
+-pi     : ekof-reg (ekof/pi _ _) ewfkind/tp.
+
+-lam    : ekof-reg
+             (ekof/lam
+                 (DofA : ekof A ektype)
+                 ([x] [d] DofB x d : ekof (B x) (K x)))
+%%
+             (ewfkind/pi
+                 DofK
+                 DofA)
+%%
+          <- ({x} {d}
+                 ekof-reg (DofB x d)
+                 (DofK x d : ewfkind (K x))).
+
+-eqkd   : ekof-reg (ekof/eqkind (Deqkind : eqkind K L) (DofA : ekof A K))
+             DofL
+          <- eqkind-reg Deqkind _ DofL.
+
+-ext    : ekof-reg
+              (ekof/ext
+                  ([x] [d] DofApp x d : ekof (eaapp C x) (K x))
+                  (DofC : ekof C (ekpi A K')))
+%%              
+              (ewfkind/pi DofK DofA)
+%%              
+           <- ekof-reg DofC
+              (ewfkind/pi _ (DofA : ekof A ektype))
+           <- ({x} {d}
+                  ekof-reg (DofApp x d)
+                  (DofK x d : ewfkind (K x))).
+
+%%%%
+
+-var    : eof-reg (eof/var DofA _) DofA.
+
+-const  : eof-reg (eof/const DofA _) DofA.
+
+-app    : eof-reg
+             (eof/app
+                 (DofM2 : eof M2 A2)
+                 (DofM1 : eof M1 (epi A2 ([x] A1 x))))
+%%             
+             DofA1M2
+%%             
+          <- eof-reg DofM1
+             (DofPi : ekof (epi A2 ([x] A1 x)) ektype)
+          <- ekof-pi-invert DofPi
+             (DofA2 : ekof A2 ektype)
+             ([x] [d] DofA1 x d : ekof (A1 x) ektype)
+          <- esubst-kof ([x] [d] DofA1 x d) DofM2
+             (DofA1M2 : ekof (A1 M2) ektype).
+
+-lam    : eof-reg
+             (eof/lam
+                 (DofA : ekof A ektype)
+                 ([x] [d:evof x A] DofM x d : eof (M x) (B x)))
+%%             
+             (ekof/pi ([x] [d] DofB x d) DofA)
+%%
+          <- ({x} {d}
+                 eof-reg (DofM x d)
+                 (DofB x d : ekof (B x) ektype)).
+
+-eqtp   : eof-reg
+             (eof/eqtp
+                 (Deqtp : eqtp A B ektype)
+                 (DofM  : eof M A))
+%%             
+             DofB
+%%             
+          <- eof-reg DofM
+             (DofA : ekof A ektype)
+          <- eqtp-reg Deqtp
+             _ (DofB : ekof B ektype) _.
+
+-ext    : eof-reg
+              (eof/ext
+                  ([x] [d] DofApp x d : eof (eapp M x) (B x))
+                  (DofM : eof M (epi A B')))
+%%
+              (ekof/pi DofB DofA)
+%%
+           <- eof-reg DofM
+              (DofPi : ekof (epi A ([x] B' x)) ektype)
+           <- ekof-pi-invert DofPi
+              (DofA : ekof A ektype)
+              _
+           <- ({x} {d}
+                  eof-reg (DofApp x d)
+                  (DofB x d : ekof (B x) ektype)).
+
+%%%%
+
+-tp     : eqkind-reg eqkind/tp ewfkind/tp ewfkind/tp.
+
+-pi     : eqkind-reg
+              (eqkind/pi
+                  ([x] [d:evof x A] DeqK x d : eqkind (K x) (K' x))
+                  (DeqA : eqtp A A' ektype))
+%%
+              (ewfkind/pi
+                  ([x] [d] DofK x d)
+                  DofA)
+              (ewfkind/pi
+                  ([x] [d] DofK'' x d)
+                  DofA')
+%%
+           <- ({x} {d}
+                  eqkind-reg (DeqK x d)
+                  (DofK x d : ewfkind (K x))
+                  (DofK' x d : ewfkind (K' x)))
+           <- eqtp-reg DeqA DofA DofA' _
+           <- ({x} {d}
+                  esubst-wfkind
+                  ([y] [e] DofK' y e)
+                  (eof/eqtp (eqtp/sym DeqA) (eof/var DofA' d))
+                  (DofK'' x d : ewfkind (K' x))).
+
+-sym    : eqkind-reg (eqkind/sym DeqLK) DofK DofL
+           <- eqkind-reg DeqLK DofL DofK.
+
+-trans  : eqkind-reg (eqkind/trans DeqKL DeqJK) DofJ DofL
+           <- eqkind-reg DeqJK DofJ _
+           <- eqkind-reg DeqKL _ DofL.
+
+-refl   : eqkind-reg (eqkind/refl DofK) DofK DofK.
+
+%%%%
+
+-app    : eqtp-reg
+              (eqtp/app
+                  (DeqMN : eqtm M N C)
+                  (DeqAB : eqtp A B (ekpi C ([x] K x))))
+%%
+              (ekof/app
+                  DofM
+                  DofA
+                : ekof (eaapp A M) (K M))
+              (ekof/eqkind
+                  (eqkind/sym DeqKMN)
+                  (ekof/app
+                      DofN
+                      DofB))
+              DofKM
+%%
+           <- eqtp-reg DeqAB
+              (DofA : ekof A (ekpi C ([x] K x)))
+              (DofB : ekof B (ekpi C ([x] K x)))
+              (ewfkind/pi
+                  ([x] [d] DofK x d : ewfkind (K x))
+                  _)
+           <- eqtm-reg DeqMN
+              (DofM : eof M C)
+              (DofN : eof N C)
+              _
+           <- eqtm-ksub DofK DeqMN DofM DofN
+              (DeqKMN : eqkind (K M) (K N))
+           <- esubst-wfkind DofK DofM
+              (DofKM : ewfkind (K M)).
+
+-pi     : eqtp-reg
+              (eqtp/pi
+                  ([x] [d:evof x A]
+                      DeqB x d : eqtp (B x) (B' x) ektype)
+                  (DeqA : eqtp A A' ektype))
+%%
+              (ekof/pi
+                  ([x] [d] DofB x d)
+                  DofA)
+              (ekof/pi
+                  DofB''
+                  DofA')
+              ewfkind/tp
+%%
+           <- ({x} {d}
+                  eqtp-reg (DeqB x d)
+                  (DofB x d  : ekof (B x) ektype)
+                  (DofB' x d : ekof (B' x) ektype)
+                  _)
+           <- eqtp-reg DeqA
+              (DofA : ekof A ektype)
+              (DofA' : ekof A' ektype)
+              _
+           <- ({x} {d}
+                  esubst-kof 
+                  ([y] [e] DofB' y e)
+                  (eof/eqtp (eqtp/sym DeqA) (eof/var DofA' d))
+                  (DofB'' x d : ekof (B' x) ektype)).
+
+-lam    : eqtp-reg
+              (eqtp/lam
+                  ([x] [d:evof x A] DeqB x d : eqtp (B x) (B' x) (K x))
+                  (DeqA : eqtp A A' ektype))
+%%
+              (ekof/lam DofA DofB)
+              (ekof/eqkind
+                  (eqkind/sym
+                      (eqkind/pi
+                          ([x] [d] eqkind/refl (DofK x d))
+                          DeqA))
+                  (ekof/lam DofA' DofB''))
+              (ewfkind/pi DofK DofA)
+%%
+           <- eqtp-reg DeqA
+              (DofA : ekof A ektype)
+              (DofA' : ekof A' ektype)
+              _
+           <- ({x} {d}
+                  eqtp-reg (DeqB x d)
+                  (DofB x d : ekof (B x) (K x))
+                  (DofB' x d : ekof (B' x) (K x))
+                  (DofK x d : ewfkind (K x)))
+           <- ({x} {d}
+                  esubst-kof ([y] [e] DofB' y e)
+                  (eof/eqtp (eqtp/sym DeqA) (eof/var DofA' d))
+                  (DofB'' x d : ekof (B' x) (K x))).
+
+-ext    : eqtp-reg
+              (eqtp/ext
+                  ([x] [d:evof x A]
+                      DeqApp x d : eqtp (eaapp B x) (eaapp C x) (K x))
+                  (DofC : ekof C (ekpi A [x] K'' x))
+                  (DofB : ekof B (ekpi A [x] K' x)))
+%%
+              (ekof/ext DofAppB DofB)
+              (ekof/ext DofAppC DofC)
+              (ewfkind/pi DofK DofA)
+%%
+           <- ({x} {d}
+                  eqtp-reg (DeqApp x d)
+                  (DofAppB x d : ekof (eaapp B x) (K x))
+                  (DofAppC x d : ekof (eaapp C x) (K x))
+                  (DofK x d : ewfkind (K x)))
+           <- ekof-reg DofC
+              (ewfkind/pi
+                  _
+                  (DofA : ekof A ektype)).
+
+-extw   : eqtp-reg
+              (eqtp/extw
+                  ([x] [d:evof x A]
+                      DeqApp x d : eqtp (eaapp B x) (eaapp C x) (K x))
+                  (DeqBC : eqtp B C (ekpi A K')))
+%%
+              (ekof/ext DofAppB DofB)
+              (ekof/ext DofAppC DofC)
+              (ewfkind/pi DofK DofA)
+%%
+           <- ({x} {d}
+                  eqtp-reg (DeqApp x d)
+                  (DofAppB x d : ekof (eaapp B x) (K x))
+                  (DofAppC x d : ekof (eaapp C x) (K x))
+                  (DofK x d : ewfkind (K x)))
+           <- eqtp-reg DeqBC DofB DofC
+              (ewfkind/pi _ DofA).
+
+
+-beta   : eqtp-reg
+              (eqtp/beta
+                  (DofN : eof N A)
+                  ([x] [d:evof x A] DofB x d : ekof (B x) (K x))
+                : eqtp (eaapp (ealam A [x] B x) N) (B N) (K N))
+%%
+              (ekof/app
+                  DofN
+                  (ekof/lam DofA DofB))
+              DofBN
+              DofKN
+%%
+           <- eof-reg DofN DofA
+           <- esubst-kof DofB DofN (DofBN : ekof (B N) (K N))
+           <- ({x} {d}
+                  ekof-reg (DofB x d) (DofK x d : ewfkind (K x)))
+           <- esubst-wfkind DofK DofN (DofKN : ewfkind (K N)).
+
+-sym    : eqtp-reg (eqtp/sym (DeqBA : eqtp B A K)) DofA DofB DofK
+           <- eqtp-reg DeqBA DofB DofA DofK.
+
+-trans  : eqtp-reg
+              (eqtp/trans (DeqBC : eqtp B C K) (DeqAB : eqtp A B K))
+%%
+              DofA
+              DofC
+              DofK
+%%
+           <- eqtp-reg DeqAB DofA _ DofK
+           <- eqtp-reg DeqBC _ DofC _.
+
+-refl   : eqtp-reg (eqtp/refl Dkof) Dkof Dkof Dwfkind
+           <- ekof-reg Dkof Dwfkind.
+
+-kcon   : eqtp-reg
+              (eqtp/kcon
+                  (DeqKL : eqkind K L)
+                  (DeqAB : eqtp A B K))
+%%
+              (ekof/eqkind
+                  DeqKL
+                  DofAK)
+              (ekof/eqkind
+                  DeqKL
+                  DofBK)
+              DofL
+%%
+           <- eqtp-reg DeqAB
+              (DofAK : ekof A K)
+              (DofBK : ekof B K)
+              _
+           <- eqkind-reg DeqKL _ (DofL : ewfkind L).
+
+%%%%
+
+-app    : eqtm-reg
+              (eqtm/app
+                  (DeqN : eqtm N N' A)
+                  (DeqM : eqtm M M' (epi A ([x] B x)))
+                : eqtm (eapp M N) (eapp M' N') (B N))
+%%
+              (eof/app DofN DofM)
+              (eof/eqtp
+                  (eqtp/sym DeqBN)
+                  (eof/app DofN' DofM'))
+              DofBN
+%%
+           <- eqtm-reg DeqN
+              (DofN  : eof N A)
+              (DofN' : eof N' A)
+              _
+           <- eqtm-reg DeqM
+              (DofM  : eof M (epi A ([x] B x)))
+              (DofM' : eof M' (epi A ([x] B x)))
+              (DofPi : ekof (epi A ([x] B x)) ektype)
+           <- ekof-pi-invert DofPi _
+              ([x] [d] DofB x d : ekof (B x) ektype)
+           <- eqtm-tpsub DofB DeqN DofN DofN'
+              (DeqBN : eqtp (B N) (B N') ektype)
+           <- esubst-kof DofB DofN
+              (DofBN : ekof (B N) ektype).
+
+-lam    : eqtm-reg
+              (eqtm/lam
+                  ([x] [d:evof x A] DeqM x d : eqtm (M x) (M' x) (B x))
+                  (DeqA : eqtp A A' ektype))
+%%
+              (eof/lam DofA DofM)
+              (eof/eqtp
+                  (eqtp/sym
+                    (eqtp/pi
+                      ([x] [d] eqtp/refl (DofB x d))
+                      DeqA))
+                  (eof/lam DofA' DofM''))
+              (ekof/pi DofB DofA)
+%%
+           <- eqtp-reg DeqA 
+              (DofA : ekof A ektype) 
+              (DofA' : ekof A' ektype)
+              _
+           <- ({x} {d}
+                  eqtm-reg (DeqM x d)
+                  (DofM x d  : eof (M x) (B x))
+                  (DofM' x d : eof (M' x) (B x))
+                  (DofB x d : ekof (B x) ektype))
+           <- ({x} {d}
+                  esubst ([y] [e] DofM' y e)
+                  (eof/eqtp (eqtp/sym DeqA) (eof/var DofA' d))
+                  (DofM'' x d)).
+
+-ext    : eqtm-reg
+              (eqtm/ext
+                  ([x] [d:evof x A] DeqApp x d 
+                    : eqtm (eapp M x) (eapp N x) (B x))
+                  (DofN : eof N (epi A [x] B'' x))
+                  (DofM : eof M (epi A [x] B' x)))
+%%
+              (eof/ext DofAppM DofM)
+              (eof/ext DofAppN DofN)
+              (ekof/pi DofB DofA)
+%%
+           <- ({x} {d}
+                  eqtm-reg (DeqApp x d)
+                  (DofAppM x d : eof (eapp M x) (B x))
+                  (DofAppN x d : eof (eapp N x) (B x))
+                  (DofB x d : ekof (B x) ektype))
+           <- eof-reg DofN (DofPi : ekof (epi A B'') ektype)
+           <- ekof-pi-invert DofPi (DofA : ekof A ektype) _.
+
+-extw   : eqtm-reg
+              (eqtm/extw
+                  ([x] [d:evof x A] DeqApp x d 
+                    : eqtm (eapp M x) (eapp N x) (B x))
+                  (DeqMN : eqtm M N (epi A [x] B' x)))
+%%
+              (eof/ext DofAppM DofM)
+              (eof/ext DofAppN DofN)
+              (ekof/pi DofB DofA)
+%%
+           <- ({x} {d}
+                  eqtm-reg (DeqApp x d)
+                  (DofAppM x d : eof (eapp M x) (B x))
+                  (DofAppN x d : eof (eapp N x) (B x))
+                  (DofB x d : ekof (B x) ektype))
+           <- eqtm-reg DeqMN
+              (DofM : eof M (epi A [x] B' x))
+              (DofN : eof N (epi A [x] B' x))
+              (DofPi : ekof (epi A B') ektype)
+           <- ekof-pi-invert DofPi (DofA : ekof A ektype) _.
+
+
+-beta   : eqtm-reg
+              (eqtm/beta
+                  (DofN : eof N A)
+                  ([x] [d:evof x A] DofM x d : eof (M x) (B x))
+                : eqtm (eapp (elam A [x] M x) N) (M N) (B N))
+%%
+              (eof/app
+                  DofN
+                  (eof/lam DofA DofM))
+              DofMN
+              DofBN
+%%
+           <- eof-reg DofN (DofA : ekof A ektype)
+           <- esubst DofM DofN (DofMN : eof (M N) (B N))
+           <- ({x} {d}
+                  eof-reg (DofM x d) (DofB x d : ekof (B x) ektype))
+           <- esubst-kof DofB DofN
+              (DofBN : ekof (B N) ektype).
+
+-sym    : eqtm-reg
+              (eqtm/sym (DeqM'M : eqtm M' M A))
+              DofM
+              DofM'
+              DofA
+           <- eqtm-reg DeqM'M DofM' DofM DofA.
+
+-trans  : eqtm-reg
+              (eqtm/trans 
+                  (DeqNO : eqtm N O A)
+                  (DeqMN : eqtm M N A))
+              DofM
+              DofO
+              DofA
+           <- eqtm-reg DeqMN DofM _ DofA
+           <- eqtm-reg DeqNO _ DofO _.
+
+-refl   : eqtm-reg (eqtm/refl DofM) DofM DofM DofA
+           <- eof-reg DofM DofA.
+
+-tpcon  : eqtm-reg
+              (eqtm/typecon
+                  (DeqA : eqtp A A' ektype)
+                  (DeqM : eqtm M M' A)
+                : eqtm M M' A')
+%%
+              (eof/eqtp DeqA DofM)
+              (eof/eqtp DeqA DofM')
+              DofA'
+%%
+           <- eqtm-reg DeqM 
+              (DofM  : eof M A) 
+              (DofM' : eof M' A)
+              _
+           <- eqtp-reg DeqA _ (DofA' : ekof A' ektype) _.
+
+% XXX can we actually add evar to worlds here??
+%worlds (ecsig | easig | ebind | tbind | evar)
+  (eof-reg _ _) (ekof-reg _ _) 
+  (eqkind-reg _ _ _) (eqtp-reg _ _ _ _) (eqtm-reg _ _ _ _).
+%total (D1 D2 D3 D4 D5)  
+  (eof-reg D1 _) (ekof-reg D2 _)
+  (eqkind-reg D3 _ _) (eqtp-reg D4 _ _ _) (eqtm-reg D5 _ _ _).
+
+%% Explicit Contexts %%
+
+ekofe-pi-invert : ekofe G (epi A [x] B x) K
+                  -> ekofe G A ektype
+                  -> ({x} ekofe (econs G x A) (B x) ektype) -> type.
+%mode ekofe-pi-invert +X1 -X2 -X3.
+
+-pi     : ekofe-pi-invert (ekofe/pi D1 D2) D1 D2.
+
+-eqkind : ekofe-pi-invert 
+              (ekofe/eqkind
+                  (Deqkind : eqkinde G K L)
+                  (Dof : ekofe G (epi A [x] B x) K))
+              DofA
+              DofB
+           <- ekofe-pi-invert Dof
+              (DofA : ekofe G A ektype)
+              ([x] DofB x : ekofe (econs G x A) (B x) ektype).
+
+-ext    : ekofe-pi-invert
+              (ekofe/ext
+                  ([x] DofApp x
+                    : ekofe (econs G x _) (eaapp (epi A [y] B y) x) (K x))
+                  (DofPi : ekofe G (epi A [y] B y) (ekpi C [z] J z)))
+              DofA
+              DofB
+           <- ekofe-pi-invert DofPi
+              (DofA : ekofe G A ektype)
+              ([x] DofB x : ekofe (econs G x _) (B x) ektype).
+
+%worlds (ecsig | easig | evar | ebind | tbind) (ekofe-pi-invert _ _ _).
+%total D (ekofe-pi-invert D _ _).
+
+%% earlier version of this for staging
+
+ekofe-tcon-bind' : ({x} eisvar x I -> eordered (econs G x A))
+                    -> eqtpe G A A' ektype
+                    -> ekofe G A' ektype
+                    -> ({x} ekofe (econs G x A) (B x) (K x))
+%%
+                    -> ({x} ekofe (econs G x A') (B x) (K x)) -> type.
+%mode ekofe-tcon-bind' +X0 +X1 +X2 +X3 -X4.
+
+- : ekofe-tcon-bind'
+        ([x] [d] Dord x d : eordered (econs G x A))
+        (Deqtp : eqtpe G A A' ektype)
+        (DofA' : ekofe G A' ektype)
+        ([x] Dof x : ekofe (econs G x A) (B x) (K x))
+        Dof''
+     <- ({x} {x'}
+            weakeng-ekofe (eappend/cons eappend/nil) (eappend/cons eappend/nil)
+            (Dof x)
+            (Dof' x x' : ekofe (econs (econs G x' A') x A) (B x) (K x)))
+     <- ({x} {d}
+            eordered-cons (Dord x d)
+            (DordG_ x d : eordered G))
+     <- strengthen-eordered DordG_
+        (DordG : eordered G)
+     <- extend-eordered _ DordG _1
+        ([x'] [d'] DordG' x' d' : eordered (econs G x' A'))
+     <- ({x'} {d'}
+            extend-eordered _ (DordG' x' d') _2
+            ([x] [d] DordG'' x' d' x d
+              : eordered (econs (econs G x' A') x A)))
+     <- ({x'}
+            weaken-eqtpe Deqtp _ _
+            (Deqtp' x' : eqtpe (econs G x' A') A A' ektype))
+     <- ({x'}
+            weakeng-ekofe eappend/nil eappend/nil DofA'
+            (DofA'* x' : ekofe (econs G x' A') A' ektype))
+     <- ({x'} {d'}
+            ekofe-sub ([x] [d] DordG'' x' d' x d)
+            ([_] eappend/nil)
+            ([x] Dof' x x')
+            (eofe/eqtp 
+                (eqtpe/sym (Deqtp' x'))
+                (eofe/var (DofA'* x') elookup/hit))
+            ecsub/base
+            (Dof'' x' : ekofe (econs G x' A') (B x') (K x'))).
+
+%worlds (ecsig | easig | evar | eovar | ebind) (ekofe-tcon-bind' _ _ _ _ _).
+%total {} (ekofe-tcon-bind' _ _ _ _ _).
+
+ewfkinde-tcon-bind' : ({x} eisvar x I -> eordered (econs G x A))
+                    -> eqtpe G A A' ektype
+                    -> ekofe G A' ektype
+                    -> ({x} ewfkinde (econs G x A) (K x))
+%%
+                    -> ({x} ewfkinde (econs G x A') (K x)) -> type.
+%mode ewfkinde-tcon-bind' +X0 +X1 +X2 +X3 -X4.
+
+- : ewfkinde-tcon-bind'
+        ([x] [d] Dord x d : eordered (econs G x A))
+        (Deqtp : eqtpe G A A' ektype)
+        (DofA' : ekofe G A' ektype)
+        ([x] Dof x : ewfkinde (econs G x A) (K x))
+        Dof''
+     <- ({x} {x'}
+            weakeng-ewfkinde (eappend/cons eappend/nil) (eappend/cons eappend/nil)
+            (Dof x)
+            (Dof' x x' : ewfkinde (econs (econs G x' A') x A) (K x)))
+     <- ({x} {d}
+            eordered-cons (Dord x d)
+            (DordG_ x d : eordered G))
+     <- strengthen-eordered DordG_
+        (DordG : eordered G)
+     <- extend-eordered _ DordG _1
+        ([x'] [d'] DordG' x' d' : eordered (econs G x' A'))
+     <- ({x'} {d'}
+            extend-eordered _ (DordG' x' d') _2
+            ([x] [d] DordG'' x' d' x d
+              : eordered (econs (econs G x' A') x A)))
+     <- ({x'}
+            weaken-eqtpe Deqtp _ _
+            (Deqtp' x' : eqtpe (econs G x' A') A A' ektype))
+     <- ({x'}
+            weakeng-ekofe eappend/nil eappend/nil DofA'
+            (DofA'* x' : ekofe (econs G x' A') A' ektype))
+     <- ({x'} {d'}
+            ewfkinde-sub ([x] [d] DordG'' x' d' x d)
+            ([_] eappend/nil)
+            ([x] Dof' x x')
+            (eofe/eqtp 
+                (eqtpe/sym (Deqtp' x'))
+                (eofe/var (DofA'* x') elookup/hit))
+            ecsub/base
+            (Dof'' x' : ewfkinde (econs G x' A') (K x'))).
+
+%worlds (ecsig | easig | evar | eovar | ebind) (ewfkinde-tcon-bind' _ _ _ _ _).
+%total {} (ewfkinde-tcon-bind' _ _ _ _ _).
+
+
+eofe-tcon-bind' : ({x} eisvar x I -> eordered (econs G x A))
+                    -> eqtpe G A A' ektype
+                    -> ekofe G A' ektype
+                    -> ({x} eofe (econs G x A) (B x) (K x))
+%%
+                    -> ({x} eofe (econs G x A') (B x) (K x)) -> type.
+%mode eofe-tcon-bind' +X0 +X1 +X2 +X3 -X4.
+
+- : eofe-tcon-bind'
+        ([x] [d] Dord x d : eordered (econs G x A))
+        (Deqtp : eqtpe G A A' ektype)
+        (DofA' : ekofe G A' ektype)
+        ([x] Dof x : eofe (econs G x A) (B x) (K x))
+        Dof''
+     <- ({x} {x'}
+            weakeng-eofe (eappend/cons eappend/nil) (eappend/cons eappend/nil)
+            (Dof x)
+            (Dof' x x' : eofe (econs (econs G x' A') x A) (B x) (K x)))
+     <- ({x} {d}
+            eordered-cons (Dord x d)
+            (DordG_ x d : eordered G))
+     <- strengthen-eordered DordG_
+        (DordG : eordered G)
+     <- extend-eordered _ DordG _1
+        ([x'] [d'] DordG' x' d' : eordered (econs G x' A'))
+     <- ({x'} {d'}
+            extend-eordered _ (DordG' x' d') _2
+            ([x] [d] DordG'' x' d' x d
+              : eordered (econs (econs G x' A') x A)))
+     <- ({x'}
+            weaken-eqtpe Deqtp _ _
+            (Deqtp' x' : eqtpe (econs G x' A') A A' ektype))
+     <- ({x'}
+            weakeng-ekofe eappend/nil eappend/nil DofA'
+            (DofA'* x' : ekofe (econs G x' A') A' ektype))
+     <- ({x'} {d'}
+            eofe-sub ([x] [d] DordG'' x' d' x d)
+            ([_] eappend/nil)
+            ([x] Dof' x x')
+            (eofe/eqtp 
+                (eqtpe/sym (Deqtp' x'))
+                (eofe/var (DofA'* x') elookup/hit))
+            ecsub/base
+            (Dof'' x' : eofe (econs G x' A') (B x') (K x'))).
+
+%worlds (ecsig | easig | evar | eovar | ebind) (eofe-tcon-bind' _ _ _ _ _).
+%total {} (eofe-tcon-bind' _ _ _ _ _).
+
+
+eofe-reg : eordered G -> eofe G M A -> ekofe G A ektype -> type.
+%mode eofe-reg +X0 +X1 -X2.
+
+ekofe-reg : eordered G -> ekofe G A K -> ewfkinde G K -> type.
+%mode ekofe-reg +X0 +X1 -X2.
+
+eqtme-reg : eordered G -> eqtme G M N A
+             -> eofe G M A -> eofe G N A -> ekofe G A ektype -> type.
+%mode eqtme-reg +X0 +X1 -X2 -X3 -X4.
+
+eqtpe-reg : eordered G -> eqtpe G M N A
+             -> ekofe G M A -> ekofe G N A -> ewfkinde G A -> type.
+%mode eqtpe-reg +X0 +X1 -X2 -X3 -X4.
+
+eqkinde-reg : eordered G -> eqkinde G K L
+               -> ewfkinde G K -> ewfkinde G L -> type.
+%mode eqkinde-reg +X1 +X2 -X3 -X4.
+
+-vari   : eofe-reg _ (eofe/vari DofA _) DofA.
+
+-var    : eofe-reg _ (eofe/var DofA _) DofA.
+
+-const  : eofe-reg _ (eofe/const DofA _) DofA.
+
+-app    : eofe-reg Dord (eofe/app DofN DofM)
+              DofBx
+           <- eofe-reg Dord DofM
+              (DofPi : ekofe G (epi A B) ektype)
+           <- ekofe-pi-invert DofPi
+              (DofA : ekofe G A ektype)
+              ([x] DofB x : ekofe (econs G x A) (B x) ektype)
+           <- extend-eordered _ Dord _ Dord'
+           <- ekofe-sub Dord' ([x] eappend/nil) DofB DofN ecsub/base
+              (DofBx : ekofe G (B M) ektype).
+
+-lam    : eofe-reg Dord
+              (eofe/lam DofA DofM)
+              (ekofe/pi DofA DofB)
+           <- extend-eordered _ Dord _ Dord'
+           <- ({x} {d}
+                  eofe-reg (Dord' x d) (DofM x)
+                  (DofB x)).
+
+-eqtp   : eofe-reg Dord
+              (eofe/eqtp Deqtp DofM)
+              DofB
+           <- eofe-reg Dord DofM DofA
+           <- eqtpe-reg Dord Deqtp _ DofB _.
+
+-ext    : eofe-reg Dord
+              (eofe/ext ([x] DofApp x) DofM)
+              (ekofe/pi DofA DofB)
+           <- eofe-reg Dord DofM DofPi
+           <- ekofe-pi-invert DofPi DofA _
+           <- extend-eordered _ Dord _ Dord'
+           <- ({x} {d}
+                  eofe-reg (Dord' x d) (DofApp x)
+                  (DofB x)).
+
+%%
+
+-const  : ekofe-reg _ (ekofe/const DofA _) DofA.
+
+-app    : ekofe-reg Dord (ekofe/app DofN DofM)
+              DofBx
+           <- ekofe-reg Dord DofM
+              (ewfkinde/pi
+                  (DofA : ekofe G A ektype)
+                  ([x] DofB x : ewfkinde (econs G x A) (K x)))
+           <- extend-eordered _ Dord _ Dord'
+           <- ewfkinde-sub Dord' ([x] eappend/nil) DofB DofN ecsub/base
+              (DofBx : ewfkinde G (K M)).
+
+-pi     : ekofe-reg Dord
+              (ekofe/pi DofA DofB)
+              ewfkinde/tp.
+
+-lam    : ekofe-reg Dord
+              (ekofe/lam DofA DofM)
+              (ewfkinde/pi DofA DofB)
+           <- extend-eordered _ Dord _ Dord'
+           <- ({x} {d}
+                  ekofe-reg (Dord' x d) (DofM x)
+                  (DofB x)).
+
+-eqtp   : ekofe-reg Dord
+              (ekofe/eqkind Deqtp DofM)
+              DofB
+           <- ekofe-reg Dord DofM DofA
+           <- eqkinde-reg Dord Deqtp _ DofB.
+
+-ext    : ekofe-reg Dord
+              (ekofe/ext ([x] DofApp x) DofM)
+              (ewfkinde/pi DofA DofB)
+           <- ekofe-reg Dord DofM (ewfkinde/pi DofA _)
+           <- extend-eordered _ Dord _ Dord'
+           <- ({x} {d}
+                  ekofe-reg (Dord' x d) (DofApp x)
+                  (DofB x)).
+
+%%
+
+-app    : eqtme-reg Dord
+              (eqtme/app
+                  (DeqN : eqtme G N N' A)
+                  (DeqM : eqtme G M M' (epi A B)))
+%%              
+              (eofe/app DofN DofM)
+              (eofe/eqtp
+                  (eqtpe/sym DeqBN_BN')
+                  (eofe/app DofN' DofM'))
+              DofBN
+%%              
+           <- eqtme-reg Dord DeqN DofN DofN' DofA
+           <- eqtme-reg Dord DeqM DofM DofM'
+              (DofPi : ekofe G (epi A B) ektype)
+           <- ekofe-pi-invert DofPi _ DofB
+           <- extend-eordered _ Dord _ Dord'
+           <- eqtm-tpsub-e Dord' ([_] eappend/nil) DeqN DofN DofN' DofB
+              ecsub/base
+              (DeqBN_BN' : eqtpe G (B N) (B N') ektype)
+           <- ekofe-sub Dord' ([_] eappend/nil) DofB DofN ecsub/base
+              (DofBN : ekofe G (B N) ektype).
+
+-lam    : eqtme-reg Dord
+              (eqtme/lam
+                  ([x] DeqM x : eqtme (econs G x A) (M x) (M' x) (B x))
+                  (DeqA : eqtpe G A A' ektype))
+%%
+              (eofe/lam DofA DofM)
+              (eofe/eqtp
+                  (eqtpe/sym
+                      (eqtpe/pi
+                          ([x] eqtpe/refl (DofB x))
+                          DeqA))
+                  (eofe/lam DofA' DofM'*))
+              (ekofe/pi DofA DofB)
+%%
+           <- eqtpe-reg Dord DeqA
+              (DofA : ekofe G A ektype)
+              (DofA' : ekofe G A' ektype)
+              _
+           <- extend-eordered _ Dord _ Dord'
+           <- ({x} {d}
+                  eqtme-reg (Dord' x d) (DeqM x)
+                  (DofM x : eofe (econs G x A) (M x) (B x))
+                  (DofM' x : eofe (econs G x A) (M' x) (B x))
+                  (DofB x : ekofe (econs G x A) (B x) ektype))
+           <- eofe-tcon-bind' Dord' DeqA DofA' DofM'
+              ([x] DofM'* x : eofe (econs G x A') (M' x) (B x)).
+
+-ext    : eqtme-reg Dord
+              (eqtme/ext
+                  ([x] DeqApp x
+                    : eqtme (econs G x A) (eapp M x) (eapp N x) (B x))
+                  (DofN : eofe G N (epi A B''))
+                  (DofM : eofe G M (epi A B')))
+%%
+              (eofe/ext DofAppM DofM)
+              (eofe/ext DofAppN DofN)
+              (ekofe/pi DofA DofB)
+%%
+           <- extend-eordered _ Dord _ Dord'
+           <- ({x} {d}
+                  eqtme-reg (Dord' x d) (DeqApp x)
+                  (DofAppM x : eofe (econs G x A) (eapp M x) (B x))
+                  (DofAppN x : eofe (econs G x A) (eapp N x) (B x))
+                  (DofB x : ekofe (econs G x A) (B x) ektype))
+           <- eofe-reg Dord DofN DofPi
+           <- ekofe-pi-invert DofPi DofA _.
+
+-extw   : eqtme-reg Dord
+              (eqtme/extw
+                  ([x] DeqApp x
+                    : eqtme (econs G x A) (eapp M x) (eapp N x) (B x))
+                  (DeqMN : eqtme G M N (epi A [x] B' x)))
+%%
+              (eofe/ext DofAppM DofM)
+              (eofe/ext DofAppN DofN)
+              (ekofe/pi DofA DofB)
+%%
+           <- extend-eordered _ Dord _ Dord'
+           <- ({x} {d}
+                  eqtme-reg (Dord' x d) (DeqApp x)
+                  (DofAppM x : eofe (econs G x A) (eapp M x) (B x))
+                  (DofAppN x : eofe (econs G x A) (eapp N x) (B x))
+                  (DofB x : ekofe (econs G x A) (B x) ektype))
+           <- eqtme-reg Dord DeqMN
+              (DofM : eofe G M (epi A [x] B' x))
+              (DofN : eofe G N (epi A [x] B' x))
+              (DofPi : ekofe G (epi A B') ektype)
+           <- ekofe-pi-invert DofPi (DofA : ekofe G A ektype) _.
+
+-beta   : eqtme-reg Dord
+              (eqtme/beta
+                  (DofN : eofe G N A)
+                  ([x] DofM x : eofe (econs G x A) (M x) (B x))
+                : eqtme G (eapp (elam A [x] M x) N) (M N) (B N))
+%%
+              (eofe/app DofN (eofe/lam DofA DofM))
+              DofMN
+              DofBN
+%%
+           <- eofe-reg Dord DofN (DofA : ekofe G A ektype)
+           <- extend-eordered _ Dord _ Dord'
+           <- eofe-sub Dord' ([_]eappend/nil) DofM DofN ecsub/base
+              (DofMN : eofe G (M N) (B N))
+           <- ({x} {d}
+                  eofe-reg (Dord' x d) (DofM x)
+                  (DofB x : ekofe (econs G x A) (B x) ektype))
+           <- ekofe-sub Dord' ([_]eappend/nil) DofB DofN ecsub/base
+              (DofBN : ekofe G (B N) ektype).
+
+-sym    : eqtme-reg Dord (eqtme/sym Deq)
+              DofM
+              DofM'
+              DofA
+           <- eqtme-reg Dord Deq DofM' DofM DofA.
+
+-trans  : eqtme-reg Dord (eqtme/trans DeqNO DeqMN)
+              DofM
+              DofO
+              DofA
+           <- eqtme-reg Dord DeqMN DofM _ DofA
+           <- eqtme-reg Dord DeqNO _ DofO _.
+
+-ref    : eqtme-reg Dord (eqtme/refl Dof) Dof Dof Dkof
+           <- eofe-reg Dord Dof Dkof.
+
+-tcon   : eqtme-reg Dord (eqtme/tcon DeqA DeqM)
+              (eofe/eqtp DeqA DofM)
+              (eofe/eqtp DeqA DofM')
+              DofA'
+           <- eqtme-reg Dord DeqM DofM DofM' _
+           <- eqtpe-reg Dord DeqA _ DofA' _.
+
+%%
+
+-app    : eqtpe-reg Dord
+              (eqtpe/app
+                  (DeqN : eqtme G N N' A)
+                  (DeqM : eqtpe G M M' (ekpi A B)))
+%%              
+              (ekofe/app DofN DofM)
+              (ekofe/eqkind
+                  (eqkinde/sym DeqBN_BN')
+                  (ekofe/app DofN' DofM'))
+              DofBN
+%%              
+           <- eqtme-reg Dord DeqN DofN DofN' DofA
+           <- eqtpe-reg Dord DeqM DofM DofM'
+              (ewfkinde/pi _ DofB)
+           <- extend-eordered _ Dord _ Dord'
+           <- eqtm-ksub-e Dord' ([_] eappend/nil) DeqN DofN DofN' DofB
+              ecsub/base
+              (DeqBN_BN' : eqkinde G (B N) (B N'))
+           <- ewfkinde-sub Dord' ([_] eappend/nil) DofB DofN ecsub/base
+              (DofBN : ewfkinde G (B N)).
+
+-lam    : eqtpe-reg Dord
+              (eqtpe/lam
+                  ([x] DeqM x : eqtpe (econs G x A) (M x) (M' x) (B x))
+                  (DeqA : eqtpe G A A' ektype))
+%%
+              (ekofe/lam DofA DofM)
+              (ekofe/eqkind
+                  (eqkinde/sym
+                      (eqkinde/pi
+                          ([x] eqkinde/refl (DofB x))
+                          DeqA))
+                  (ekofe/lam DofA' DofM'*))
+              (ewfkinde/pi DofA DofB)
+%%
+           <- eqtpe-reg Dord DeqA
+              (DofA : ekofe G A ektype)
+              (DofA' : ekofe G A' ektype)
+              _
+           <- extend-eordered _ Dord _ Dord'
+           <- ({x} {d}
+                  eqtpe-reg (Dord' x d) (DeqM x)
+                  (DofM x : ekofe (econs G x A) (M x) (B x))
+                  (DofM' x : ekofe (econs G x A) (M' x) (B x))
+                  (DofB x : ewfkinde (econs G x A) (B x)))
+           <- ekofe-tcon-bind' Dord' DeqA DofA' DofM'
+              ([x] DofM'* x : ekofe (econs G x A') (M' x) (B x)).
+
+-pi     : eqtpe-reg Dord
+              (eqtpe/pi
+                  ([x] DeqM x : eqtpe (econs G x A) (M x) (M' x) ektype)
+                  (DeqA : eqtpe G A A' ektype))
+%%
+              (ekofe/pi DofA DofM)
+              (ekofe/pi DofA' DofM'*)
+              ewfkinde/tp
+%%
+           <- eqtpe-reg Dord DeqA
+              (DofA : ekofe G A ektype)
+              (DofA' : ekofe G A' ektype)
+              _
+           <- extend-eordered _ Dord _ Dord'
+           <- ({x} {d}
+                  eqtpe-reg (Dord' x d) (DeqM x)
+                  (DofM x : ekofe (econs G x A) (M x) ektype)
+                  (DofM' x : ekofe (econs G x A) (M' x) ektype)
+                  (DofB x : ewfkinde (econs G x A) ektype))
+           <- ekofe-tcon-bind' Dord' DeqA DofA' DofM'
+              ([x] DofM'* x : ekofe (econs G x A') (M' x) ektype).
+
+-ext    : eqtpe-reg Dord
+              (eqtpe/ext
+                  ([x] DeqApp x
+                    : eqtpe (econs G x A) (eaapp M x) (eaapp N x) (B x))
+                  (DofN : ekofe G N (ekpi A B''))
+                  (DofM : ekofe G M (ekpi A B')))
+%%
+              (ekofe/ext DofAppM DofM)
+              (ekofe/ext DofAppN DofN)
+              (ewfkinde/pi DofA DofB)
+%%
+           <- extend-eordered _ Dord _ Dord'
+           <- ({x} {d}
+                  eqtpe-reg (Dord' x d) (DeqApp x)
+                  (DofAppM x : ekofe (econs G x A) (eaapp M x) (B x))
+                  (DofAppN x : ekofe (econs G x A) (eaapp N x) (B x))
+                  (DofB x : ewfkinde (econs G x A) (B x)))
+           <- ekofe-reg Dord DofN (ewfkinde/pi DofA _).
+
+-extw   : eqtpe-reg Dord
+              (eqtpe/extw
+                  ([x] DeqApp x
+                    : eqtpe (econs G x A) (eaapp M x) (eaapp N x) (B x))
+                  (DeqMN : eqtpe G M N (ekpi A [x] B' x)))
+%%
+              (ekofe/ext DofAppM DofM)
+              (ekofe/ext DofAppN DofN)
+              (ewfkinde/pi DofA DofB)
+%%
+           <- extend-eordered _ Dord _ Dord'
+           <- ({x} {d}
+                  eqtpe-reg (Dord' x d) (DeqApp x)
+                  (DofAppM x : ekofe (econs G x A) (eaapp M x) (B x))
+                  (DofAppN x : ekofe (econs G x A) (eaapp N x) (B x))
+                  (DofB x : ewfkinde (econs G x A) (B x)))
+           <- eqtpe-reg Dord DeqMN
+              (DofM : ekofe G M (ekpi A [x] B' x))
+              (DofN : ekofe G N (ekpi A [x] B' x))
+              (ewfkinde/pi DofA _).
+
+-beta   : eqtpe-reg Dord
+              (eqtpe/beta
+                  (DofN : eofe G N A)
+                  ([x] DofM x : ekofe (econs G x A) (M x) (B x))
+                : eqtpe G (eaapp (ealam A [x] M x) N) (M N) (B N))
+%%
+              (ekofe/app DofN (ekofe/lam DofA DofM))
+              DofMN
+              DofBN
+%%
+           <- eofe-reg Dord DofN (DofA : ekofe G A ektype)
+           <- extend-eordered _ Dord _ Dord'
+           <- ekofe-sub Dord' ([_]eappend/nil) DofM DofN ecsub/base
+              (DofMN : ekofe G (M N) (B N))
+           <- ({x} {d}
+                  ekofe-reg (Dord' x d) (DofM x)
+                  (DofB x : ewfkinde (econs G x A) (B x)))
+           <- ewfkinde-sub Dord' ([_] eappend/nil) DofB DofN ecsub/base
+              (DofBN : ewfkinde G (B N)).
+
+-sym    : eqtpe-reg Dord (eqtpe/sym Deq)
+              DofM
+              DofM'
+              DofA
+           <- eqtpe-reg Dord Deq DofM' DofM DofA.
+
+-trans  : eqtpe-reg Dord (eqtpe/trans DeqNO DeqMN)
+              DofM
+              DofO
+              DofA
+           <- eqtpe-reg Dord DeqMN DofM _ DofA
+           <- eqtpe-reg Dord DeqNO _ DofO _.
+
+-ref    : eqtpe-reg Dord (eqtpe/refl Dof) Dof Dof Dkof
+           <- ekofe-reg Dord Dof Dkof.
+
+-kcon   : eqtpe-reg Dord (eqtpe/kcon DeqA DeqM)
+              (ekofe/eqkind DeqA DofM)
+              (ekofe/eqkind DeqA DofM')
+              DofA'
+           <- eqtpe-reg Dord DeqM DofM DofM' _
+           <- eqkinde-reg Dord DeqA _ DofA'.
+
+%%
+
+-tp     : eqkinde-reg Dord eqkinde/tp ewfkinde/tp ewfkinde/tp.
+
+-pi     : eqkinde-reg Dord
+              (eqkinde/pi DeqK DeqA)
+%%
+              (ewfkinde/pi DofA DofK)
+              (ewfkinde/pi DofA' DofK'')
+%%
+           <- extend-eordered _ Dord _ Dord'
+           <- ({x} {d}
+                  eqkinde-reg (Dord' x d) (DeqK x)
+                  (DofK x)
+                  (DofK' x))
+           <- eqtpe-reg Dord DeqA DofA DofA' _
+           <- ewfkinde-tcon-bind' Dord' DeqA DofA' DofK'
+              ([x] DofK'' x : ewfkinde (econs G x A') (K' x)).
+
+-sym    : eqkinde-reg Dord (eqkinde/sym Deq)
+              DofM
+              DofM'
+           <- eqkinde-reg Dord Deq DofM' DofM.
+
+-trans  : eqkinde-reg Dord (eqkinde/trans DeqNO DeqMN)
+              DofM
+              DofO
+           <- eqkinde-reg Dord DeqMN DofM _
+           <- eqkinde-reg Dord DeqNO _ DofO.
+
+-ref    : eqkinde-reg Dord (eqkinde/refl Dof) Dof Dof.
+
+%worlds (ecsig | easig | evar | eovar | ebind)
+  (eofe-reg _ _ _)
+  (ekofe-reg _ _ _)
+  (eqtme-reg _ _ _ _ _)
+  (eqtpe-reg _ _ _ _ _)
+  (eqkinde-reg _ _ _ _).
+%total (D1 D2 D3 D4 D5)
+  (eofe-reg _ D1 _)
+  (ekofe-reg _ D2 _)
+  (eqtme-reg _ D3 _ _ _)
+  (eqtpe-reg _ D4 _ _ _)
+  (eqkinde-reg _ D5 _ _).
+
+%% Lemma that needs to be here instead of in explicit lemmas 'cause it
+% needs regularity
+
+ekofe-tcon-bind : ({x} eisvar x I -> eordered (econs G x A))
+                   -> eqtpe G A A' ektype
+                   -> ({x} ekofe (econs G x A) (B x) (K x))
+%%
+                   -> ({x} ekofe (econs G x A') (B x) (K x)) -> type.
+%mode ekofe-tcon-bind +X1 +X2 +X3 -X4.
+
+- : ekofe-tcon-bind
+        ([x] [d] Dord x d : eordered (econs G x A))
+        (Deqtp : eqtpe G A A' ektype)
+        ([x] Dof x : ekofe (econs G x A) (B x) (K x))
+        Dof''
+     <- ({x} {x'}
+            weakeng-ekofe (eappend/cons eappend/nil) (eappend/cons eappend/nil)
+            (Dof x)
+            (Dof' x x' : ekofe (econs (econs G x' A') x A) (B x) (K x)))
+     <- ({x} {d}
+            eordered-cons (Dord x d)
+            (DordG_ x d : eordered G))
+     <- strengthen-eordered DordG_
+        (DordG : eordered G)
+     <- extend-eordered _ DordG _1
+        ([x'] [d'] DordG' x' d' : eordered (econs G x' A'))
+     <- ({x'} {d'}
+            extend-eordered _ (DordG' x' d') _2
+            ([x] [d] DordG'' x' d' x d
+              : eordered (econs (econs G x' A') x A)))
+     <- ({x'}
+            weaken-eqtpe Deqtp _ _
+            (Deqtp' x' : eqtpe (econs G x' A') A A' ektype))
+     <- ({x'} {d'}
+            eqtpe-reg (DordG' x' d') (Deqtp' x') (_3 x')
+            (DofA' x' : ekofe (econs G x' A') A' ektype) (_4 x'))
+     <- ({x'} {d'}
+            ekofe-sub ([x] [d] DordG'' x' d' x d)
+            ([_] eappend/nil)
+            ([x] Dof' x x')
+            (eofe/eqtp 
+                (eqtpe/sym (Deqtp' x'))
+                (eofe/var (DofA' x') elookup/hit))
+            ecsub/base
+            (Dof'' x' : ekofe (econs G x' A') (B x') (K x'))).
+
+%worlds (ecsig | easig | evar | eovar | ebind) (ekofe-tcon-bind _ _ _ _).
+%total {} (ekofe-tcon-bind _ _ _ _).
+
+eqkinde-tcon-bind : ({x} eisvar x I -> eordered (econs G x A))
+                      -> eqtpe G A A' ektype
+                      -> ({x} eqkinde (econs G x A) (K1 x) (K2 x))
+%%
+                      -> ({x} eqkinde (econs G x A') (K1 x) (K2 x)) -> type.
+%mode eqkinde-tcon-bind +X1 +X2 +X3 -X4.
+
+- : eqkinde-tcon-bind
+        ([x] [d] Dord x d : eordered (econs G x A))
+        (Deqtp : eqtpe G A A' ektype)
+        ([x] Dof x : eqkinde (econs G x A) (K x) (K' x))
+        Dof''
+     <- ({x} {x'}
+            weakeng-eqkinde (eappend/cons eappend/nil) (eappend/cons eappend/nil)
+            (Dof x)
+            (Dof' x x' : eqkinde (econs (econs G x' A') x A) (K x) (K' x)))
+     <- ({x} {d}
+            eordered-cons (Dord x d)
+            (DordG_ x d : eordered G))
+     <- strengthen-eordered DordG_
+        (DordG : eordered G)
+     <- extend-eordered _ DordG _1
+        ([x'] [d'] DordG' x' d' : eordered (econs G x' A'))
+     <- ({x'} {d'}
+            extend-eordered _ (DordG' x' d') _2
+            ([x] [d] DordG'' x' d' x d
+              : eordered (econs (econs G x' A') x A)))
+     <- ({x'}
+            weaken-eqtpe Deqtp _ _
+            (Deqtp' x' : eqtpe (econs G x' A') A A' ektype))
+     <- ({x'} {d'}
+            eqtpe-reg (DordG' x' d') (Deqtp' x') (_3 x')
+            (DofA' x' : ekofe (econs G x' A') A' ektype) (_4 x'))
+     <- ({x'} {d'}
+            eqkinde-sub ([x] [d] DordG'' x' d' x d)
+            ([_] eappend/nil)
+            ([x] Dof' x x')
+            (eofe/eqtp 
+                (eqtpe/sym (Deqtp' x'))
+                (eofe/var (DofA' x') elookup/hit))
+            ecsub/base
+            (Dof'' x' : eqkinde (econs G x' A') (K x') (K' x'))).
+
+%worlds (ecsig | easig | evar | eovar | ebind) (eqkinde-tcon-bind _ _ _ _).
+%total {} (eqkinde-tcon-bind _ _ _ _).

@@ -1,0 +1,175 @@
+
+aconverte-reg-il  : aconverte G R A _ -> at-ofe G R A -> type.
+%mode aconverte-reg-il +X1 -X2.
+
+converte-reg-il   : converte G M A _ -> ofe G M A -> type.
+%mode converte-reg-il +X1 -X2.
+
+tpconverte-reg-il : tpconverte G A K _ -> kofe G A K -> type.
+%mode tpconverte-reg-il +X1 -X2.
+
+atpconverte-reg-il: atpconverte G R A _ -> at-kofe G R A -> type.
+%mode atpconverte-reg-il +X1 -X2.
+
+kconverte-reg-il  : kconverte G K _ -> wfkinde G K -> type.
+%mode kconverte-reg-il +X1 -X2.
+
+-const      : aconverte-reg-il
+                  (aconverte/const Dtpconvert _ Dcof)
+                  (at-ofe/const Dkof Dcof)
+               <- tpconverte-reg-il Dtpconvert Dkof.
+
+-var        : aconverte-reg-il
+                  (aconverte/var _ Dtconvert Dlook)
+                  (at-ofe/var Dkof Dlook)
+               <- tpconverte-reg-il Dtconvert Dkof.
+
+-vari       : aconverte-reg-il
+                  (aconverte/vari _ _ Dkof Dvof)
+                  (at-ofe/closed (at-of/var Dkof Dvof)).
+
+-app        : aconverte-reg-il
+                  (aconverte/app Dsub Dconvert Daconvert)
+                  (at-ofe/app Dsub Dof Datof)
+               <- converte-reg-il Dconvert Dof
+               <- aconverte-reg-il Daconvert Datof.
+
+-at         : converte-reg-il
+                  (converte/at Daconvert)
+                  (ofe/at Datof)
+               <- aconverte-reg-il Daconvert Datof.
+
+-lam        : converte-reg-il
+                  (converte/lam
+                      ([x] [ex] [xt] DconvertM x ex xt)
+                      DconvertA)
+                  (ofe/lam DofA DofM)
+               <- tpconverte-reg-il DconvertA DofA
+               <- ({x} {ex} {xt}
+                      converte-reg-il (DconvertM x ex xt)
+                      (DofM x)).
+
+%%%%
+
+-const      : atpconverte-reg-il
+                  (atpconverte/const Dkconvert _ Dckof)
+                  (at-kofe/const Dwfkind Dckof)
+               <- kconverte-reg-il Dkconvert Dwfkind.
+
+
+-app        : atpconverte-reg-il
+                  (atpconverte/app Dsub Dconvert Daconvert)
+                  (at-kofe/app Dsub Dof Datof)
+               <- converte-reg-il Dconvert Dof
+               <- atpconverte-reg-il Daconvert Datof.
+
+-base       : tpconverte-reg-il
+                  (tpconverte/base Daconvert)
+                  (kofe/base Datof)
+               <- atpconverte-reg-il Daconvert Datof.
+
+-lam        : tpconverte-reg-il
+                  (tpconverte/lam
+                      ([x] [ex] [xt] DconvertM x ex xt)
+                      DconvertA)
+                  (kofe/lam DofM DofA)
+               <- tpconverte-reg-il DconvertA DofA
+               <- ({x} {ex} {xt}
+                      tpconverte-reg-il (DconvertM x ex xt)
+                      (DofM x)).
+
+-pi         : tpconverte-reg-il
+                  (tpconverte/pi
+                      ([x] [ex] [xt] DconvertM x ex xt)
+                      DconvertA)
+                  (kofe/pi DofM DofA)
+               <- tpconverte-reg-il DconvertA DofA
+               <- ({x} {ex} {xt}
+                      tpconverte-reg-il (DconvertM x ex xt)
+                      (DofM x)).
+
+%%%%
+
+-type       : kconverte-reg-il _ wfkinde/tp.
+
+-pi         : kconverte-reg-il
+                  (kconverte/pi
+                      ([x] [ex] [xt] DconvertM x ex xt)
+                      DconvertA)
+                  (wfkinde/pi DofM DofA)
+               <- tpconverte-reg-il DconvertA DofA
+               <- ({x} {ex} {xt}
+                      kconverte-reg-il (DconvertM x ex xt)
+                      (DofM x)).
+
+%worlds
+(csig-ei | asig-ei | bind | evvar | tvar | tbind | tobind | tvobind | sbind') 
+  (aconverte-reg-il _ _)
+  (converte-reg-il _ _)
+  (atpconverte-reg-il _ _)
+  (tpconverte-reg-il _ _)
+  (kconverte-reg-il _ _).
+%total (D1 D2 D3 D4 D5)
+  (aconverte-reg-il D1 _)
+  (converte-reg-il D2 _)
+  (atpconverte-reg-il D3 _)
+  (tpconverte-reg-il D4 _)
+  (kconverte-reg-il D5 _).
+
+%% Implicit contexts %%
+
+convert-reg-il : convert M A EM -> of M A -> type.
+%mode convert-reg-il +X1 -X2.
+
+- : convert-reg-il Dconv Dof
+     <- convert-to-converte-nil Dconv Dconve
+     <- converte-reg-il Dconve Dofe
+     <- ofe-to-of Dofe Dof.
+
+%worlds (csig-ei | asig-ei | tvvar | tbind | sbind') (convert-reg-il _ _).
+%total {} (convert-reg-il _ _).
+
+aconvert-reg-il : aconvert M A EM -> at-of M A -> type.
+%mode aconvert-reg-il +X1 -X2.
+
+- : aconvert-reg-il Dconv Dof
+     <- aconvert-to-aconverte-nil Dconv Dconve
+     <- aconverte-reg-il Dconve Dofe
+     <- atofe-to-atof Dofe Dof.
+
+%worlds (csig-ei | asig-ei | tvvar | tbind | sbind') (aconvert-reg-il _ _).
+%total {} (aconvert-reg-il _ _).
+
+atpconvert-reg-il : atpconvert M A EM -> at-kof M A -> type.
+%mode atpconvert-reg-il +X1 -X2.
+
+- : atpconvert-reg-il Dconv Dof
+     <- atpconvert-to-atpconverte-nil Dconv Dconve
+     <- atpconverte-reg-il Dconve Dofe
+     <- atkofe-to-atkof Dofe Dof.
+
+%worlds (csig-ei | asig-ei | tvvar | tbind | sbind') (atpconvert-reg-il _ _).
+%total {} (atpconvert-reg-il _ _).
+
+tpconvert-reg-il : tpconvert M A EM -> kof M A -> type.
+%mode tpconvert-reg-il +X1 -X2.
+
+- : tpconvert-reg-il Dconv Dof
+     <- tpconvert-to-tpconverte-nil Dconv Dconve
+     <- tpconverte-reg-il Dconve Dofe
+     <- kofe-to-kof Dofe Dof.
+
+%worlds (csig-ei | asig-ei | tvvar | tbind | sbind') (tpconvert-reg-il _ _).
+%total {} (tpconvert-reg-il _ _).
+
+kconvert-reg-il : kconvert M EM -> wfkind M -> type.
+%mode kconvert-reg-il +X1 -X2.
+
+- : kconvert-reg-il Dconv Dof
+     <- kconvert-to-kconverte-nil Dconv Dconve
+     <- kconverte-reg-il Dconve Dofe
+     <- wfkinde-to-wfkind Dofe Dof.
+
+%worlds (csig-ei | asig-ei | tvvar | tbind | sbind') (kconvert-reg-il _ _).
+%total {} (kconvert-reg-il _ _).
+

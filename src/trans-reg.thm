@@ -1,0 +1,281 @@
+
+trans-reg : trans EM M A -> of M A -> type.
+%mode trans-reg +X1 -X2.
+
+tptrans-reg : tptrans EA A K -> kof A K -> type.
+%mode tptrans-reg +X1 -X2.
+
+-const  : trans-reg
+              (trans/const
+                  (Dexpand : expand (const C) T M)
+                  (Dsimp : simp A T)
+                  (Dkof : kof A ktype)
+                  (Dcof : cof C A))
+              Dof
+           <- expand-reg (at-of/const Dkof Dcof) Dsimp Dexpand
+              (Dof : of M A).
+
+-var    : trans-reg
+              (trans/var
+                  (Dexpand : expand X T M)
+                  (Dsimp : simp A T)
+                  (Dkof : kof A ktype)
+                  (Dvof : vof X A)
+                  (Dvtrans : vtrans EX X %{A}%))
+              Dof
+           <- expand-reg (at-of/var Dkof Dvof) Dsimp Dexpand
+              (Dof : of M A).
+
+-app    : trans-reg
+              (trans/app
+                  (DsubA : tpsub ([x] A x) N Ax)
+                  (DsubM : sub ([x] M x) N Mx)
+                  (DtransN : trans EN N B)
+                  (DtransM : trans EM (lam ([x] M x)) (pi B ([x] A x))))
+              DofMx
+           <- trans-reg DtransM
+              (of/lam
+                  _
+                  ([x] [d] DofM x d : of (M x) (A x)))
+           <- trans-reg DtransN
+              (DofN : of N B)
+           <- subst DsubM DsubA DofM DofN
+              (DofMx : of Mx Ax).
+
+-lam    : trans-reg
+              (trans/lam
+                  ([x] [d:vof x A]
+                      [ex] [xt : vtrans ex x] % vtrans ex x A
+                      DtransM x d ex xt : trans (EM ex) (M x) (B x))
+                  (DtransA : tptrans EA A ktype))
+              (of/lam DofA ([x] [d] DofM x d))
+           <- tptrans-reg DtransA (DofA : kof A ktype)
+           <- ({x} {d} {ex} {xt}
+                  trans-reg (DtransM x d ex xt)
+                  (DofM x d : of (M x) (B x))).
+
+%%
+
+-const  : tptrans-reg
+              (tptrans/const
+                  (Dexpand : tpexpand (aconst C) H A)
+                  (Dsimp : ksimp K H)
+                  (Dwfkind : wfkind K)
+                  (Dcof : ckof C K))
+              DofA
+           <- tpexpand-reg (at-kof/const Dwfkind Dcof) Dsimp Dexpand
+              (DofA : kof A K).
+
+-app    : tptrans-reg
+              (tptrans/app
+                  (DsubA : ksub ([x] A x) N Ax)
+                  (DsubM : tpsub ([x] M x) N Mx)
+                  (DtransN : trans EN N B)
+                  (DtransM : tptrans EM (alam ([x] M x)) (kpi B ([x] A x))))
+              DofMx
+           <- tptrans-reg DtransM
+              (kof/lam
+                  ([x] [d] DofM x d : kof (M x) (A x))
+                  _)
+           <- trans-reg DtransN
+              (DofN : of N B)
+           <- tpsubst DsubM DsubA DofM DofN
+              (DofMx : kof Mx Ax).
+
+-lam    : tptrans-reg
+              (tptrans/lam
+                  ([x] [d:vof x A]
+                      [ex] [xt : vtrans ex x] % vtrans ex x A
+                      DtransM x d ex xt : tptrans (EM ex) (M x) (B x))
+                  (DtransA : tptrans EA A ktype))
+              (kof/lam ([x] [d] DofM x d) DofA)
+           <- tptrans-reg DtransA (DofA : kof A ktype)
+           <- ({x} {d} {ex} {xt}
+                  tptrans-reg (DtransM x d ex xt)
+                  (DofM x d : kof (M x) (B x))).
+
+-pi     : tptrans-reg
+              (tptrans/pi
+                  ([x] [d:vof x A]
+                      [ex] [xt : vtrans ex x] % vtrans ex x A
+                      DtransM x d ex xt : tptrans (EM ex) (M x) ktype)
+                  (DtransA : tptrans EA A ktype))
+              (kof/pi ([x] [d] DofM x d) DofA)
+           <- tptrans-reg DtransA (DofA : kof A ktype)
+           <- ({x} {d} {ex} {xt}
+                  tptrans-reg (DtransM x d ex xt)
+                  (DofM x d : kof (M x) ktype)).
+
+%worlds (csig | asig | bind | tbind | tobind) (trans-reg _ _) (tptrans-reg _ _).
+%total (D1 D2) (trans-reg D1 _) (tptrans-reg D2 _).
+
+
+%{ Not needed: an "ofe (lam _ _) _" derivation can be inverted inline.
+%% inversion %%
+
+ofe-lam-invert : ofe G (lam [x] M x) (pi A [x] B x)
+                  -> kofe G A ktype
+                  -> ({x} ofe (cons G x A) (M x) (B x)) -> type.
+%mode ofe-lam-invert +X1 -X2 -X3.
+
+-lam  : ofe-lam-invert
+            (ofe/lam DofA DofM) DofA DofM.
+
+%worlds (var) (ofe-lam-invert _ _ _).
+%total {} (ofe-lam-invert _ _ _).
+}%
+
+trans-reg-e : ordered G -> transe G EM M A -> ofe G M A -> type.
+%mode trans-reg-e +X0 +X1 -X2.
+
+tptrans-reg-e : ordered G -> tptranse G EA A K -> kofe G A K -> type.
+%mode tptrans-reg-e +X0 +X1 -X2.
+
+-const    : trans-reg-e
+                _
+                (transe/const
+                    (Dexpand : expand (const C) T M)
+                    (Dsimp : simp A T)
+                    (DofA : kof A ktype)
+                    (Dcof : cof C A))
+                Dofe
+             <- expand-reg (at-of/const DofA Dcof) Dsimp Dexpand
+                (Dof : of M A)
+             <- of-to-ofe Dof (Dofenil : ofe nil M A)
+             <- append-nil _ Dappend
+             <- weaken-ofe' Dappend Dofenil (Dofe : ofe G M A).
+
+-var      : trans-reg-e
+                (Dord : ordered G)
+                (transe/var
+                    (Dexpand : expand X T M)
+                    (Dsimp : simp A T)
+                    %% (DofA : kof A ktype)
+                    (DofeA : kofe G A ktype)
+                    (Dlook : lookup G X A)
+                    (Dvtrans : vtrans EX X))
+                DofM
+             <- expand-reg-e Dord (at-ofe/var DofeA Dlook) Dsimp Dexpand
+                (DofM : ofe G M A).
+
+-vari     : trans-reg-e _
+                (transe/vari
+                    (Dexpand : expand X T M)
+                    (Dsimp : simp A T)
+                    (Dkof : kof A ktype)
+                    (Dvof : vof X A)
+                    (Dvtrans : vtrans EX X %{A}%))
+                Dofe
+             <- expand-reg (at-of/var Dkof Dvof) Dsimp Dexpand
+                (Dof : of M A)
+             <- of-to-ofe Dof (Dofenil : ofe nil M A)
+             <- append-nil _ Dappend
+             <- weaken-ofe' Dappend Dofenil (Dofe : ofe G M A).
+
+-app      : trans-reg-e Dord
+                (transe/app
+                    (DsubA : tpsub ([x] A x) N Ax)
+                    (DsubM : sub ([x] M x) N Mx)
+                    (DtransN : transe G EN N B)
+                    (DtransM : transe G EM (lam [x] M x) (pi B [x] A x)))
+                DofMx
+             <- trans-reg-e Dord DtransM
+                % (DofeM : ofe G (lam [x] M x) (pi B [x] A x)) % XXX covers?
+                (ofe/lam
+                    (DofA : kofe G B ktype)
+                    ([x] DofM x : ofe (cons G x B) (M x) (A x)))
+             <- trans-reg-e Dord DtransN
+                (DofN : ofe G N B)
+             <- extend-ordered _ Dord _
+                ([x] [d] Dord' x d : ordered (cons G x B))
+             <- subst-e Dord' ([_] append/nil) csub/base 
+                DofN DsubM DsubA DofM
+                (DofMx : ofe G Mx Ax).
+
+-lam      : trans-reg-e Dord
+                (transe/lam
+                    ([x] [ex] [xt:vtrans ex x] % vtrans ex x A
+                        DtransM x ex xt 
+                      : transe (cons G x A) (EM ex) (M x) (B x))
+                    (DtransA : tptranse G EA A ktype))
+                (ofe/lam
+                    DofA
+                    DofM)
+             <- tptrans-reg-e Dord DtransA
+                (DofA : kofe G A ktype)
+             <- extend-ordered _ Dord _
+                ([x] [d] Dord' x d : ordered (cons G x A))
+             <- ({x} {d} {ex} {xt}
+                    trans-reg-e (Dord' x d) (DtransM x ex xt)
+                    (DofM x : ofe (cons G x A) (M x) (B x))).
+
+%%
+
+-const    : tptrans-reg-e _
+                (tptranse/const
+                    Dexpand Dsimp Dwf Dcof)
+                Dkofe
+             <- tpexpand-reg (at-kof/const Dwf Dcof) Dsimp Dexpand
+                Dkof
+             <- kof-to-kofe Dkof Dkofenil
+             <- append-nil _ Dappend
+             <- weaken-kofe' Dappend Dkofenil Dkofe.
+
+-app      : tptrans-reg-e Dord
+                (tptranse/app
+                    (Dksub : ksub ([x] K x) N Kx)
+                    (Dtpsub : tpsub ([x] A x) N Ax)
+                    (DtransN : transe G EN N B)
+                    (DtransA : tptranse G EA (alam [x] A x) (kpi B [x] K x)))
+                DofAx
+             <- tptrans-reg-e Dord DtransA
+                (kofe/lam
+                    ([x] DofA x : kofe (cons G x B) (A x) (K x))
+                    (DofB : kofe G B ktype))
+             <- trans-reg-e Dord DtransN
+                (DofN : ofe G N B)
+             <- extend-ordered _ Dord _
+                ([x] [d] Dord' x d : ordered (cons G x B))
+             <- tpsubst-e Dord' ([_] append/nil) csub/base
+                DofN Dtpsub DofA Dksub
+                (DofAx : kofe G Ax Kx).
+
+-lam      : tptrans-reg-e Dord
+                (tptranse/lam
+                    ([x] [ex] [xt:vtrans ex x] % vtrans ex x A
+                        DtransM x ex xt 
+                      : tptranse (cons G x A) (EM ex) (M x) (B x))
+                    (DtransA : tptranse G EA A ktype))
+                (kofe/lam
+                    DofM
+                    DofA)
+             <- tptrans-reg-e Dord DtransA
+                (DofA : kofe G A ktype)
+             <- extend-ordered _ Dord _
+                ([x] [d] Dord' x d : ordered (cons G x A))
+             <- ({x} {d} {ex} {xt}
+                    tptrans-reg-e (Dord' x d) (DtransM x ex xt)
+                    (DofM x : kofe (cons G x A) (M x) (B x))).
+
+-pi       : tptrans-reg-e Dord
+                (tptranse/pi
+                    ([x] [ex] [xt:vtrans ex x] % vtrans ex x A
+                        DtransM x ex xt 
+                      : tptranse (cons G x A) (EM ex) (M x) ktype)
+                    (DtransA : tptranse G EA A ktype))
+                (kofe/pi
+                    DofM
+                    DofA)
+             <- tptrans-reg-e Dord DtransA
+                (DofA : kofe G A ktype)
+             <- extend-ordered _ Dord _
+                ([x] [d] Dord' x d : ordered (cons G x A))
+             <- ({x} {d} {ex} {xt}
+                    tptrans-reg-e (Dord' x d) (DtransM x ex xt)
+                    (DofM x : kofe (cons G x A) (M x) ktype)).
+
+%worlds (csig | asig | bind | tbind | tobind) 
+  (trans-reg-e _ _ _) (tptrans-reg-e _ _ _).
+%total (D1 D2) (trans-reg-e _ D1 _) (tptrans-reg-e _ D2 _).
+
+

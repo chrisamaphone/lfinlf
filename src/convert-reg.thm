@@ -1,0 +1,362 @@
+%%%% Regularity %%%% 
+
+convert-cof : cof C A -> tpconvert A ktype EA -> ecof C EA -> type.
+%mode convert-cof +X1 -X2 -X3.
+
+convert-ckof : ckof C A -> kconvert A EA -> eckof C EA -> type.
+%mode convert-ckof +X1 -X2 -X3.
+
+%block scsig  : some {A:tp} {EA:etp} {d_conv:tpconvert A ktype EA} 
+                block {c:ctm} {d:cof c A} {e:ecof c EA} 
+                      {thm:convert-cof d d_conv e}. 
+
+%block sasig  : some {K:kind} {EK:ekind} {d_conv:kconvert K EK} 
+                block {a:ctp} {d:ckof a K} {e:eckof a EK} 
+                      {thm:convert-ckof d d_conv e}.
+
+- : convert-cof dof_zero
+        (tpconvert/base (atpconvert/const kconvert/type wfkind/tp dkof_nat))
+        deof_zero.
+
+- : convert-ckof dkof_nat kconvert/type dekof_nat.
+
+%worlds (scsig | sasig | sbind) (convert-cof _ _ _).
+%total {} (convert-cof _ _ _).
+
+%worlds (scsig | sasig | sbind) (convert-ckof _ _ _).
+%total {} (convert-ckof _ _ _).
+
+vtrans-inj : vtrans EX X -> vtrans EX' X -> etm-eq EX EX' -> type.
+%mode vtrans-inj +X1 +X2 -X3.
+
+- : vtrans-inj D D etm-eq/i.
+
+%block nbind : some {A:tp} {EA:etp}
+                block {x:atm} {d:vof x A}
+                      {ex:etm} {xt:vtrans ex x}
+                      {ed:evof ex EA}.
+%worlds (scsig | sasig | nbind) (vtrans-inj _ _ _).
+%total {} (vtrans-inj _ _ _).
+
+
+convert-reg : convert M A EM -> tpconvert A ktype EA -> eof EM EA -> type.
+%mode convert-reg +X1 +X2 -X3.
+
+aconvert-reg : aconvert R A EM -> tpconvert A ktype EA
+                -> eof EM EA -> type.
+%mode aconvert-reg +X1 +X2 -X3.
+
+atpconvert-reg : atpconvert A K EA -> kconvert K EK -> ekof EA EK -> type.
+%mode atpconvert-reg +X1 +X2 -X3.
+
+tpconvert-reg : tpconvert M A EM -> kconvert A EA -> ekof EM EA -> type.
+%mode tpconvert-reg +X1 +X2 -X3.
+
+kconvert-reg : kconvert K EK -> ewfkind EK -> type.
+%mode kconvert-reg +X1 -X2.
+
+-at     : convert-reg
+              (convert/at (Daconvert : aconvert R (base P) EM))
+              (tpconvert/base (Datpconvert : atpconvert P ktype EA))
+              DofEM
+           <- aconvert-reg Daconvert (tpconvert/base Datpconvert)
+              (DofEM : eof EM EA).
+
+-lam    : convert-reg
+              (convert/lam
+                  ([x] [d:vof x A]
+                      [ex] [dt:vtrans ex x]
+                      DconvM x d ex dt : convert (M x) (B x) (EM ex))
+                  (DconvA : tpconvert A ktype EA))
+              (tpconvert/pi
+                  ([x] [d] [ex] [dt]
+                      DconvB x d ex dt : tpconvert (B x) ktype (EB ex))
+                  (DconvA' : tpconvert A ktype EA'))
+%%              
+              Dof
+%%              
+           <- ({x} {d:vof x A} {ex} {dt:vtrans ex x}
+                  {ed:evof ex EA} {dv:variable ex}
+                  vtrans-variable dt dv ->
+                  convert-vof d dt DconvA ed ->
+                  convert-reg
+                  (DconvM x d ex dt)
+                  (DconvB x d ex dt)
+                  (DofEM ex ed : eof (EM ex) (EB ex)))
+           <- tpconvert-reg DconvA kconvert/type
+              (DofEA : ekof EA ektype)
+              %%
+           <- tpconvert-fun DconvA DconvA'
+              (DeqEA : etp-eq EA EA')
+           <- epi-compat DeqEA ([x] etp-eq/i)
+              (DeqPi : etp-eq (epi EA EB) (epi EA' EB))
+           <- eof-resp etm-eq/i DeqPi (eof/lam DofEA DofEM)
+              (Dof : eof (elam EA EM) (epi EA' EB)).
+
+%%
+
+-const  : aconvert-reg
+              (aconvert/const
+                  (DconvA : tpconvert A ktype EA)
+                  (DofA : kof A ktype)
+                  (Dcof : cof C A))
+              (DconvA' : tpconvert A ktype EA')
+%%
+              (eof/const DofEA' Decof)
+%%
+           <- convert-cof Dcof 
+              (DconvA'' : tpconvert A ktype EA'')
+              (Decof' : ecof C EA'')
+           <- tpconvert-fun DconvA'' DconvA'
+              (DeqA''A' : etp-eq EA'' EA')
+           <- ecof-resp DeqA''A' Decof'
+              (Decof : ecof C EA')
+           <- tpconvert-reg DconvA kconvert/type
+              (DofEA : ekof EA ektype)
+           <- tpconvert-fun DconvA DconvA'
+              (DeqEA : etp-eq EA EA')
+           <- ekof-resp DofEA DeqEA ekind-eq/i
+              (DofEA' : ekof EA' ektype).
+
+-var    : aconvert-reg
+              (aconvert/var
+                  (Dvtrans : vtrans EX X)
+                  (DconvA : tpconvert A ktype EA)
+                  _
+                  (Dvof : vof X A))
+              (DconvA' : tpconvert A ktype EA')
+%%
+              Dof
+%%
+           <- convert-vof Dvof
+              (Dvtrans' : vtrans EX' X)
+              (DconvA'' : tpconvert A ktype EA'')
+              (Devof : evof EX' EA'')
+           <- vtrans-inj Dvtrans' Dvtrans
+              (DeqEX' : etm-eq EX' EX)
+           <- evof-resp Devof DeqEX' etp-eq/i
+              (Devof' : evof EX EA'')
+           <- tpconvert-fun DconvA'' DconvA
+              (DeqEA'' : etp-eq EA'' EA)
+           <- tpconvert-fun DconvA DconvA'
+              (DeqEA : etp-eq EA EA')
+           <- etp-eq-trans DeqEA'' DeqEA
+              (DeqEA''_EA' : etp-eq EA'' EA')
+              %%
+           <- tpconvert-reg DconvA kconvert/type
+              (DofEA : ekof EA ektype)
+           <- etp-eq-sym DeqEA''
+              (DeqEA_EA'' : etp-eq EA EA'')
+           <- ekof-resp DofEA DeqEA_EA'' ekind-eq/i
+              (DofEA'' : ekof EA'' ektype)
+              %%
+           <- eof-resp etm-eq/i DeqEA''_EA' (eof/var DofEA'' Devof')
+              (Dof : eof EX EA').
+
+-app    : aconvert-reg
+              (aconvert/app
+                  (DsubB : tpsub ([x] B x) N Bx)
+                  (DconvN : convert N A EN)
+                  (DconvR : aconvert R (pi A B) EM))
+              (DconvBx : tpconvert Bx ktype EBx)
+%%              
+              (eof/eqtp DeqEBEN (eof/app DofEN DofEM))
+%%            
+              %% get eof EM
+           <- aconvert-reg-il DconvR
+              (DofR : at-of R (pi A B))
+           <- atof-reg DofR
+              (DofPi : kof (pi A B) ktype)
+           <- can-tpconvert DofPi
+              (tpconvert/pi
+                  ([x] [d:vof x A] [ex] [dt:vtrans ex x]
+                      (DconvB x d ex dt : tpconvert (B x) ktype (EB ex)))
+                  (DconvA : tpconvert A ktype EA))
+           <- aconvert-reg DconvR (tpconvert/pi DconvB DconvA)
+              (DofEM : eof EM (epi EA EB))
+              %% get eof EN
+           <- convert-reg DconvN DconvA
+              (DofEN : eof EN EA)
+              %% (eof/app DofEN DofEM) : eof (eapp EM EN) (EB EN)
+              %% need to get that (EB EN) == EBx : ektype
+           <- convert-tpsub DconvB DconvN DsubB ksub/type
+              (DconvBx' : tpconvert Bx ktype EBx')
+              (DredBx' : tpreduce* (EB EN) EBx')
+              %%
+           <- tpconvert-fun DconvBx' DconvBx
+              (DeqEBx' : etp-eq EBx' EBx)
+           <- tpreduce*-resp DredBx' etp-eq/i DeqEBx'
+              (DredBx : tpreduce* (EB EN) EBx)
+              %%
+           <- eof-reg DofEM
+              (DofEpi : ekof (epi EA EB) ektype)
+           <- ekof-pi-invert DofEpi
+              DofEA
+              ([ex] [ed:evof ex EA] DofEB ex ed : ekof (EB ex) ektype)
+           <- esubst-kof DofEB DofEN
+              (DofEBx : ekof (EB EN) ektype)
+           <- tpreduce*-equiv DofEBx DredBx
+              (DeqEBEN : eqtp (EB EN) EBx ektype).
+
+%%
+
+-base   : tpconvert-reg
+              (tpconvert/base (Daconvert : atpconvert R ktype EM))
+              kconvert/type
+              DofEM
+           <- atpconvert-reg Daconvert kconvert/type
+              (DofEM : ekof EM ektype).
+
+-pi     : tpconvert-reg
+              (tpconvert/pi
+                  ([x] [d] [ex] [dt] DconvB x d ex dt)
+                  DconvA)
+              kconvert/type
+%%
+              (ekof/pi DofEB DofEA)
+%%
+           <- ({x} {d:vof x A} {ex} {dt:vtrans ex x}
+                  {ed:evof ex EA} {dv:variable ex}
+                  vtrans-variable dt dv ->
+                  convert-vof d dt DconvA ed ->
+                  tpconvert-reg
+                  (DconvB x d ex dt)
+                  kconvert/type
+                  (DofEB ex ed : ekof (EB ex) ektype))
+           <- tpconvert-reg DconvA kconvert/type
+              (DofEA : ekof EA ektype).
+
+-lam    : tpconvert-reg
+              (tpconvert/lam
+                  ([x] [d:vof x A]
+                      [ex] [dt:vtrans ex x]
+                      DconvM x d ex dt : tpconvert (M x) (B x) (EM ex))
+                  (DconvA : tpconvert A ktype EA))
+              (kconvert/pi
+                  ([x] [d] [ex] [dt]
+                      DconvB x d ex dt : kconvert (B x) (EB ex))
+                  (DconvA' : tpconvert A ktype EA'))
+%%              
+              Dof
+%%              
+           <- ({x} {d:vof x A} {ex} {dt:vtrans ex x}
+                  {ed:evof ex EA} {dv:variable ex}
+                  vtrans-variable dt dv ->
+                  convert-vof d dt DconvA ed ->
+                  tpconvert-reg
+                  (DconvM x d ex dt)
+                  (DconvB x d ex dt)
+                  (DofEM ex ed : ekof (EM ex) (EB ex)))
+           <- tpconvert-reg DconvA kconvert/type
+              (DofEA : ekof EA ektype)
+              %%
+           <- tpconvert-fun DconvA DconvA'
+              (DeqEA : etp-eq EA EA')
+           <- ekpi-compat DeqEA ([x] ekind-eq/i)
+              (DeqPi : ekind-eq (ekpi EA EB) (ekpi EA' EB))
+           <- ekof-resp (ekof/lam DofEA DofEM) etp-eq/i DeqPi
+              (Dof : ekof (ealam EA EM) (ekpi EA' EB)).
+
+%%
+
+-const  : atpconvert-reg
+              (atpconvert/const
+                  (DconvA : kconvert A EA)
+                  (DofA : wfkind A)
+                  (Dcof : ckof C A))
+              (DconvA' : kconvert A EA')
+%%
+              (ekof/const DofEA' Decof)
+%%
+           <- convert-ckof Dcof DconvA''
+              (Decof' : eckof C EA'')
+              %%
+           <- kconvert-fun DconvA'' DconvA'
+              DeqA''A'
+           <- eckof-resp DeqA''A' Decof'
+              Decof
+              %%
+           <- kconvert-reg DconvA
+              (DofEA : ewfkind EA)
+           <- kconvert-fun DconvA DconvA'
+              (DeqEA : ekind-eq EA EA')
+           <- ewfkind-resp DofEA DeqEA
+              (DofEA' : ewfkind EA').
+
+-app    : atpconvert-reg
+              (atpconvert/app
+                  (DsubB : ksub ([x] B x) N Bx)
+                  (DconvN : convert N A EN)
+                  (DconvR : atpconvert R (kpi A B) EM))
+              (DconvBx : kconvert Bx EBx)
+%%              
+              (ekof/eqkind DeqEBEN (ekof/app DofEN DofEM))
+%%            
+              %% get eof EM
+           <- atpconvert-reg-il DconvR
+              (DofR : at-kof R (kpi A B))
+           <- atkof-reg DofR
+              (DofPi : wfkind (kpi A B))
+           <- can-kconvert DofPi
+              (kconvert/pi
+                  ([x] [d:vof x A] [ex] [dt:vtrans ex x]
+                      (DconvB x d ex dt : kconvert (B x) (EB ex)))
+                  (DconvA : tpconvert A ktype EA))
+           <- atpconvert-reg DconvR (kconvert/pi DconvB DconvA)
+              (DofEM : ekof EM (ekpi EA EB))
+              %% get eof EN
+           <- convert-reg DconvN DconvA
+              (DofEN : eof EN EA)
+              %% (eof/app DofEN DofEM) : eof (eapp EM EN) (EB EN)
+              %% need to get that (EB EN) == EBx : ektype
+           <- convert-ksub DconvB DconvN DsubB
+              (DconvBx' : kconvert Bx EBx')
+              (DredBx' : kreduce* (EB EN) EBx')
+              %%
+           <- kconvert-fun DconvBx' DconvBx
+              (DeqEBx' : ekind-eq EBx' EBx)
+           <- kreduce*-resp DredBx' ekind-eq/i DeqEBx'
+              (DredBx : kreduce* (EB EN) EBx)
+              %%
+           <- ekof-reg DofEM
+              (ewfkind/pi
+                  DofEB
+                  DofEA)
+           <- esubst-wfkind DofEB DofEN
+              (DofEBx : ewfkind (EB EN))
+           <- kreduce*-equiv DofEBx DredBx
+              (DeqEBEN : eqkind (EB EN) EBx).
+
+%%
+
+-type   : kconvert-reg kconvert/type ewfkind/tp.
+
+-pi     : kconvert-reg
+              (kconvert/pi
+                  ([x] [d] [ex] [dt] DconvB x d ex dt)
+                  DconvA)
+%%
+              (ewfkind/pi DofEB DofEA)
+%%
+           <- ({x} {d:vof x A} {ex} {dt:vtrans ex x}
+                  {ed:evof ex EA} {dv:variable ex}
+                  vtrans-variable dt dv ->
+                  convert-vof d dt DconvA ed ->
+                  kconvert-reg
+                  (DconvB x d ex dt)
+                  (DofEB ex ed : ewfkind (EB ex)))
+           <- tpconvert-reg DconvA kconvert/type
+              (DofEA : ekof EA ektype).
+
+%worlds (scsig | sasig | sbind)
+  (convert-reg    _ _ _)
+  (aconvert-reg   _ _ _)
+  (tpconvert-reg  _ _ _)
+  (atpconvert-reg   _ _ _)
+  (kconvert-reg   _ _).
+%total (D1 D2 D3 D4 D5)
+  (convert-reg    D1 _ _)
+  (aconvert-reg   D2 _ _)
+  (tpconvert-reg  D3 _ _)
+  (atpconvert-reg D4 _ _)
+  (kconvert-reg   D5 _).

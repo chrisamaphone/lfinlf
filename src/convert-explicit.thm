@@ -1,0 +1,1452 @@
+
+mconvert        : convert M A _ -> metric -> type.
+maconvert       : aconvert R A _ -> metric -> type.
+mtpconvert      : tpconvert A K _ -> metric -> type.
+matpconvert     : atpconvert P K _ -> metric -> type.
+mkconvert       : kconvert K _ -> metric -> type.
+
+mconvert/at     : mconvert (convert/at Daconvert) (msing M)
+                 <- maconvert Daconvert M.
+
+mconvert/lam    : mconvert 
+                      (convert/lam 
+                          ([x] [d] [ex] [xt] DconvertM x d ex xt)
+                          DconvertA)
+                      (mpair MM MA)
+                   <- mtpconvert DconvertA MA
+                   <- ({x} {d} {ex} {xt}
+                          mconvert (DconvertM x d ex xt) MM).
+
+maconvert/const : maconvert (aconvert/const Dtpconvert Dkof _) 
+                      (mpair M M')
+                   <- mkof Dkof M'
+                   <- mtpconvert Dtpconvert M.
+
+maconvert/var   : maconvert (aconvert/var _ Dtpconvert Dkof _) 
+                      % (mpair M M')
+                      (msing M)
+                   <- mkof Dkof M'
+                   <- mtpconvert Dtpconvert M.
+
+maconvert/app   : maconvert (aconvert/app _ Dconvert Daconvert) 
+                      (mpair MM MR)
+                   <- maconvert Daconvert MR
+                   <- mconvert Dconvert MM.
+
+mtpconvert/base : mtpconvert (tpconvert/base Datpconvert) (msing M)
+                   <- matpconvert Datpconvert M.
+
+mtpconvert/pi   : mtpconvert 
+                      (tpconvert/pi 
+                          ([x] [d] [ex] [xt] DconvertB x d ex xt)
+                          DconvertA)
+                      (mpair MB MA)
+                   <- mtpconvert DconvertA MA
+                   <- ({x} {d} {ex} {xt}
+                          mtpconvert (DconvertB x d ex xt) MB).
+
+mtpconvert/lam  : mtpconvert 
+                      (tpconvert/lam 
+                          ([x] [d] [ex] [xt] DconvertB x d ex xt)
+                          DconvertA)
+                      (mpair MB MA)
+                   <- mtpconvert DconvertA MA
+                   <- ({x} {d} {ex} {xt}
+                          mtpconvert (DconvertB x d ex xt) MB).
+
+matpconvert/const : matpconvert
+                        (atpconvert/const Dkconvert Dwf _) 
+                        (mpair M M')
+                     <- mwfkind Dwf M'
+                     <- mkconvert Dkconvert M.
+
+matpconvert/app   : matpconvert
+                        (atpconvert/app _ Dconv Datpconv) (mpair M1 M2)
+                     <- matpconvert Datpconv M2
+                     <- mconvert Dconv M1.
+
+mkconvert/type    : mkconvert kconvert/type munit.
+
+mkconvert/pi      : mkconvert
+                        (kconvert/pi
+                            ([x] [d] [ex] [xt] Dkconvert x d ex xt)
+                            Dtpconvert)
+                        (mpair MK MA)
+                     <- mtpconvert Dtpconvert MA
+                     <- ({x} {d} {ex} {xt}
+                            mkconvert (Dkconvert x d ex xt) MK).
+
+mconverte       : converte G M A _ -> metric -> type.
+maconverte      : aconverte G R A _ -> metric -> type.
+mtpconverte     : tpconverte G A K _ -> metric -> type.
+matpconverte    : atpconverte G A K _ -> metric -> type.
+mkconverte      : kconverte G K _ -> metric -> type.
+
+mconverte/at     : mconverte (converte/at Daconvert) (msing M)
+                 <- maconverte Daconvert M.
+
+mconverte/lam    : mconverte 
+                      (converte/lam 
+                          ([x] [ex] [xt] DconvertM x ex xt)
+                          DconvertA)
+                      (mpair MM MA)
+                   <- mtpconverte DconvertA MA
+                   <- ({x} {ex} {xt}
+                          mconverte (DconvertM x ex xt) MM).
+
+maconverte/const : maconverte (aconverte/const Dtpconvert Dkof _)
+                       (mpair M M')
+                    <- mkof Dkof M'
+                    <- mtpconverte Dtpconvert M.
+
+maconverte/var   : maconverte (aconverte/var _ Dtpconvert _) (msing M)
+                    <- mtpconverte Dtpconvert M.
+
+maconverte/vari  : maconverte (aconverte/vari _ Dtpconvert Dkof _) 
+                      % (mpair M M')
+                       (msing M)
+                    <- mkof Dkof M'
+                    <- mtpconverte Dtpconvert M.
+
+maconverte/app   : maconverte (aconverte/app _ Dconvert Daconvert) 
+                      (mpair MM MR)
+                   <- maconverte Daconvert MR
+                   <- mconverte Dconvert MM.
+
+mtpconverte/base : mtpconverte (tpconverte/base Datpconvert) (msing M)
+                   <- matpconverte Datpconvert M.
+
+mtpconverte/pi   : mtpconverte 
+                      (tpconverte/pi 
+                          ([x] [ex] [xt] DconvertB x ex xt)
+                          DconvertA)
+                      (mpair MB MA)
+                   <- mtpconverte DconvertA MA
+                   <- ({x} {ex} {xt}
+                          mtpconverte (DconvertB x ex xt) MB).
+
+mtpconverte/lam  : mtpconverte 
+                      (tpconverte/lam 
+                          ([x] [ex] [xt] DconvertB x ex xt)
+                          DconvertA)
+                      (mpair MB MA)
+                    <- mtpconverte DconvertA MA
+                    <- ({x} {ex} {xt}
+                           mtpconverte (DconvertB x ex xt) MB).
+
+matpconverte/const : matpconverte
+                        (atpconverte/const Dkconvert Dwf _) 
+                         (mpair M M')
+                      <- mwfkind Dwf M'
+                      <- mkconverte Dkconvert M.
+
+matpconverte/app   : matpconverte
+                        (atpconverte/app _ Dconv Datpconv) (mpair M1 M2)
+                      <- matpconverte Datpconv M2
+                      <- mconverte Dconv M1.
+
+mkconverte/type    : mkconverte kconverte/type munit.
+
+mkconverte/pi      : mkconverte
+                        (kconverte/pi
+                            ([x] [ex] [xt] Dkconvert x ex xt)
+                            Dtpconvert)
+                        (mpair MK MA)
+                     <- mtpconverte Dtpconvert MA
+                     <- ({x} {ex} {xt}
+                            mkconverte (Dkconvert x ex xt) MK).
+
+
+can-mconvert      : {D:convert _ _ _} mconvert D M -> type.
+%mode can-mconvert +X1 -X2.
+
+can-maconvert     : {D:aconvert _ _ _} maconvert D M -> type.
+%mode can-maconvert +X1 -X2.
+
+can-mtpconvert    : {D:tpconvert _ _ _} mtpconvert D M -> type.
+%mode can-mtpconvert +X1 -X2.
+
+can-matpconvert   : {D:atpconvert _ _ _} matpconvert D M -> type.
+%mode can-matpconvert +X1 -X2.
+
+can-mkconvert     : {D:kconvert _ _} mkconvert D M -> type.
+%mode can-mkconvert +X1 -X2.
+
+-at       : can-mconvert (convert/at Daconv) (mconvert/at Dmaconv)
+             <- can-maconvert Daconv Dmaconv.
+
+-lam      : can-mconvert
+                (convert/lam DconvM DconvA)
+                (mconvert/lam DmconvM DmconvA)
+             <- ({x} {d} {ex} {xt}
+                    can-mconvert (DconvM x d ex xt) (DmconvM x d ex xt))
+             <- can-mtpconvert DconvA DmconvA.
+
+-const    : can-maconvert
+                (aconvert/const Dtconv Dwf Dcof)
+                (maconvert/const Dmtconv Dmwf)
+             <- can-mtpconvert Dtconv Dmtconv
+             <- can-mkof Dwf Dmwf.
+
+-var      : can-maconvert
+                (aconvert/var _ Dtconv Dkof _)
+                (maconvert/var Dmtconv Dmkof)
+             <- can-mtpconvert Dtconv Dmtconv
+             <- can-mkof Dkof Dmkof.
+
+-app      : can-maconvert
+                (aconvert/app _ Dconv Daconv)
+                (maconvert/app Dmconv Dmaconv)
+             <- can-maconvert Daconv Dmaconv
+             <- can-mconvert Dconv Dmconv.
+
+-base     : can-mtpconvert
+                (tpconvert/base Daconv)
+                (mtpconvert/base Dmaconv)
+             <- can-matpconvert Daconv Dmaconv.
+
+-lam      : can-mtpconvert
+                (tpconvert/lam DconvM DconvA)
+                (mtpconvert/lam DmconvM DmconvA)
+             <- ({x} {d} {ex} {xt}
+                    can-mtpconvert (DconvM x d ex xt) (DmconvM x d ex xt))
+             <- can-mtpconvert DconvA DmconvA.
+
+-pi       : can-mtpconvert
+                (tpconvert/pi DconvM DconvA)
+                (mtpconvert/pi DmconvM DmconvA)
+             <- ({x} {d} {ex} {xt}
+                    can-mtpconvert (DconvM x d ex xt) (DmconvM x d ex xt))
+             <- can-mtpconvert DconvA DmconvA.
+
+-const    : can-matpconvert
+                (atpconvert/const Dkconv Dwf _)
+                (matpconvert/const Dmkconv Dmwf)
+             <- can-mkconvert Dkconv Dmkconv
+             <- can-mwfkind Dwf Dmwf.
+
+-app      : can-matpconvert
+                (atpconvert/app _ Dconv Daconv)
+                (matpconvert/app Dmconv Dmaconv)
+             <- can-matpconvert Daconv Dmaconv
+             <- can-mconvert Dconv Dmconv.
+
+-type     : can-mkconvert kconvert/type mkconvert/type.
+
+-pi       : can-mkconvert
+                (kconvert/pi DconvM DconvA)
+                (mkconvert/pi DmconvM DmconvA)
+             <- ({x} {d} {ex} {xt}
+                    can-mkconvert (DconvM x d ex xt) (DmconvM x d ex xt))
+             <- can-mtpconvert DconvA DmconvA.
+
+%worlds (csig-ei | asig-ei | bind | ovar | evvar | tvar | tbind | sbind') 
+  (can-mconvert _ _)
+  (can-maconvert _ _)
+  (can-mtpconvert _ _)
+  (can-matpconvert _ _)
+  (can-mkconvert _ _).
+%total (D1 D2 D3 D4 D5)
+  (can-mconvert D1 _)
+  (can-maconvert D2 _)
+  (can-mtpconvert D3 _)
+  (can-matpconvert D4 _)
+  (can-mkconvert D5 _).
+
+
+can-mconverte     : {D:converte _ _ _ _} mconverte D M -> type.
+%mode can-mconverte +X1 -X2.
+
+can-maconverte    : {D:aconverte _ _ _ _} maconverte D M -> type.
+%mode can-maconverte +X1 -X2.
+
+can-mtpconverte   : {D:tpconverte _ _ _ _} mtpconverte D M -> type.
+%mode can-mtpconverte +X1 -X2.
+
+can-matpconverte  : {D:atpconverte _ _ _ _} matpconverte D M -> type.
+%mode can-matpconverte +X1 -X2.
+
+can-mkconverte    : {D:kconverte _ _ _} mkconverte D M -> type.
+%mode can-mkconverte +X2 -X3.
+
+-at     : can-mconverte
+              (converte/at Daconverte)
+              (mconverte/at Dmaconverte)
+           <- can-maconverte Daconverte Dmaconverte.
+
+-lam    : can-mconverte
+              (converte/lam
+                  ([x] [ex] [xt] Dconv x ex xt)
+                  Dtpconv)
+              (mconverte/lam
+                  ([x] [ex] [xt] Dmconv x ex xt)
+                  Dmtpconv)
+           <- can-mtpconverte Dtpconv Dmtpconv
+           <- ({x} {ex} {xt}
+                  can-mconverte (Dconv x ex xt) (Dmconv x ex xt)).
+
+-const  : can-maconverte
+              (aconverte/const Dtpconv Dkof _)
+              (maconverte/const Dmtpconv Dmkof)
+           <- can-mkof Dkof Dmkof
+           <- can-mtpconverte Dtpconv Dmtpconv.
+
+-var    : can-maconverte
+              (aconverte/var _ Dtpconv _)
+              (maconverte/var Dmtpconv)
+           <- can-mtpconverte Dtpconv Dmtpconv.
+
+-vari   : can-maconverte
+              (aconverte/vari _ Dtpconv Dkof _)
+              (maconverte/vari Dmtpconv Dmkof)
+           <- can-mkof Dkof Dmkof
+           <- can-mtpconverte Dtpconv Dmtpconv.
+
+-app    : can-maconverte
+              (aconverte/app _ Dconv Daconv)
+              (maconverte/app Dmconv Dmaconv)
+           <- can-maconverte Daconv Dmaconv
+           <- can-mconverte Dconv Dmconv.
+
+-base   : can-mtpconverte
+              (tpconverte/base D)
+              (mtpconverte/base D')
+           <- can-matpconverte D D'.
+
+-lam    : can-mtpconverte
+              (tpconverte/lam Dconv Dtpconv)
+              (mtpconverte/lam Dmconv Dmtpconv)
+           <- can-mtpconverte Dtpconv Dmtpconv
+           <- ({x} {ex} {xt}
+                  can-mtpconverte (Dconv x ex xt) (Dmconv x ex xt)).
+
+-pi     : can-mtpconverte
+              (tpconverte/pi Dconv Dtpconv)
+              (mtpconverte/pi Dmconv Dmtpconv)
+           <- can-mtpconverte Dtpconv Dmtpconv
+           <- ({x} {ex} {xt}
+                  can-mtpconverte (Dconv x ex xt) (Dmconv x ex xt)).
+
+-const  : can-matpconverte
+              (atpconverte/const Dtpconv Dwf _)
+              (matpconverte/const Dmtpconv Dmwf)
+           <- can-mwfkind Dwf Dmwf
+           <- can-mkconverte Dtpconv Dmtpconv.
+
+-app    : can-matpconverte
+              (atpconverte/app _ Dconv Daconv)
+              (matpconverte/app Dmconv Dmaconv)
+           <- can-matpconverte Daconv Dmaconv
+           <- can-mconverte Dconv Dmconv.
+
+-type   : can-mkconverte kconverte/type mkconverte/type.
+
+
+-pi     : can-mkconverte
+              (kconverte/pi Dconv Dtpconv)
+              (mkconverte/pi Dmconv Dmtpconv)
+           <- can-mtpconverte Dtpconv Dmtpconv
+           <- ({x} {ex} {xt}
+                  can-mkconverte (Dconv x ex xt) (Dmconv x ex xt)).
+
+
+%worlds (csig-ei | asig-ei | bind | ovar | tvar | evvar | tvvar | tvobind | sbind')
+  (can-mconverte _ _)
+  (can-maconverte _ _)
+  (can-mtpconverte _ _)
+  (can-matpconverte _ _)
+  (can-mkconverte _ _).
+%total (D1 D2 D3 D4 D5)
+  (can-mconverte D1 _)
+  (can-maconverte D2 _)
+  (can-mtpconverte D3 _)
+  (can-matpconverte D4 _)
+  (can-mkconverte D5 _).
+
+
+%%%% Weakening %%%%
+
+weakeng-aconverte   : {Rm}
+                          append G1 G2 G
+                       -> append (cons G1 X B) G2 G'
+                       -> {D:aconverte G R A EM}
+                          maconverte D Rm
+%%                        
+                       -> aconverte G' R A EM -> type.
+%mode weakeng-aconverte +X2 +X3 +X4 +X5 +X6 -X7.
+
+weakeng-converte    : {Mm}
+                          append G1 G2 G
+                       -> append (cons G1 X B) G2 G'
+                       -> {D:converte G R A EM}
+                          mconverte D Mm
+%%                        
+                       -> converte G' R A EM -> type.
+%mode weakeng-converte +X2 +X3 +X4 +X5 +X6 -X7.
+
+weakeng-tpconverte  : {Am}
+                          append G1 G2 G
+                       -> append (cons G1 X B) G2 G'
+                       -> {D:tpconverte G A K EA}
+                          mtpconverte D Am
+%%
+                       -> tpconverte G' A K EA -> type.
+%mode weakeng-tpconverte +X2 +X3 +X4 +X5 +X6 -X7.
+
+weakeng-atpconverte : {Pm}
+                          append G1 G2 G
+                       -> append (cons G1 X B) G2 G'
+                       -> {D:atpconverte G A K EA}
+                          matpconverte D Pm
+%%
+                       -> atpconverte G' A K EA -> type.
+%mode weakeng-atpconverte +X2 +X3 +X4 +X5 +X6 -X7.
+
+weakeng-kconverte   : {Km}
+                          append G1 G2 G
+                       -> append (cons G1 X B) G2 G'
+                       -> {D:kconverte G K EK}
+                          mkconverte D Km
+%%
+                       -> kconverte G' K EK -> type.
+%mode weakeng-kconverte +X2 +X3 +X4 +X5 +X6 -X6.
+
+-const  : weakeng-aconverte _ Dappend Dappend'
+              (aconverte/const Dconv Dwf Dcof)
+              (maconverte/const DM DM')
+              (aconverte/const Dconv' Dwf Dcof)
+           <- weakeng-tpconverte _ Dappend Dappend' Dconv DM Dconv'.
+
+-var    : weakeng-aconverte _ Dappend Dappend'
+              (aconverte/var Dvtrans Dconv Dlook)
+              (maconverte/var DM)
+              (aconverte/var Dvtrans Dconv' Dlook')
+               <- weakeng-tpconverte _ Dappend Dappend' Dconv DM
+                  Dconv'
+               <- weakeng-lookup Dappend Dappend' Dlook Dlook'.
+
+-vari   : weakeng-aconverte _ Dappend Dappend'
+              (aconverte/vari Dvtrans Dconv Dkof Dvof)
+              (maconverte/vari Dmconv Dmkof)
+              (aconverte/vari Dvtrans Dconv' Dkof Dvof)
+           <- weakeng-tpconverte _ Dappend Dappend' Dconv Dmconv Dconv'.
+
+-app    : weakeng-aconverte _ Dappend Dappend' 
+              (aconverte/app Dsub Dconv2 Dconv1)
+              (maconverte/app DM2 DM1)
+              (aconverte/app Dsub Dconv2' Dconv1')
+           <- weakeng-aconverte _ Dappend Dappend' Dconv1 DM1 Dconv1'
+           <- weakeng-converte _ Dappend Dappend' Dconv2 DM2 Dconv2'.
+
+-at     : weakeng-converte _ Dappend Dappend' 
+              (converte/at D) (mconverte/at DM)
+              (converte/at D')
+           <- weakeng-aconverte _ Dappend Dappend' D DM D'.
+
+-lam    : weakeng-converte _ Dappend Dappend' 
+              (converte/lam
+                  ([x] [ex] [xt] DconvM x ex xt)
+                  DconvA)
+              (mconverte/lam
+                  ([x] [ex] [xt] DMM x ex xt)
+                  DMA)
+              (converte/lam DconvM' DconvA')
+           <- weakeng-tpconverte _ Dappend Dappend' DconvA DMA
+              DconvA'
+           <- ({x} {ex} {xt}
+                  weakeng-converte X 
+                  (append/cons Dappend) (append/cons Dappend')
+                  (DconvM x ex xt) (DMM x ex xt)
+                  (DconvM' x ex xt)).
+
+
+-base   : weakeng-tpconverte _ Dappend Dappend'
+              (tpconverte/base D)
+              (mtpconverte/base DM)
+              (tpconverte/base D')
+           <- weakeng-atpconverte _ Dappend Dappend' D DM D'.
+
+-lam    : weakeng-tpconverte _ Dappend Dappend'
+              (tpconverte/lam
+                  ([x] [ex] [xt] DconvM x ex xt)
+                  DconvA)
+              (mtpconverte/lam
+                  ([x] [ex] [xt] DMM x ex xt)
+                  DMA)
+              (tpconverte/lam DconvM' DconvA')
+           <- weakeng-tpconverte _ Dappend Dappend' DconvA DMA
+              DconvA'
+           <- ({x} {ex} {xt}
+                  weakeng-tpconverte X 
+                  (append/cons Dappend) (append/cons Dappend')
+                  (DconvM x ex xt) (DMM x ex xt)
+                  (DconvM' x ex xt)).
+
+-pi     : weakeng-tpconverte _ Dappend Dappend'
+              (tpconverte/pi
+                  ([x] [ex] [xt] DconvM x ex xt)
+                  DconvA)
+              (mtpconverte/pi
+                  ([x] [ex] [xt] DMM x ex xt)
+                  DMA)
+              (tpconverte/pi DconvM' DconvA')
+           <- weakeng-tpconverte _ Dappend Dappend' DconvA DMA
+              DconvA'
+           <- ({x} {ex} {xt}
+                  weakeng-tpconverte X 
+                  (append/cons Dappend) (append/cons Dappend')
+                  (DconvM x ex xt) (DMM x ex xt)
+                  (DconvM' x ex xt)).
+
+-const  : weakeng-atpconverte _ Dappend Dappend'
+              (atpconverte/const Dconv Dwf Dcof)
+              (matpconverte/const DM DM')
+              (atpconverte/const Dconv' Dwf Dcof)
+           <- weakeng-kconverte _ Dappend Dappend' Dconv DM Dconv'.
+
+-app    : weakeng-atpconverte _ Dappend Dappend' 
+              (atpconverte/app Dsub Dconv2 Dconv1)
+              (matpconverte/app DM2 DM1)
+              (atpconverte/app Dsub Dconv2' Dconv1')
+           <- weakeng-atpconverte _ Dappend Dappend' Dconv1 DM1 Dconv1'
+           <- weakeng-converte _ Dappend Dappend' Dconv2 DM2 Dconv2'.
+
+-type   : weakeng-kconverte _ Dappend Dappend'
+              kconverte/type mkconverte/type kconverte/type.
+
+-pi     : weakeng-kconverte _ Dappend Dappend'
+              (kconverte/pi
+                  ([x] [ex] [xt] DconvM x ex xt)
+                  DconvA)
+              (mkconverte/pi
+                  ([x] [ex] [xt] DMM x ex xt)
+                  DMA)
+              (kconverte/pi DconvM' DconvA')
+           <- weakeng-tpconverte _ Dappend Dappend' DconvA DMA
+              DconvA'
+           <- ({x} {ex} {xt}
+                  weakeng-kconverte X 
+                  (append/cons Dappend) (append/cons Dappend')
+                  (DconvM x ex xt) (DMM x ex xt)
+                  (DconvM' x ex xt)).
+
+%worlds (csig-ei | asig-ei | bind | ovar | evvar | tvar | tvvar | tvobind | sbind')
+  (weakeng-converte _ _ _ _ _ _)
+  (weakeng-aconverte _ _ _ _ _ _)
+  (weakeng-tpconverte _ _ _ _ _ _)
+  (weakeng-atpconverte _ _ _ _ _ _)
+  (weakeng-kconverte _ _ _ _ _ _).
+%total (Mm Rm Am Pm Km)
+  (weakeng-aconverte Rm _ _ _ _ _)
+  (weakeng-converte Mm _ _ _ _ _)
+  (weakeng-tpconverte Am _ _ _ _ _)
+  (weakeng-atpconverte Pm _ _ _ _ _)
+  (weakeng-kconverte Km _ _ _ _ _).
+
+
+weaken-converte : converte G M A EM -> {B} {X}
+                      converte (cons G X B) M A EM -> type.
+%mode weaken-converte +X2 +B +X -X3.
+
+-     : weaken-converte Dconv _ _ Dconv'
+         <- can-mconverte Dconv DM
+         <- weakeng-converte _ append/nil append/nil Dconv DM Dconv'.
+
+%worlds (csig-ei | asig-ei | bind | ovar | evvar | tvvar | tvobind | sbind') 
+  (weaken-converte _ _ _ _).
+%total {} (weaken-converte _ _ _ _).
+
+weaken-converte' : append G1 G2 G -> converte G1 M A EM
+                    -> converte G M A EM -> type.
+%mode weaken-converte' +X1 +X2 -X3.
+
+-nil    : weaken-converte' append/nil D D.
+
+-cons   : weaken-converte' (append/cons Dapp) D
+              D''
+           <- weaken-converte' Dapp D D'
+           <- weaken-converte D' _ _ D''.
+
+%worlds (csig-ei | asig-ei | bind | ovar | evvar | tvvar | tvobind | sbind')
+  (weaken-converte' _ _ _).
+%total D (weaken-converte' D _ _).
+
+%%%% Cut %%%%
+
+cut-convert-m : {Mm}
+                    {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                        convert (M x) (B x) (EM ex)}
+                    ({x} {d} {ex} {xt}
+                        mconvert (D x d ex xt) Mm)
+                 -> ({x} lookup (G x) x A)
+%%
+                 -> {D' : {x} {ex} {xt:vtrans ex x}
+                        converte (G x) (M x) (B x) (EM ex)}
+                    ({x} {ex} {xt} mconverte (D' x ex xt) Mm) -> type.
+%mode cut-convert-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+cut-aconvert-m : {Mm}
+                    {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                        aconvert (M x) (B x) (EM ex)}
+                    ({x} {d} {ex} {xt}
+                        maconvert (D x d ex xt) Mm)
+                 -> ({x} lookup (G x) x A)
+%%
+                 -> {D' : {x} {ex} {xt:vtrans ex x}
+                        aconverte (G x) (M x) (B x) (EM ex)}
+                    ({x} {ex} {xt} maconverte (D' x ex xt) Mm) -> type.
+%mode cut-aconvert-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+cut-tpconvert-m : {Mm}
+                    {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                        tpconvert (M x) (B x) (EM ex)}
+                    ({x} {d} {ex} {xt}
+                        mtpconvert (D x d ex xt) Mm)
+                 -> ({x} lookup (G x) x A)
+%%
+                 -> {D' : {x} {ex} {xt:vtrans ex x}
+                        tpconverte (G x) (M x) (B x) (EM ex)}
+                    ({x} {ex} {xt} mtpconverte (D' x ex xt) Mm) -> type.
+%mode cut-tpconvert-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+cut-atpconvert-m : {Mm}
+                    {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                        atpconvert (M x) (B x) (EM ex)}
+                    ({x} {d} {ex} {xt}
+                        matpconvert (D x d ex xt) Mm)
+                 -> ({x} lookup (G x) x A)
+%%
+                 -> {D' : {x} {ex} {xt:vtrans ex x}
+                        atpconverte (G x) (M x) (B x) (EM ex)}
+                    ({x} {ex} {xt} matpconverte (D' x ex xt) Mm) -> type.
+%mode cut-atpconvert-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+cut-kconvert-m   : {Mm}
+                      {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                        kconvert (K x) (EK ex)}
+                      ({x} {d} {ex} {xt}
+                          mkconvert (D x d ex xt) Mm)
+                    -> ({x} lookup (G x) x A)
+%%
+                    -> {D' : {x} {ex} {xt:vtrans ex x}
+                           kconverte (G x) (K x) (EK ex)}
+                       ({x} {ex} {xt} mkconverte (D' x ex xt) Mm) -> type.
+%mode cut-kconvert-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+%%%%
+
+cut-converte-m  : {Mm}
+                      {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                          converte (G x) (M x) (B x) (EM ex)}
+                      ({x} {d} {ex} {xt} mconverte (D x d ex xt) Mm)
+                   -> ({x} lookup (G x) x A)
+%%
+                   -> {D' : {x} {ex} {xt:vtrans ex x}
+                          converte (G x) (M x) (B x) (EM ex)}
+                      ({x} {ex} {xt} mconverte (D' x ex xt) Mm) -> type.
+%mode cut-converte-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+cut-aconverte-m   : {Mm}
+                      {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                          aconverte (G x) (R x) (B x) (EM ex)}
+                      ({x} {d} {ex} {xt} maconverte (D x d ex xt) Mm)
+                     -> ({x} lookup (G x) x A)
+%%
+                     -> {D' : {x} {ex} {xt:vtrans ex x}
+                          aconverte (G x) (R x) (B x) (EM ex)}
+                        ({x} {ex} {xt} maconverte (D' x ex xt) Mm) -> type.
+%mode cut-aconverte-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+cut-tpconverte-m  : {Mm}
+                      {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                          tpconverte (G x) (M x) (B x) (EM ex)}
+                      ({x} {d} {ex} {xt} mtpconverte (D x d ex xt) Mm)
+                   -> ({x} lookup (G x) x A)
+%%
+                   -> {D' : {x} {ex} {xt:vtrans ex x}
+                          tpconverte (G x) (M x) (B x) (EM ex)}
+                      ({x} {ex} {xt} mtpconverte (D' x ex xt) Mm) -> type.
+%mode cut-tpconverte-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+cut-atpconverte-m : {Mm}
+                      {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                          atpconverte (G x) (M x) (B x) (EM ex)}
+                      ({x} {d} {ex} {xt} matpconverte (D x d ex xt) Mm)
+                   -> ({x} lookup (G x) x A)
+%%
+                   -> {D' : {x} {ex} {xt:vtrans ex x}
+                          atpconverte (G x) (M x) (B x) (EM ex)}
+                      ({x} {ex} {xt} matpconverte (D' x ex xt) Mm) -> type.
+%mode cut-atpconverte-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+cut-kconverte-m  : {Mm}
+                      {D : {x} {d:vof x A} {ex} {xt:vtrans ex x}
+                          kconverte (G x) (M x) (EM ex)}
+                      ({x} {d} {ex} {xt} mkconverte (D x d ex xt) Mm)
+                   -> ({x} lookup (G x) x A)
+%%
+                   -> {D' : {x} {ex} {xt:vtrans ex x}
+                          kconverte (G x) (M x) (EM ex)}
+                      ({x} {ex} {xt} mkconverte (D' x ex xt) Mm) -> type.
+%mode cut-kconverte-m +X1 +X2 +X3 +X4 -X5 -X6.
+
+-at     : cut-convert-m _
+              ([x] [d] [ex] [xt]
+                  convert/at (Daconv x d ex xt))
+              ([x] [d] [ex] [xt]
+                  mconvert/at (Dmaconv x d ex xt))
+              Dlook
+              ([x] [ex] [xt] converte/at (Daconve x ex xt))
+              ([x] [ex] [xt] mconverte/at (Dmaconve x ex xt))
+           <- cut-aconvert-m _ Daconv Dmaconv Dlook
+              Daconve
+              Dmaconve.
+
+-lam    : cut-convert-m _
+              ([x] [d] [ex] [xt]
+                  convert/lam
+                  ([y] [e] [ey] [yt]
+                      (DconvM x d ex xt y e ey yt))
+                  (DconvA x d ex xt))
+              ([x] [d] [ex] [xt]
+                  mconvert/lam
+                  ([y] [e] [ey] [yt]
+                      DmconvM x d ex xt y e ey yt)
+                  (DmconvA x d ex xt))
+              ([x] Dlook x : lookup (G x) x C)
+%%              
+              ([x] [ex] [xt] 
+                  converte/lam (DconveM' x ex xt) (DconveA x ex xt))
+              ([x] [ex] [xt]
+                  mconverte/lam (DmconveM' x ex xt) (DmconveA x ex xt))
+%%              
+           <- ({x} {d} {ex} {xt}
+                  cut-convert-m _
+                  (DconvM x d ex xt)
+                  (DmconvM x d ex xt)
+                  ([y] lookup/hit)
+                  ([y] [ey] [yt]
+                      DconveM x d ex xt y ey yt
+                    : converte (cons (G x) y (A x))
+                      (M x y) (B x y) (EM ex ey))
+                  ([y] [ey] [yt] DmconveM x d ex xt y ey yt))
+           <- ({y} {ey} {yt}
+                  cut-converte-m _
+                  ([x] [d] [ex] [xt] DconveM x d ex xt y ey yt) 
+                  ([x] [d] [ex] [xt] DmconveM x d ex xt y ey yt)
+                  ([x] lookup/miss (Dlook x))
+                  ([x] [ex] [xt]
+                      DconveM' x ex xt y ey yt)
+                  ([x] [ex] [xt]
+                      DmconveM' x ex xt y ey yt))
+           <- cut-tpconvert-m _ DconvA DmconvA Dlook
+              DconveA DmconveA.
+
+-const  : cut-aconvert-m _
+              ([x] [d] [ex] [xt]
+                  aconvert/const
+                  (Dtconv x d ex xt : tpconvert B ktype (EB ex))
+                  (Dkof x d : kof B ktype)
+                  (Dcof : cof C B))
+              ([x] [d] [ex] [xt] 
+                  maconvert/const (Dmtconv x d ex xt) (Dmkof x d))
+              Dlook
+              ([x] [ex] [xt]
+                  aconverte/const
+                  (Dtconve x ex xt)
+                  Dkof''
+                  Dcof)
+              ([x] [ex] [xt] maconverte/const (Dmtconve x ex xt) Dmkof'')
+           <- strengthen-for-cut-kof _ Dkof Dmkof
+              Dkof''
+              Dmkof''
+              %%
+           <- cut-tpconvert-m _ Dtconv Dmtconv Dlook
+              Dtconve
+              Dmtconve.
+
+-varoth : cut-aconvert-m _
+              ([x] [d] [ex] [xt]
+                  aconvert/var
+                  (Dvtrans : vtrans EY Y)
+                  (Dtconv x d ex xt : tpconvert B ktype (EB ex))
+                  (Dkof x d : kof B ktype)
+                  (Dvof : vof Y B))
+              ([x] [d] [ex] [xt] 
+                  maconvert/var (Dmtconv x d ex xt) (Dmkof x d))
+              Dlook
+              ([x] [ex] [xt]
+                  aconverte/vari
+                  Dvtrans
+                  (Dtconve x ex xt)
+                  Dkof'
+                  Dvof)
+              ([x] [ex] [xt] maconverte/vari (Dmtconve x ex xt) Dmkof')
+           <- cut-tpconvert-m _ Dtconv Dmtconv Dlook
+              ([x] [ex] [xt] Dtconve x ex xt
+                : tpconverte (G x) B ktype (EB ex))
+              ([x] [ex] [xt] Dmtconve x ex xt)
+           <- strengthen-for-cut-kof _ Dkof Dmkof
+              (Dkof' : kof B ktype)
+              Dmkof'.
+
+-varsam : cut-aconvert-m _
+              ([x] [d:vof x A] [ex] [xt]
+                  aconvert/var
+                  xt
+                  (Dtconv x d ex xt : tpconvert A ktype (EA ex))
+                  (Dkof x d : kof A ktype)
+                  d)
+              ([x] [d] [ex] [xt]
+                  maconvert/var (Dmtconv x d ex xt) (Dmkof x d))
+              Dlook
+              ([x] [ex] [xt]
+                  aconverte/var xt (Dtconve x ex xt) (Dlook x))
+              ([x] [ex] [xt]
+                  maconverte/var (Dmtconve x ex xt))
+           <- cut-tpconvert-m _ Dtconv Dmtconv Dlook
+              ([x] [ex] [xt] Dtconve x ex xt
+                : tpconverte (G x) A ktype (EA ex))
+              ([x] [ex] [xt] Dmtconve x ex xt)
+           <- strengthen-for-cut-kof _ Dkof Dmkof
+              (Dkof' : kof A ktype)
+              Dmkof'.
+
+-app    : cut-aconvert-m _
+              ([x] [d] [ex] [xt]
+                  aconvert/app
+                  (Dsub x)
+                  (DconvN x d ex xt)
+                  (DconvR x d ex xt))
+              ([x] [d] [ex] [xt] 
+                  maconvert/app (DmconvN x d ex xt) (DmconvR x d ex xt))
+              ([x] Dlook x)
+              ([x] [ex] [xt]
+                  aconverte/app 
+                  (Dsub x) (DconveN x ex xt) (DconveR x ex xt))
+              ([x] [ex] [xt]
+                  maconverte/app 
+                  (DmconveN x ex xt) (DmconveR x ex xt))
+           <- cut-aconvert-m _ DconvR DmconvR Dlook
+              ([x] [ex] [xt] DconveR x ex xt)
+              ([x] [ex] [xt] DmconveR x ex xt)
+           <- cut-convert-m _ DconvN DmconvN Dlook
+              ([x] [ex] [xt] DconveN x ex xt)
+              ([x] [ex] [xt] DmconveN x ex xt).
+
+%%
+
+-base   : cut-tpconvert-m _
+              ([x] [d] [ex] [xt]
+                  tpconvert/base (Daconv x d ex xt))
+              ([x] [d] [ex] [xt]
+                  mtpconvert/base (Dmaconv x d ex xt))
+              Dlook
+              ([x] [ex] [xt] tpconverte/base (Daconve x ex xt))
+              ([x] [ex] [xt] mtpconverte/base (Dmaconve x ex xt))
+           <- cut-atpconvert-m _ Daconv Dmaconv Dlook
+              Daconve
+              Dmaconve.
+
+-pi     : cut-tpconvert-m _
+              ([x] [d] [ex] [xt]
+                  tpconvert/pi
+                  ([y] [e] [ey] [yt] (DconvM x d ex xt y e ey yt))
+                  (DconvA x d ex xt))
+              ([x] [d] [ex] [xt]
+                  mtpconvert/pi
+                  ([y] [e] [ey] [yt] DmconvM x d ex xt y e ey yt)
+                  (DmconvA x d ex xt))
+              ([x] Dlook x : lookup (G x) x C)
+%%              
+              ([x] [ex] [xt] 
+                  tpconverte/pi (DconveM' x ex xt) (DconveA x ex xt))
+              ([x] [ex] [xt]
+                  mtpconverte/pi (DmconveM' x ex xt) (DmconveA x ex xt))
+%%              
+           <- ({x} {d} {ex} {xt}
+                  cut-tpconvert-m _
+                  (DconvM x d ex xt)
+                  (DmconvM x d ex xt)
+                  ([y] lookup/hit)
+                  ([y] [ey] [yt] DconveM x d ex xt y ey yt)
+                  ([y] [ey] [yt] DmconveM x d ex xt y ey yt))
+           <- ({y} {ey} {yt}
+                  cut-tpconverte-m _
+                  ([x] [d] [ex] [xt] DconveM x d ex xt y ey yt) 
+                  ([x] [d] [ex] [xt] DmconveM x d ex xt y ey yt)
+                  ([x] lookup/miss (Dlook x))
+                  ([x] [ex] [xt] DconveM' x ex xt y ey yt)
+                  ([x] [ex] [xt] DmconveM' x ex xt y ey yt))
+           <- cut-tpconvert-m _ DconvA DmconvA Dlook
+              DconveA DmconveA.
+
+-lam    : cut-tpconvert-m _
+              ([x] [d] [ex] [xt]
+                  tpconvert/lam
+                  ([y] [e] [ey] [yt] (DconvM x d ex xt y e ey yt))
+                  (DconvA x d ex xt))
+              ([x] [d] [ex] [xt]
+                  mtpconvert/lam
+                  ([y] [e] [ey] [yt] DmconvM x d ex xt y e ey yt)
+                  (DmconvA x d ex xt))
+              ([x] Dlook x : lookup (G x) x C)
+%%              
+              ([x] [ex] [xt] 
+                  tpconverte/lam (DconveM' x ex xt) (DconveA x ex xt))
+              ([x] [ex] [xt]
+                  mtpconverte/lam (DmconveM' x ex xt) (DmconveA x ex xt))
+%%              
+           <- ({x} {d} {ex} {xt}
+                  cut-tpconvert-m _
+                  (DconvM x d ex xt)
+                  (DmconvM x d ex xt)
+                  ([y] lookup/hit)
+                  ([y] [ey] [yt] DconveM x d ex xt y ey yt)
+                  ([y] [ey] [yt] DmconveM x d ex xt y ey yt))
+           <- ({y} {ey} {yt}
+                  cut-tpconverte-m _
+                  ([x] [d] [ex] [xt] DconveM x d ex xt y ey yt) 
+                  ([x] [d] [ex] [xt] DmconveM x d ex xt y ey yt)
+                  ([x] lookup/miss (Dlook x))
+                  ([x] [ex] [xt] DconveM' x ex xt y ey yt)
+                  ([x] [ex] [xt] DmconveM' x ex xt y ey yt))
+           <- cut-tpconvert-m _ DconvA DmconvA Dlook
+              DconveA DmconveA.
+
+-const  : cut-atpconvert-m _
+              ([x] [d] [ex] [xt]
+                  atpconvert/const
+                  (Dtconv x d ex xt : kconvert B (EB ex))
+                  (Dkof x d : wfkind B)
+                  (Dcof : ckof C B))
+              ([x] [d] [ex] [xt] 
+                  matpconvert/const (Dmtconv x d ex xt) (Dmkof x d))
+              Dlook
+              ([x] [ex] [xt]
+                  atpconverte/const
+                  (Dtconve x ex xt)
+                  Dkof''
+                  Dcof)
+              ([x] [ex] [xt] matpconverte/const (Dmtconve x ex xt) Dmkof'')
+           <- strengthen-for-cut-wfkind _ Dkof Dmkof
+              Dkof''
+              Dmkof''
+              %%
+           <- cut-kconvert-m _ Dtconv Dmtconv Dlook
+              Dtconve
+              Dmtconve.
+
+-app    : cut-atpconvert-m _
+              ([x] [d] [ex] [xt]
+                  atpconvert/app
+                  (Dsub x)
+                  (DconvN x d ex xt)
+                  (DconvR x d ex xt))
+              ([x] [d] [ex] [xt] 
+                  matpconvert/app (DmconvN x d ex xt) (DmconvR x d ex xt))
+              ([x] Dlook x)
+              ([x] [ex] [xt]
+                  atpconverte/app 
+                  (Dsub x) (DconveN x ex xt) (DconveR x ex xt))
+              ([x] [ex] [xt]
+                  matpconverte/app 
+                  (DmconveN x ex xt) (DmconveR x ex xt))
+           <- cut-atpconvert-m _ DconvR DmconvR Dlook
+              ([x] [ex] [xt] DconveR x ex xt)
+              ([x] [ex] [xt] DmconveR x ex xt)
+           <- cut-convert-m _ DconvN DmconvN Dlook
+              ([x] [ex] [xt] DconveN x ex xt)
+              ([x] [ex] [xt] DmconveN x ex xt).
+
+%%
+
+-type   : cut-kconvert-m _
+              ([x] [d] [ex] [xt] kconvert/type)
+              ([x] [d] [ex] [xt] mkconvert/type)
+              _
+              ([x] [ex] [xt] kconverte/type)
+              ([x] [ex] [xt] mkconverte/type).
+
+-pi     : cut-kconvert-m _
+              ([x] [d] [ex] [xt]
+                  kconvert/pi
+                  ([y] [e] [ey] [yt] (DconvM x d ex xt y e ey yt))
+                  (DconvA x d ex xt))
+              ([x] [d] [ex] [xt]
+                  mkconvert/pi
+                  ([y] [e] [ey] [yt] DmconvM x d ex xt y e ey yt)
+                  (DmconvA x d ex xt))
+              ([x] Dlook x : lookup (G x) x C)
+%%              
+              ([x] [ex] [xt] 
+                  kconverte/pi (DconveM' x ex xt) (DconveA x ex xt))
+              ([x] [ex] [xt]
+                  mkconverte/pi (DmconveM' x ex xt) (DmconveA x ex xt))
+%%              
+           <- ({x} {d} {ex} {xt}
+                  cut-kconvert-m _
+                  (DconvM x d ex xt)
+                  (DmconvM x d ex xt)
+                  ([y] lookup/hit)
+                  ([y] [ey] [yt] DconveM x d ex xt y ey yt)
+                  ([y] [ey] [yt] DmconveM x d ex xt y ey yt))
+           <- ({y} {ey} {yt}
+                  cut-kconverte-m _
+                  ([x] [d] [ex] [xt] DconveM x d ex xt y ey yt) 
+                  ([x] [d] [ex] [xt] DmconveM x d ex xt y ey yt)
+                  ([x] lookup/miss (Dlook x))
+                  ([x] [ex] [xt] DconveM' x ex xt y ey yt)
+                  ([x] [ex] [xt] DmconveM' x ex xt y ey yt))
+           <- cut-tpconvert-m _ DconvA DmconvA Dlook
+              DconveA DmconveA.
+
+%%%%
+
+-at     : cut-converte-m _
+              ([x] [d] [ex] [xt]
+                  converte/at (Daconv x d ex xt))
+              ([x] [d] [ex] [xt]
+                  mconverte/at (Dmaconv x d ex xt))
+              Dlook
+              ([x] [ex] [xt] converte/at (Daconve x ex xt))
+              ([x] [ex] [xt] mconverte/at (Dmaconve x ex xt))
+           <- cut-aconverte-m _ Daconv Dmaconv Dlook
+              Daconve Dmaconve.
+
+-lam    : cut-converte-m _
+              ([x] [d] [ex] [xt]
+                  converte/lam
+                  ([y] [ey] [yt] DconvM x d ex xt y ey yt)
+                  (DconvA x d ex xt))
+              ([x] [d] [ex] [xt]
+                  mconverte/lam
+                  ([y] [ey] [yt] DmconvM x d ex xt y ey yt)
+                  (DmconvA x d ex xt))
+              Dlook
+              ([x] [ex] [xt] 
+                  converte/lam (DconvM' x ex xt) (DconvA' x ex xt))
+              ([x] [ex] [xt] 
+                  mconverte/lam (DmconvM' x ex xt) (DmconvA' x ex xt))
+           <- ({y} {ey} {yt}
+                  cut-converte-m _ 
+                  ([x] [d] [ex] [xt] DconvM x d ex xt y ey yt) 
+                  ([x] [d] [ex] [xt] DmconvM x d ex xt y ey yt)
+                  ([x] lookup/miss (Dlook x))
+                  ([x] [ex] [xt] DconvM' x ex xt y ey yt)
+                  ([x] [ex] [xt] DmconvM' x ex xt y ey yt))
+           <- cut-tpconverte-m _ DconvA DmconvA Dlook DconvA' DmconvA'.
+
+-const  : cut-aconverte-m _
+              ([x] [d] [ex] [xt]
+                  aconverte/const
+                  (Dtconv x d ex xt)
+                  (Dkof x d)
+                  Dcof)
+              ([x] [d] [ex] [xt]
+                  maconverte/const (Dmtconv x d ex xt) (Dmkof x d))
+              Dlook
+              ([x] [ex] [xt]
+                  aconverte/const
+                  (Dtconv' x ex xt)
+                  Dkof''
+                  Dcof)
+              ([x] [ex] [xt] maconverte/const (Dmtconv' x ex xt) Dmkof'')
+           <- strengthen-for-cut-kof _ Dkof Dmkof
+              Dkof'' Dmkof''
+              %%
+           <- cut-tpconverte-m _ Dtconv Dmtconv Dlook
+              Dtconv' Dmtconv'.
+
+-var    : cut-aconverte-m _
+              ([x] [d] [ex] [xt]
+                  aconverte/var
+                  (Dvtrans x ex xt : vtrans (EY ex) (Y x))
+                  (Dtconv x d ex xt : tpconverte (G x) (B x) ktype (EB ex))
+                  (DlookY x : lookup (G x) (Y x) (B x)))
+              ([x] [d] [ex] [xt] maconverte/var (Dmtconv x d ex xt))
+              ([x] Dlook x : lookup (G x) x A)
+              ([x] [ex] [xt]
+                  aconverte/var
+                  (Dvtrans x ex xt)
+                  (Dtconv' x ex xt)
+                  (DlookY x))
+              ([x] [ex] [xt] maconverte/var (Dmtconv' x ex xt))
+           <- cut-tpconverte-m _ Dtconv Dmtconv Dlook
+              ([x] [ex] [xt] Dtconv' x ex xt)
+              ([x] [ex] [xt] Dmtconv' x ex xt).
+
+-varisam: cut-aconverte-m _
+              ([x] [d] [ex] [xt]
+                  aconverte/vari
+                  xt
+                  (Dtconv x d ex xt : tpconverte (G x) A ktype (EA ex))
+                  (Dkof x d : kof A ktype)
+                  d)
+              ([x] [d] [ex] [xt]
+                  maconverte/vari 
+                  (Dmtconv x d ex xt) 
+                  (Dmkof x d : mkof (Dkof x d) Mm))
+              Dlook
+              ([x] [ex] [xt]
+                  aconverte/var
+                  xt
+                  (Dtconv' x ex xt)
+                  (Dlook x))
+              ([x] [ex] [xt] maconverte/var (Dmtconv' x ex xt))
+           <- cut-tpconverte-m _ Dtconv Dmtconv Dlook Dtconv' Dmtconv'.
+
+-varioth: cut-aconverte-m _
+              ([x] [d] [ex] [xt]
+                  aconverte/vari
+                  (Dvtrans : vtrans EY Y)
+                  (Dtconv x d ex xt : tpconverte (G x) B ktype (EB ex))
+                  (Dkof x d : kof B ktype)
+                  (Dvof : vof Y B))
+              ([x] [d] [ex] [xt]
+                  maconverte/vari
+                  (Dmtconv x d ex xt)
+                  (Dmkof x d : mkof (Dkof x d) Mm))
+              Dlook
+              ([x] [ex] [xt]
+                  aconverte/vari
+                  Dvtrans
+                  (Dtconv' x ex xt)
+                  Dkof'
+                  Dvof)
+              ([x] [ex] [xt] maconverte/vari (Dmtconv' x ex xt) Dmkof')
+           <- cut-tpconverte-m _ Dtconv Dmtconv Dlook Dtconv' Dmtconv'
+           <- strengthen-for-cut-kof _ Dkof Dmkof Dkof' Dmkof'.
+
+-app    : cut-aconverte-m _
+              ([x] [d] [ex] [xt]
+                  aconverte/app
+                  (Dsub x)
+                  (DconvN x d ex xt)
+                  (DconvR x d ex xt))
+              ([x] [d] [ex] [xt] 
+                  maconverte/app (DmconvN x d ex xt) (DmconvR x d ex xt))
+              ([x] Dlook x)
+              ([x] [ex] [xt]
+                  aconverte/app 
+                  (Dsub x) (DconveN x ex xt) (DconveR x ex xt))
+              ([x] [ex] [xt]
+                  maconverte/app 
+                  (DmconveN x ex xt) (DmconveR x ex xt))
+           <- cut-aconverte-m _ DconvR DmconvR Dlook
+              ([x] [ex] [xt] DconveR x ex xt)
+              ([x] [ex] [xt] DmconveR x ex xt)
+           <- cut-converte-m _ DconvN DmconvN Dlook
+              ([x] [ex] [xt] DconveN x ex xt)
+              ([x] [ex] [xt] DmconveN x ex xt).
+
+-base   : cut-tpconverte-m _
+              ([x] [d] [ex] [xt]
+                  tpconverte/base (Daconv x d ex xt))
+              ([x] [d] [ex] [xt]
+                  mtpconverte/base (Dmaconv x d ex xt))
+              Dlook
+              ([x] [ex] [xt] tpconverte/base (Daconve x ex xt))
+              ([x] [ex] [xt] mtpconverte/base (Dmaconve x ex xt))
+           <- cut-atpconverte-m _ Daconv Dmaconv Dlook
+              Daconve Dmaconve.
+
+-pi     : cut-tpconverte-m _
+              ([x] [d] [ex] [xt]
+                  tpconverte/pi
+                  ([y] [ey] [yt] DconvM x d ex xt y ey yt)
+                  (DconvA x d ex xt))
+              ([x] [d] [ex] [xt]
+                  mtpconverte/pi
+                  ([y] [ey] [yt] DmconvM x d ex xt y ey yt)
+                  (DmconvA x d ex xt))
+              Dlook
+              ([x] [ex] [xt] 
+                  tpconverte/pi (DconvM' x ex xt) (DconvA' x ex xt))
+              ([x] [ex] [xt] 
+                  mtpconverte/pi (DmconvM' x ex xt) (DmconvA' x ex xt))
+           <- ({y} {ey} {yt}
+                  cut-tpconverte-m _ 
+                  ([x] [d] [ex] [xt] DconvM x d ex xt y ey yt) 
+                  ([x] [d] [ex] [xt] DmconvM x d ex xt y ey yt)
+                  ([x] lookup/miss (Dlook x))
+                  ([x] [ex] [xt] DconvM' x ex xt y ey yt)
+                  ([x] [ex] [xt] DmconvM' x ex xt y ey yt))
+           <- cut-tpconverte-m _ DconvA DmconvA Dlook DconvA' DmconvA'.
+
+-lam    : cut-tpconverte-m _
+              ([x] [d] [ex] [xt]
+                  tpconverte/lam
+                  ([y] [ey] [yt] DconvM x d ex xt y ey yt)
+                  (DconvA x d ex xt))
+              ([x] [d] [ex] [xt]
+                  mtpconverte/lam
+                  ([y] [ey] [yt] DmconvM x d ex xt y ey yt)
+                  (DmconvA x d ex xt))
+              Dlook
+              ([x] [ex] [xt] 
+                  tpconverte/lam (DconvM' x ex xt) (DconvA' x ex xt))
+              ([x] [ex] [xt] 
+                  mtpconverte/lam (DmconvM' x ex xt) (DmconvA' x ex xt))
+           <- ({y} {ey} {yt}
+                  cut-tpconverte-m _ 
+                  ([x] [d] [ex] [xt] DconvM x d ex xt y ey yt) 
+                  ([x] [d] [ex] [xt] DmconvM x d ex xt y ey yt)
+                  ([x] lookup/miss (Dlook x))
+                  ([x] [ex] [xt] DconvM' x ex xt y ey yt)
+                  ([x] [ex] [xt] DmconvM' x ex xt y ey yt))
+           <- cut-tpconverte-m _ DconvA DmconvA Dlook DconvA' DmconvA'.
+
+-const  : cut-atpconverte-m _
+              ([x] [d] [ex] [xt]
+                  atpconverte/const
+                  (Dtconv x d ex xt)
+                  (Dkof x d)
+                  Dcof)
+              ([x] [d] [ex] [xt]
+                  matpconverte/const (Dmtconv x d ex xt) (Dmkof x d))
+              Dlook
+              ([x] [ex] [xt]
+                  atpconverte/const
+                  (Dtconv' x ex xt)
+                  Dkof''
+                  Dcof)
+              ([x] [ex] [xt] 
+                  matpconverte/const (Dmtconv' x ex xt) Dmkof'')
+           <- strengthen-for-cut-wfkind _ Dkof Dmkof
+              Dkof'' Dmkof''
+              %%
+           <- cut-kconverte-m _ Dtconv Dmtconv Dlook
+              Dtconv' Dmtconv'.
+
+-app    : cut-atpconverte-m _
+              ([x] [d] [ex] [xt]
+                  atpconverte/app
+                  (Dsub x)
+                  (DconvN x d ex xt)
+                  (DconvR x d ex xt))
+              ([x] [d] [ex] [xt] 
+                  matpconverte/app (DmconvN x d ex xt) (DmconvR x d ex xt))
+              ([x] Dlook x)
+              ([x] [ex] [xt]
+                  atpconverte/app 
+                  (Dsub x) (DconveN x ex xt) (DconveR x ex xt))
+              ([x] [ex] [xt]
+                  matpconverte/app 
+                  (DmconveN x ex xt) (DmconveR x ex xt))
+           <- cut-atpconverte-m _ DconvR DmconvR Dlook
+              ([x] [ex] [xt] DconveR x ex xt)
+              ([x] [ex] [xt] DmconveR x ex xt)
+           <- cut-converte-m _ DconvN DmconvN Dlook
+              ([x] [ex] [xt] DconveN x ex xt)
+              ([x] [ex] [xt] DmconveN x ex xt).
+
+-type   : cut-kconverte-m _ 
+              ([x] [d] [ex] [xt] kconverte/type)
+              ([x] [d] [ex] [xt] mkconverte/type)
+              _
+              ([x] [ex] [xt] kconverte/type)
+              ([x] [ex] [xt] mkconverte/type).
+
+-pi     : cut-kconverte-m _
+              ([x] [d] [ex] [xt]
+                  kconverte/pi
+                  ([y] [ey] [yt] DconvM x d ex xt y ey yt)
+                  (DconvA x d ex xt))
+              ([x] [d] [ex] [xt]
+                  mkconverte/pi
+                  ([y] [ey] [yt] DmconvM x d ex xt y ey yt)
+                  (DmconvA x d ex xt))
+              Dlook
+              ([x] [ex] [xt] 
+                  kconverte/pi (DconvM' x ex xt) (DconvA' x ex xt))
+              ([x] [ex] [xt] 
+                  mkconverte/pi (DmconvM' x ex xt) (DmconvA' x ex xt))
+           <- ({y} {ey} {yt}
+                  cut-kconverte-m _ 
+                  ([x] [d] [ex] [xt] DconvM x d ex xt y ey yt) 
+                  ([x] [d] [ex] [xt] DmconvM x d ex xt y ey yt)
+                  ([x] lookup/miss (Dlook x))
+                  ([x] [ex] [xt] DconvM' x ex xt y ey yt)
+                  ([x] [ex] [xt] DmconvM' x ex xt y ey yt))
+           <- cut-tpconverte-m _ DconvA DmconvA Dlook DconvA' DmconvA'.
+
+%worlds (csig-ei | asig-ei | bind | ovar | tvar | tbind | sbind')
+  (cut-convert-m _ _ _ _ _ _)
+  (cut-aconvert-m _ _ _ _ _ _)
+  (cut-tpconvert-m _ _ _ _ _ _)
+  (cut-atpconvert-m _ _ _ _ _ _)
+  (cut-kconvert-m _ _ _ _ _ _)
+  (cut-converte-m _ _ _ _ _ _)
+  (cut-aconverte-m _ _ _ _ _ _)
+  (cut-tpconverte-m _ _ _ _ _ _)
+  (cut-atpconverte-m _ _ _ _ _ _)
+  (cut-kconverte-m _ _ _ _ _ _).
+%total (M1 M2 M3 M4 M5 M6 M7 M8 M9 M10)
+  (cut-convert-m M1 _ _ _ _ _)
+  (cut-aconvert-m M2 _ _ _ _ _)
+  (cut-tpconvert-m M3 _ _ _ _ _)
+  (cut-atpconvert-m M4 _ _ _ _ _)
+  (cut-kconvert-m M5 _ _ _ _ _)
+  (cut-converte-m M6 _ _ _ _ _)
+  (cut-aconverte-m M7 _ _ _ _ _)
+  (cut-tpconverte-m M8 _ _ _ _ _)
+  (cut-atpconverte-m M9 _ _ _ _ _)
+  (cut-kconverte-m M10 _ _ _ _ _).
+
+
+%%%% Translation from implicit to explicit %%%%
+
+convert1-to-converte : ({x} {d:vof x A} {ex} {xt:vtrans ex x} 
+                           convert (M x) (B x) (EM ex))
+                        -> ({x} {ex} {xt:vtrans ex x}
+                               converte (cons nil x A) (M x) (B x) (EM ex))
+                        -> type.
+%mode convert1-to-converte +X1 -X2.
+
+- : convert1-to-converte
+        ([x] [d] [ex] [xt] Dconv x d ex xt)
+        ([x] [ex] [xt] Dconve x ex xt)
+     <- ({x} {d} {ex} {xt} can-mconvert (Dconv x d ex xt) (Dmconv x d ex xt))
+     <- cut-convert-m _ Dconv Dmconv ([_] lookup/hit) Dconve _.
+
+%worlds (csig-ei | asig-ei | bind | ovar | tvar | tbind | sbind') (convert1-to-converte _ _).
+%total {} (convert1-to-converte _ _).
+
+tpconvert1-to-tpconverte : ({x} {d:vof x A} {ex} {xt:vtrans ex x} 
+                               tpconvert (M x) (B x) (EM ex))
+                            -> ({x} {ex} {xt:vtrans ex x}
+                                   tpconverte (cons nil x A) (M x) (B x) (EM ex))
+                            -> type.
+%mode tpconvert1-to-tpconverte +X1 -X2.
+
+- : tpconvert1-to-tpconverte
+        ([x] [d] [ex] [xt] Dconv x d ex xt)
+        ([x] [ex] [xt] Dconve x ex xt)
+     <- ({x} {d} {ex} {xt} can-mtpconvert (Dconv x d ex xt) (Dmconv x d ex xt))
+     <- cut-tpconvert-m _ Dconv Dmconv ([_] lookup/hit) Dconve _.
+
+%worlds (csig-ei | asig-ei | bind | ovar | tvar | tbind | sbind') (tpconvert1-to-tpconverte _ _).
+%total {} (tpconvert1-to-tpconverte _ _).
+
+kconvert1-to-kconverte  : ({x} {d:vof x A} {ex} {xt:vtrans ex x} 
+                               kconvert (M x) (EM ex))
+                            -> ({x} {ex} {xt:vtrans ex x}
+                                   kconverte (cons nil x A) (M x) (EM ex))
+                            -> type.
+%mode kconvert1-to-kconverte +X1 -X2.
+
+- : kconvert1-to-kconverte
+        ([x] [d] [ex] [xt] Dconv x d ex xt)
+        ([x] [ex] [xt] Dconve x ex xt)
+     <- ({x} {d} {ex} {xt} can-mkconvert (Dconv x d ex xt) (Dmconv x d ex xt))
+     <- cut-kconvert-m _ Dconv Dmconv ([_] lookup/hit) Dconve _.
+
+%worlds (csig-ei | asig-ei | bind | ovar | tvar | tbind | sbind') (kconvert1-to-kconverte _ _).
+%total {} (kconvert1-to-kconverte _ _).
+
+
+convert-to-converte-nil       : convert M A EM -> converte nil M A EM -> type.
+%mode convert-to-converte-nil +X1 -X2.
+
+aconvert-to-aconverte-nil     : aconvert M A EM -> aconverte nil M A EM -> type.
+%mode aconvert-to-aconverte-nil +X1 -X2.
+
+tpconvert-to-tpconverte-nil   : tpconvert M A EM -> tpconverte nil M A EM -> type.
+%mode tpconvert-to-tpconverte-nil +X1 -X2.
+
+atpconvert-to-atpconverte-nil : atpconvert M A EM 
+                                 -> atpconverte nil M A EM -> type.
+%mode atpconvert-to-atpconverte-nil +X1 -X2.
+
+kconvert-to-kconverte-nil     : kconvert M EM -> kconverte nil M EM -> type.
+%mode kconvert-to-kconverte-nil +X1 -X2.
+
+
+-at       : convert-to-converte-nil
+                (convert/at Daconv)
+                (converte/at Daconve)
+             <- aconvert-to-aconverte-nil Daconv Daconve.
+
+-lam      : convert-to-converte-nil
+                (convert/lam Dconv Dtconv)
+                (converte/lam Dconve Dtconve)
+             <- convert1-to-converte Dconv Dconve
+             <- tpconvert-to-tpconverte-nil Dtconv Dtconve.
+
+-const    : aconvert-to-aconverte-nil
+                (aconvert/const Dtconv Dkof Dcof)
+                (aconverte/const Dtconve Dkof Dcof)
+             <- tpconvert-to-tpconverte-nil Dtconv Dtconve.
+
+-var      : aconvert-to-aconverte-nil
+                (aconvert/var Dvtrans Dtconv Dkof Dvof)
+                (aconverte/vari Dvtrans Dtconve Dkof Dvof)
+             <- tpconvert-to-tpconverte-nil Dtconv Dtconve.
+
+-app      : aconvert-to-aconverte-nil
+                (aconvert/app Dsub Dconv Daconv)
+                (aconverte/app Dsub Dconve Daconve)
+             <- aconvert-to-aconverte-nil Daconv Daconve
+             <- convert-to-converte-nil Dconv Dconve.
+
+-base     : tpconvert-to-tpconverte-nil
+                (tpconvert/base Daconv)
+                (tpconverte/base Daconve)
+             <- atpconvert-to-atpconverte-nil Daconv Daconve.
+
+-lam      : tpconvert-to-tpconverte-nil
+                (tpconvert/lam Dconv Dtconv)
+                (tpconverte/lam Dconve Dtconve)
+             <- tpconvert1-to-tpconverte Dconv Dconve
+             <- tpconvert-to-tpconverte-nil Dtconv Dtconve.
+
+-pi       : tpconvert-to-tpconverte-nil
+                (tpconvert/pi Dconv Dtconv)
+                (tpconverte/pi Dconve Dtconve)
+             <- tpconvert1-to-tpconverte Dconv Dconve
+             <- tpconvert-to-tpconverte-nil Dtconv Dtconve.
+
+-const    : atpconvert-to-atpconverte-nil
+                (atpconvert/const Dtconv Dkof Dcof)
+                (atpconverte/const Dtconve Dkof Dcof)
+             <- kconvert-to-kconverte-nil Dtconv Dtconve.
+
+-app      : atpconvert-to-atpconverte-nil
+                (atpconvert/app Dsub Dconv Daconv)
+                (atpconverte/app Dsub Dconve Daconve)
+             <- atpconvert-to-atpconverte-nil Daconv Daconve
+             <- convert-to-converte-nil Dconv Dconve.
+
+-type     : kconvert-to-kconverte-nil kconvert/type kconverte/type.
+
+-pi       : kconvert-to-kconverte-nil
+                (kconvert/pi Dconv Dtconv)
+                (kconverte/pi Dconve Dtconve)
+             <- kconvert1-to-kconverte Dconv Dconve
+             <- tpconvert-to-tpconverte-nil Dtconv Dtconve.
+
+%worlds (csig-ei | asig-ei | bind | ovar | tvar | tbind | sbind') 
+  (convert-to-converte-nil _ _)
+  (aconvert-to-aconverte-nil _ _)
+  (tpconvert-to-tpconverte-nil _ _)
+  (atpconvert-to-atpconverte-nil _ _)
+  (kconvert-to-kconverte-nil _ _).
+%total (D1 D2 D3 D4 D5) 
+  (convert-to-converte-nil D1 _)
+  (aconvert-to-aconverte-nil D2 _)
+  (tpconvert-to-tpconverte-nil D3 _)
+  (atpconvert-to-atpconverte-nil D4 _)
+  (kconvert-to-kconverte-nil D5 _).
+
+convert-to-converte : {G} convert M A EM -> converte G M A EM -> type.
+%mode convert-to-converte +X1 +X2 -X3.
+
+- : convert-to-converte G Dconv Dconve
+     <- convert-to-converte-nil Dconv Dconvenil
+     <- append-nil _ Dappend
+     <- weaken-converte' Dappend Dconvenil Dconve.
+
+%worlds (csig-ei | asig-ei | bind | ovar | sbind') (convert-to-converte _ _ _).
+%total {} (convert-to-converte _ _ _).
+

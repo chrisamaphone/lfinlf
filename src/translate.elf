@@ -1,0 +1,172 @@
+
+ktrans   : ekind -> kind -> type.
+tptrans  : etp -> tp -> kind -> type.
+vtrans   : etm -> atm -> type.
+trans    : etm -> tm -> tp -> type.
+
+
+ktrans/type  : ktrans ektype ktype.
+
+ktrans/pi    : ktrans (ekpi EA ([ex] EK ex)) (kpi A ([x] K x))
+                <- tptrans EA A ktype
+                <- ({x} vof x A
+                    -> {ex} vtrans ex x
+                    -> ktrans (EK ex) (K x)).
+
+tptrans/const : tptrans (eaconst C) A K
+                 <- ckof C K
+                 <- wfkind K
+%                 <- kclosed K
+                 <- ksimp K H
+                 <- tpexpand (aconst C) H A.
+
+tptrans/app   : tptrans (eaapp EA EN) Ax Kx
+                 <- tptrans EA (alam ([x] A x)) (kpi B ([x] K x))
+                 <- trans EN N B
+                 <- tpsub ([x] A x) N Ax
+                 <- ksub ([x] K x) N Kx.
+
+tptrans/pi     : tptrans (epi EA ([ex] EB ex)) (pi A ([x] B x)) ktype
+                  <- tptrans EA A ktype
+                  <- ({x} vof x A
+                      -> {ex} vtrans ex x
+                      -> tptrans (EB ex) (B x) ktype).
+
+tptrans/lam    : tptrans (ealam EA ([ex] EB ex)) (alam ([x] B x))
+                     (kpi A ([x] K x))
+                  <- tptrans EA A ktype
+                  <- ({x} vof x A
+                      -> {ex} vtrans ex x
+                      -> tptrans (EB ex) (B x) (K x)).
+
+
+trans/const  : trans (econst C) M A
+                <- cof C A
+                <- kof A ktype
+%                <- tclosed A
+                <- simp A T
+                <- expand (const C) T M.
+
+trans/var    : trans EM M A
+                <- vtrans EM X
+                <- vof X A
+                <- kof A ktype
+                <- simp A T
+                <- expand X T M.
+
+trans/app    : trans (eapp EM EN) Mx Ax
+                <- trans EM (lam ([x] M x)) (pi B ([x] A x))
+                <- trans EN N B
+                <- sub ([x] M x) N Mx
+                <- tpsub ([x] A x) N Ax.
+
+trans/lam    : trans (elam EA ([ex] EM ex)) (lam ([x] M x))
+                   (pi A ([x] B x))
+                <- tptrans EA A ktype
+                <- ({x} vof x A
+                    -> {ex} vtrans ex x
+                    -> trans (EM ex) (M x) (B x)).
+
+- : (vtrans _ _ -> vtrans _ _) -> type.
+
+%block tvar   : block {x:atm} {ex:etm} 
+                      {tr:vtrans ex x}.
+
+%block tbind  : some  {A:tp}
+                block {x:atm} {d:vof x A}
+                      {ex:etm} {xt:vtrans ex x}.
+
+%block tobind : some  {I:nat} {A:tp}
+                block {x:atm} {d:isvar x I}
+                      {ex:etm} %{ed:eisvar ex I}%
+                      {xt:vtrans ex x}.
+
+%% Signature Translation %%
+%% XXX move? Is it right?
+%block tcsig  : some {A:tp} {EA:etp} {dt:tptrans EA A ktype}
+                block {c:ctm} {d:cof c A} {ed:ecof c EA}.
+
+
+
+%% XXX not sure this is a good block.
+
+%{
+%block tevar  : some {R:atm}
+                block {ex:etm} {tr:vtrans ex R}.
+}%
+
+%%% explicit contexts version %%%
+
+ktranse   : ctx -> ekind -> kind -> type.
+tptranse  : ctx -> etp -> tp -> kind -> type.
+transe    : ctx -> etm -> tm -> tp -> type.
+
+%%
+
+ktranse/type    : ktranse G ektype ktype.
+
+ktranse/pi      : ktranse G (ekpi EA ([ex] EK ex)) (kpi A ([x] K x))
+                   <- tptranse G EA A ktype
+                   <- ({x} {ex} vtrans ex x
+                       -> ktranse (cons G x A) (EK ex) (K x)).
+
+%%
+
+tptranse/const  : tptranse G (eaconst C) A K
+                   <- ckof C K
+                   <- wfkind K
+%                   <- kclosed K
+                   <- ksimp K H
+                   <- tpexpand (aconst C) H A.
+
+tptranse/app    : tptranse G (eaapp EA EN) Ax Kx
+                   <- tptranse G EA (alam ([x] A x)) (kpi B ([x] K x))
+                   <- transe G EN N B
+                   <- tpsub ([x] A x) N Ax
+                   <- ksub ([x] K x) N Kx.
+
+tptranse/pi     : tptranse G (epi EA ([ex] EB ex)) (pi A ([x] B x)) ktype
+                   <- tptranse G EA A ktype
+                   <- ({x} {ex} vtrans ex x
+                       -> tptranse (cons G x A) (EB ex) (B x) ktype).
+
+tptranse/lam    : tptranse G (ealam EA ([ex] EB ex)) (alam ([x] B x))
+                      (kpi A ([x] K x))
+                   <- tptranse G EA A ktype
+                   <- ({x} {ex} vtrans ex x
+                       -> tptranse (cons G x A) (EB ex) (B x) (K x)).
+
+%%
+
+transe/const  : transe G (econst C) M A
+                 <- cof C A
+                 <- kof A ktype
+%                 <- tclosed A
+                 <- simp A T
+                 <- expand (const C) T M.
+
+transe/var    : transe G EM M A
+                 <- vtrans EM X
+                 <- lookup G X A
+                 <- kofe G A ktype %% was <- kof A ktype, changed 10/26/09.
+                 <- simp A T
+                 <- expand X T M.
+
+transe/vari   : transe G EM M A
+                 <- vtrans EM X
+                 <- vof X A
+                 <- kof A ktype
+                 <- simp A T
+                 <- expand X T M.
+
+transe/app    : transe G (eapp EM EN) Mx Ax
+                 <- transe G EM (lam [x] M x) (pi B ([x] A x))
+                 <- transe G EN N B
+                 <- sub ([x] M x) N Mx
+                 <- tpsub ([x] A x) N Ax.
+
+transe/lam    : transe G (elam EA ([ex] EM ex)) (lam ([x] M x))
+                    (pi A ([x] B x))
+                 <- tptranse G EA A ktype
+                 <- ({x} {ex} vtrans ex x
+                     -> transe (cons G x A) (EM ex) (M x) (B x)).
