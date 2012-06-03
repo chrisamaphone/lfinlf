@@ -1,7 +1,0 @@
-This comprises the working draft of LFinLF development, including soundness
-and completeness of translation to canonical forms, family-level lambdas,
-and constants.
-
-All code by Chris Martens
-
-Last updated 3/29/2011
